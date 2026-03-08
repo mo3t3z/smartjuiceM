@@ -1,0 +1,214 @@
+    /* Page background like dashboard */
+    .sj-login-page {
+    min-height: 100vh;
+    background: linear-gradient(#eef2f8, #d6deea);
+    font-family: Arial, sans-serif;
+    }
+
+    /* Top header (blue) */
+    .sj-topbar {
+    height: 86px;
+    background: #0b3c67;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+    }
+
+    .sj-topbar-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    }
+
+    .sj-brand {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    }
+
+    .sj-subtitle {
+    font-size: 12px;
+    opacity: 0.9;
+    letter-spacing: 1px;
+    }
+
+    /* Right small pill */
+    .sj-topbar-right .sj-pill {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    }
+
+    /* Center content */
+    .sj-login-content {
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px;
+    }
+
+    /* Card like manager page cards */
+    .sj-login-card {
+    width: 100%;
+    max-width: 560px;
+    background: #fff;
+    border: 1px solid #e7ebf2;
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    padding: 26px;
+    }
+
+    /* Title area */
+    .sj-card-title h2 {
+    margin: 0;
+    font-size: 22px;
+    color: #0b3c67;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    }
+
+    .sj-card-title p {
+    margin: 8px 0 18px;
+    color: #5b6b7c;
+    font-size: 13px;
+    }
+
+    /* Error alert */
+    .sj-alert {
+    background: #fff2f2;
+    border: 1px solid #ffd0d0;
+    color: #b00020;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    }
+
+    /* Form fields */
+    .sj-form .sj-field {
+    margin-bottom: 14px;
+    }
+
+    .sj-form label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #1d2a35;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    }
+
+    .sj-form input {
+    width: 100%;
+    height: 44px;
+    border-radius: 8px;
+    border: 1px solid #d7dde7;
+    padding: 0 12px;
+    outline: none;
+    font-size: 14px;
+    }
+
+    .sj-form input:focus {
+    border-color: #0b3c67;
+    box-shadow: 0 0 0 3px rgba(11, 60, 103, 0.12);
+    }
+
+    /* Password row */
+    .sj-password-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    }
+
+    /* Buttons */
+    .sj-btn-primary {
+    width: 100%;
+    height: 46px;
+    border: none;
+    border-radius: 8px;
+    background: #0b3c67;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 6px;
+    }
+
+    .sj-btn-primary:hover {
+    filter: brightness(0.95);
+    }
+
+    .sj-btn-primary:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+    }
+
+    .sj-btn-secondary {
+    height: 44px;
+    border-radius: 8px;
+    border: 1px solid #d7dde7;
+    background: #f2f5fa;
+    padding: 0 14px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0b3c67;
+    white-space: nowrap;
+    }
+
+    .sj-btn-secondary:hover {
+    background: #e9eef7;
+    }
+
+    /* Security box like your manager page center card */
+    .sj-security-box {
+    margin-top: 16px;
+    background: linear-gradient(#0b3c67, #0a345a);
+    border-radius: 8px;
+    padding: 14px 14px 14px 0;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: #fff;
+    }
+
+    .sj-security-bar {
+    width: 4px;
+    height: 44px;
+    background: #ffd400;
+    border-radius: 4px;
+    margin-left: 14px;
+    }
+
+    .sj-security-text {
+    font-size: 13px;
+    line-height: 1.5;
+    opacity: 0.95;
+    }
+
+    /* Mobile */
+    @media (max-width: 520px) {
+    .sj-topbar {
+        padding: 0 16px;
+        height: 80px;
+    }
+
+    .sj-brand {
+        font-size: 24px;
+    }
+
+    .sj-password-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sj-btn-secondary {
+        width: 100%;
+    }
+    
+    }

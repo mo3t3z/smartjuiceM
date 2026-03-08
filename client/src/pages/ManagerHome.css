@@ -1,0 +1,219 @@
+/* ManagerHome — tableau de bord gérant */
+
+.mh-page {
+  min-height: 100vh;
+  background: #f4f6f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ===== HEADER ===== */
+.mh-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+  padding: 0 2.5rem;
+  height: 70px;
+  box-shadow: 0 2px 12px rgba(255, 107, 53, 0.3);
+}
+
+.mh-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mh-logo-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.mh-brand-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.mh-brand-sub {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+.mh-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mh-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mh-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.mh-user-email {
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.mh-logout-btn {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 8px;
+  padding: 7px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mh-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: transparent;
+}
+
+/* ===== WELCOME BANNER ===== */
+.mh-welcome {
+  text-align: center;
+  padding: 3rem 1rem 2rem;
+}
+
+.mh-welcome-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px;
+}
+
+.mh-welcome-sub {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+}
+
+/* ===== ACTION CARDS ===== */
+.mh-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+}
+
+.mh-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: #fff;
+  border: none;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.mh-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 16px 16px 0 0;
+}
+
+.mh-card--orange::before { background: linear-gradient(90deg, #ff6b35, #ffb347); }
+.mh-card--blue::before   { background: linear-gradient(90deg, #1976d2, #42a5f5); }
+.mh-card--green::before  { background: linear-gradient(90deg, #2e7d32, #66bb6a); }
+
+.mh-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+}
+
+.mh-card-icon {
+  font-size: 2.2rem;
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
+.mh-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px;
+}
+
+.mh-card-desc {
+  font-size: 0.88rem;
+  color: #777;
+  margin: 0;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.mh-card-arrow {
+  margin-top: 1.4rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  align-self: flex-end;
+  transition: transform 0.2s;
+}
+
+.mh-card--orange .mh-card-arrow { color: #ff6b35; }
+.mh-card--blue .mh-card-arrow   { color: #1976d2; }
+.mh-card--green .mh-card-arrow  { color: #2e7d32; }
+
+.mh-card:hover .mh-card-arrow {
+  transform: translateX(4px);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .mh-header {
+    padding: 0 1.2rem;
+    height: auto;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .mh-user-email {
+    display: none;
+  }
+
+  .mh-welcome-title {
+    font-size: 1.5rem;
+  }
+
+  .mh-cards {
+    grid-template-columns: 1fr;
+    padding: 0 1rem 2rem;
+  }
+}

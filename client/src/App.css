@@ -1,0 +1,19 @@
+/* App.css — styles globaux partagés */
+
+.message {
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #fff3e0;
+  color: #e65100;
+}

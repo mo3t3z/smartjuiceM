@@ -1,0 +1,111 @@
+/* Mon Compte - Page gérant */
+
+.mc-card {
+  max-width: 500px;
+  margin: 2rem auto;
+}
+
+.mc-form-card {
+  max-width: 500px;
+  margin: 0 auto 2rem;
+}
+
+/* Informations du profil */
+.mc-profile-item {
+  margin-bottom: 1rem;
+}
+
+.mc-profile-label {
+  color: #888;
+  font-size: 0.85rem;
+  margin-bottom: 0.2rem;
+}
+
+.mc-profile-value {
+  font-weight: 600;
+  font-size: 15px;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.mc-profile-item-last {
+  margin-bottom: 1.5rem;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Messages */
+.mc-message-success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.mc-message-error {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Champ mot de passe avec bouton œil */
+.mc-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.mc-password-wrapper input {
+  padding-right: 2.5rem;
+  width: 100%;
+}
+
+.mc-eye-button {
+  position: absolute;
+  right: 0.6rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #666;
+  padding: 0;
+  line-height: 1;
+}
+
+.mc-eye-button:hover {
+  color: #333;
+}
+
+/* Bouton changer mot de passe */
+.mc-change-btn {
+  padding: 12px 24px;
+  background: #ff6b35;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.mc-change-btn:hover {
+  background: #ff5722;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mc-card,
+  .mc-form-card {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
