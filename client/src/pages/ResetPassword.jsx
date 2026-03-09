@@ -38,9 +38,14 @@ export default function ResetPassword() {
       
       setMessage(response.data.message);
       
-      // Rediriger vers login après 2 secondes
+      // Rediriger vers la bonne page de login selon le rôle
+      const userRole = response.data.role;
       setTimeout(() => {
-        navigate('/login-client');
+        if (userRole === 'manager') {
+          navigate('/login');
+        } else {
+          navigate('/login-client');
+        }
       }, 2000);
     } catch (err) {
       setError(

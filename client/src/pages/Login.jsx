@@ -108,6 +108,10 @@
                 {loading ? "Connexion..." : "Se connecter"}
               </button>
 
+              <div className="sj-forgot-password">
+                <a href="/forgot-password-staff">Mot de passe oublié ?</a>
+              </div>
+
               <div className="sj-security-box">
                 <div className="sj-security-bar" />
                 <div className="sj-security-text">

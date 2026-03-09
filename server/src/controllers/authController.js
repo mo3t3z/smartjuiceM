@@ -258,6 +258,13 @@ export const requestPasswordReset = async (req, res) => {
       });
     }
 
+    // Seuls le manager et le client peuvent réinitialiser leur mot de passe
+    if (["seller", "workshop"].includes(user.role)) {
+      return res.status(403).json({ 
+        message: "Vous devez contacter le manager pour réinitialiser votre mot de passe." 
+      });
+    }
+
     // Générer un token unique cryptographiquement sécurisé
     const resetToken = crypto.randomBytes(32).toString('hex');
     
@@ -340,7 +347,8 @@ export const resetPassword = async (req, res) => {
     await user.save();
 
     res.json({ 
-      message: "Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter." 
+      message: "Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter.",
+      role: user.role
     });
 
   } catch (error) {

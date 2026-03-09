@@ -3,6 +3,7 @@ import Login from "./pages/Login.jsx";
 import LoginClient from "./pages/LoginClient.jsx";
 import RegisterClient from "./pages/RegisterClient.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ForgotPasswordStaff from "./pages/ForgotPasswordStaff.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import ManagerHome from "./pages/ManagerHome.jsx";
 import SellerHome from "./pages/SellerHome.jsx";
@@ -26,6 +27,7 @@ export default function App() {
       
       {/* Routes de réinitialisation de mot de passe */}
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/forgot-password-staff" element={<ForgotPasswordStaff />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
 
       {/* Page login commune pour tous (manager / seller / workshop) */}
