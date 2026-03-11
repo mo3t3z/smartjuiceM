@@ -54,32 +54,40 @@
   color: #721c24;
 }
 
-/* Champ mot de passe avec bouton œil */
 .mc-password-wrapper {
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
 .mc-password-wrapper input {
-  padding-right: 2.5rem;
   width: 100%;
+  padding-right: 46px;
+  box-sizing: border-box;
 }
 
 .mc-eye-button {
   position: absolute;
-  right: 0.6rem;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40px;
   background: none;
   border: none;
-  cursor: pointer;
-  font-size: 1.1rem;
-  color: #666;
+  border-left: 1px solid #e8e8e8;
+  border-radius: 0 8px 8px 0;
   padding: 0;
-  line-height: 1;
+  margin: 0;
+  cursor: pointer;
+  color: #bbb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: color 0.2s, border-color 0.2s;
 }
 
 .mc-eye-button:hover {
-  color: #333;
+  color: #ff6b35;
+  border-color: #ff6b35;
 }
 
 /* Bouton changer mot de passe */

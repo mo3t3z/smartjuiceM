@@ -20,16 +20,20 @@ export default function ProtectedRoute({ children, allowedRoles }) {
   return children;
 }
 
-// Redirige les utilisateurs déjà connectés vers leur page d'accueil
-export function RedirectIfLoggedIn({ children }) {
+// Redirige les utilisateurs déjà connectés vers leur page d'accueil.
+// redirectRoles : liste des rôles à rediriger (si absent, redirige tous les rôles)
+export function RedirectIfLoggedIn({ children, redirectRoles }) {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
   if (token && user) {
-    if (user.role === "manager") return <Navigate to="/manager" replace />;
-    if (user.role === "seller") return <Navigate to="/seller" replace />;
-    if (user.role === "workshop") return <Navigate to="/workshop" replace />;
-    if (user.role === "client") return <Navigate to="/" replace />;
+    const shouldRedirect = !redirectRoles || redirectRoles.includes(user.role);
+    if (shouldRedirect) {
+      if (user.role === "manager") return <Navigate to="/manager" replace />;
+      if (user.role === "seller") return <Navigate to="/seller" replace />;
+      if (user.role === "workshop") return <Navigate to="/workshop" replace />;
+      if (user.role === "client") return <Navigate to="/" replace />;
+    }
   }
 
   return children;
