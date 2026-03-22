@@ -1,0 +1,53 @@
+.wp-page {
+  min-height: 100vh;
+  background: #f4f6f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.wp-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 3rem 2.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.09);
+  text-align: center;
+  max-width: 480px;
+  width: 90%;
+}
+
+.wp-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.wp-card h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 0.75rem;
+}
+
+.wp-card p {
+  color: #888;
+  margin: 0 0 2rem;
+  font-size: 0.95rem;
+}
+
+.wp-back-btn {
+  background: linear-gradient(135deg, #1e3a5f, #2e5d9c);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.wp-back-btn:hover {
+  opacity: 0.88;
+}

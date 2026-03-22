@@ -86,14 +86,14 @@
 }
 
 .mc-eye-button:hover {
-  color: #ff6b35;
-  border-color: #ff6b35;
+  color: #1e3a5f;
+  border-color: #1e3a5f;
 }
 
 /* Bouton changer mot de passe */
 .mc-change-btn {
   padding: 12px 24px;
-  background: #ff6b35;
+  background: #1e3a5f;
   color: white;
   border: none;
   border-radius: 8px;
@@ -106,7 +106,7 @@
 .mc-change-btn:hover {
   background: #ff5722;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
 }
 
 /* Responsive */

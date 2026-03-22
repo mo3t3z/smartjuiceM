@@ -1,0 +1,38 @@
+.sh-page { min-height: 100vh; background: #f4f6f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+
+.sh-header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #1e3a5f 0%, #2e5d9c 100%); padding: 0 2.5rem; height: 70px; box-shadow: 0 2px 12px rgba(30,58,95,0.3); }
+.sh-brand { display: flex; align-items: center; gap: 12px; }
+.sh-logo-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.22); color: #fff; font-size: 0.88rem; font-weight: 800; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; border: 1.5px solid rgba(255,255,255,0.4); flex-shrink: 0; }
+.sh-brand-name { font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0; line-height: 1.2; }
+.sh-brand-sub  { font-size: 0.78rem; color: rgba(255,255,255,0.82); margin: 0; letter-spacing: 0.3px; }
+.sh-header-right { display: flex; align-items: center; gap: 16px; }
+.sh-user-info { display: flex; align-items: center; gap: 10px; }
+.sh-user-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.25); color: #fff; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.5); }
+.sh-user-email { font-size: 0.88rem; color: rgba(255,255,255,0.9); font-weight: 500; }
+.sh-logout-btn { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.45); border-radius: 8px; padding: 7px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.sh-logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+.sh-welcome { text-align: center; padding: 3rem 1rem 2rem; }
+.sh-welcome-title { font-size: 2rem; font-weight: 700; color: #1a1a2e; margin: 0 0 8px; }
+.sh-welcome-sub { font-size: 1rem; color: #666; margin: 0; }
+
+.sh-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 500px; margin: 0 auto; padding: 0 2rem 3rem; }
+
+.sh-card { display: flex; flex-direction: column; align-items: flex-start; background: #fff; border: none; border-radius: 16px; padding: 2rem; text-align: left; cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.07); transition: transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden; }
+.sh-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; border-radius: 16px 16px 0 0; }
+.sh-card--green::before { background: linear-gradient(90deg, #2e7d32, #66bb6a); }
+.sh-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,0.12); }
+.sh-card-icon { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px; padding: 4px 10px; border-radius: 6px; margin-bottom: 1rem; display: inline-block; line-height: 1.4; }
+.sh-card--green .sh-card-icon { background: #e8f5e9; color: #2e7d32; }
+.sh-card-title { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; margin: 0 0 8px; }
+.sh-card-desc { font-size: 0.88rem; color: #777; margin: 0; line-height: 1.5; flex: 1; }
+.sh-card-arrow { margin-top: 1.4rem; font-size: 1.2rem; font-weight: 700; align-self: flex-end; transition: transform 0.2s; }
+.sh-card--green .sh-card-arrow { color: #2e7d32; }
+.sh-card:hover .sh-card-arrow { transform: translateX(4px); }
+
+@media (max-width: 768px) {
+  .sh-header { padding: 0 1.2rem; height: auto; padding-top: 14px; padding-bottom: 14px; flex-wrap: wrap; gap: 12px; }
+  .sh-user-email { display: none; }
+  .sh-welcome-title { font-size: 1.5rem; }
+  .sh-cards { grid-template-columns: 1fr; padding: 0 1rem 2rem; }
+}

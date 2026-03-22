@@ -17,14 +17,14 @@ export default function ForgotPasswordStaff() {
     try {
       const response = await axios.post(
         'http://localhost:5000/api/auth/request-password-reset',
-        { email }
+        { email, source: 'staff' }
       );
-      
+
       setMessage(response.data.message);
       setEmail('');
     } catch (err) {
       setError(
-        err.response?.data?.message || 
+        err.response?.data?.message ||
         'Erreur lors de la demande de réinitialisation'
       );
     } finally {
@@ -37,7 +37,7 @@ export default function ForgotPasswordStaff() {
       <div className="forgot-password-box">
         <h1>Mot de passe oublié ?</h1>
         <p className="subtitle">
-          Entrez votre email et nous vous enverrons un lien pour 
+          Entrez votre email et nous vous enverrons un lien pour
           réinitialiser votre mot de passe.
         </p>
 

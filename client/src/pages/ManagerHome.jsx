@@ -13,25 +13,32 @@ export default function ManagerHome() {
 
   const actions = [
     {
-      icon: "🛒",
+      icon: "Prod",
       title: "Gestion des Produits",
       description: "Ajouter, modifier et supprimer les produits du catalogue SmartJuice.",
       path: "/manager/products",
       color: "orange",
     },
     {
-      icon: "👥",
+      icon: "Comp",
       title: "Gérer les Comptes",
       description: "Créer et administrer les comptes vendeurs et ateliers.",
       path: "/manager/accounts",
       color: "blue",
     },
     {
-      icon: "👤",
+      icon: "Moi",
       title: "Mon Compte",
       description: "Consulter vos informations personnelles et changer votre mot de passe.",
       path: "/manager/account",
       color: "green",
+    },
+    {
+      icon: "Stock",
+      title: "Consulter Stocks",
+      description: "Visualiser le stock des matières premières, produits finis atelier et boutique.",
+      path: "/manager/stocks",
+      color: "teal",
     },
   ];
 
@@ -40,7 +47,7 @@ export default function ManagerHome() {
       {/* Header */}
       <header className="mh-header">
         <div className="mh-brand">
-          <span className="mh-logo-icon">🍊</span>
+          <span className="mh-logo-icon">SJ</span>
           <div>
             <h1 className="mh-brand-name">SmartJuice</h1>
             <p className="mh-brand-sub">Interface Gérant</p>

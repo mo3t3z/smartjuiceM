@@ -6,6 +6,9 @@ import cors from "cors";
 import { connectDB } from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import productRoutes from "./src/routes/productRoutes.js";
+import workshopRoutes from "./src/routes/workshopRoutes.js";
+import sellerRoutes from "./src/routes/sellerRoutes.js";
+import managerStockRoutes from "./src/routes/managerStockRoutes.js";
  // cors(): autorise le navigateur à faire des requêtes entre 5173 (front) et 5000 (back)
  // express.json(): permet de lire req.body en JSON
 const app = express();
@@ -19,6 +22,9 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/workshop", workshopRoutes);
+app.use("/api/seller", sellerRoutes);
+app.use("/api/manager", managerStockRoutes);
 
 const PORT = process.env.PORT || 5000;
 

@@ -1,127 +1,119 @@
-  import { useState } from "react";
-  import axios from "axios";
-  import { useNavigate } from "react-router-dom";
-  import "./Login.css";
+import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import "./Login.css";
 
-  export default function Login() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    const [showPassword, setShowPassword] = useState(false); // ✅ PB23 : afficher/masquer mot de passe
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false); // ✅ UX : état de chargement
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    const handleSubmit = async (e) => {
-      e.preventDefault();
+    if (!email || !password) {
+      setError("Veuillez remplir email et mot de passe");
+      return;
+    }
 
-      if (!email || !password) {
-        setError("Veuillez remplir email et mot de passe");
-        return;
-      }
+    try {
+      setLoading(true);
+      setError("");
 
-      try {
-        setLoading(true);
-        setError("");
+      const res = await axios.post("http://localhost:5000/api/auth/login", {
+        email,
+        password,
+      });
 
-        const res = await axios.post("http://localhost:5000/api/auth/login", {
-          email,
-          password,
-        });
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
 
-        // Sauvegarde token et user
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
+      const { role } = res.data.user;
 
-        // Redirection selon le rôle
-        const { role } = res.data.user;
+      if (role === "manager") navigate("/manager");
+      else if (role === "seller") navigate("/seller");
+      else if (role === "workshop") navigate("/workshop");
+    } catch (err) {
+      setError(err.response?.data?.message || "Erreur de connexion");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (role === "manager") navigate("/manager");
-        else if (role === "seller") navigate("/seller");
-        else if (role === "workshop") navigate("/workshop");
-      } catch (err) {
-        setError(err.response?.data?.message || "Erreur de connexion");
-      } finally {
-        setLoading(false);
-      }
-    };
+  return (
+    <div className="sj-login-page">
+      <header className="sj-topbar">
+        <div className="sj-topbar-left">
+          <div className="sj-brand">SmartJuice</div>
+          <div className="sj-subtitle">SYSTÈME DE GESTION - CONNEXION</div>
+        </div>
+        <div className="sj-topbar-right">
+          <span className="sj-pill">Accès sécurisé</span>
+        </div>
+      </header>
 
-    return (
-      <div className="sj-login-page">
-        {/* Header style SmartJuice */}
-        <header className="sj-topbar">
-          <div className="sj-topbar-left">
-            <div className="sj-brand">SmartJuice</div>
-            <div className="sj-subtitle">SYSTÈME DE GESTION - CONNEXION</div>
+      <main className="sj-login-content">
+        <section className="sj-login-card">
+          <div className="sj-card-title">
+            <h2>Connexion</h2>
+            <p>Accès Manager / Vendeur / Atelier</p>
           </div>
-          <div className="sj-topbar-right">
-            <span className="sj-pill">Accès sécurisé</span>
-          </div>
-        </header>
 
-        {/* Content */}
-        <main className="sj-login-content">
-          <section className="sj-login-card">
-            <div className="sj-card-title">
-              <h2>Connexion</h2>
-              <p>Accès Manager / Vendeur / Atelier</p>
+          {error && <div className="sj-alert">{error}</div>}
+
+          <form onSubmit={handleSubmit} className="sj-form">
+            <div className="sj-field">
+              <label>Email</label>
+              <input
+                type="email"
+                placeholder="ex: manager@smartjuice.tn"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
             </div>
 
-            {error && <div className="sj-alert">{error}</div>}
-
-            <form onSubmit={handleSubmit} className="sj-form">
-              <div className="sj-field">
-                <label>Email</label>
+            <div className="sj-field">
+              <label>Mot de passe</label>
+              <div className="sj-password-row">
                 <input
-                  type="email"
-                  placeholder="ex: manager@smartjuice.tn"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Votre mot de passe"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
                 />
+                <button
+                  type="button"
+                  className="sj-eye-btn"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                >
+                  {showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
+                </button>
               </div>
+            </div>
 
-              <div className="sj-field">
-                <label>Mot de passe</label>
+            <button className="sj-btn-primary" disabled={loading}>
+              {loading ? "Connexion..." : "Se connecter"}
+            </button>
 
-                <div className="sj-password-row">
-                  <input
-                    type={showPassword ? "text" : "password"} // PB23 toggle
-                    placeholder="Votre mot de passe"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                  />
+            <div className="sj-forgot-password">
+              <a href="/forgot-password-staff">Mot de passe oublié ?</a>
+            </div>
 
-                  <button
-                    type="button"
-                    className="sj-btn-secondary"
-                    onClick={() => setShowPassword((v) => !v)}
-                  >
-                    {showPassword ? "Masquer" : "Afficher"}
-                  </button>
-                </div>
-              </div>
 
-              <button className="sj-btn-primary" disabled={loading}>
-                {loading ? "Connexion..." : "Se connecter"}
-              </button>
-
-              <div className="sj-forgot-password">
-                <a href="/forgot-password-staff">Mot de passe oublié ?</a>
-              </div>
-
-              <div className="sj-security-box">
-                <div className="sj-security-bar" />
-                <div className="sj-security-text">
-                  <div>Identifiant personnel sécurisé</div>
-                  <div>Session authentifiée et cryptée</div>
-                </div>
-              </div>
-            </form>
-          </section>
-        </main>
-      </div>
-    );
-  }
+          </form>
+        </section>
+      </main>
+    </div>
+  );
+}

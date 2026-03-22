@@ -243,7 +243,7 @@ export const registerClient = async (req, res) => {
 // Demander une réinitialisation de mot de passe
 export const requestPasswordReset = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, source } = req.body;
 
     if (!email) {
       return res.status(400).json({ message: "Email requis" });
@@ -251,17 +251,29 @@ export const requestPasswordReset = async (req, res) => {
 
     // Trouver l'utilisateur
     const user = await User.findOne({ email: email.toLowerCase() });
-    
+
     if (!user) {
-      return res.status(404).json({ 
-        message: "Cet email n'existe pas dans notre système" 
+      return res.status(404).json({
+        message: "Cet email n'existe pas dans notre système"
       });
     }
 
     // Seuls le manager et le client peuvent réinitialiser leur mot de passe
     if (["seller", "workshop"].includes(user.role)) {
-      return res.status(403).json({ 
-        message: "Vous devez contacter le manager pour réinitialiser votre mot de passe." 
+      return res.status(403).json({
+        message: "Vous devez contacter le manager pour réinitialiser votre mot de passe."
+      });
+    }
+
+    // Vérifier que l'email correspond au bon portail
+    if (source === 'client' && user.role !== 'client') {
+      return res.status(403).json({
+        message: "Cet email n'appartient pas à un compte client."
+      });
+    }
+    if (source === 'staff' && user.role === 'client') {
+      return res.status(403).json({
+        message: "Cet email n'appartient pas à un compte staff. Utilisez le portail client."
       });
     }
 

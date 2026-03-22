@@ -1,6 +1,6 @@
 /* ============================================
    SmartJuice - Login & Register Client
-   Couleur principale : #ff6b35 (orange)
+   Couleur principale : #1e3a5f (orange)
    ============================================ */
 
 /* === LAYOUT === */
@@ -14,7 +14,7 @@
 .login-client-left {
   flex: 1;
   background:
-    linear-gradient(160deg, rgba(255, 107, 53, 0.92) 0%, rgba(255, 62, 10, 0.88) 100%),
+    linear-gradient(160deg, rgba(30, 58, 95, 0.92) 0%, rgba(46, 93, 156, 0.88) 100%),
     url('https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=900') center / cover no-repeat;
   display: flex;
   flex-direction: column;
@@ -127,8 +127,8 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #ff6b35;
-  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.12);
+  border-color: #1e3a5f;
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12);
 }
 
 .form-group input::placeholder {
@@ -167,8 +167,8 @@
 }
 
 .toggle-password:hover {
-  color: #ff6b35;
-  border-color: #ff6b35;
+  color: #1e3a5f;
+  border-color: #1e3a5f;
 }
 
 /* === FORM ROW (nom / prenom) === */
@@ -203,7 +203,7 @@
 .login-button {
   width: 100%;
   padding: 14px;
-  background: #ff6b35;
+  background: #1e3a5f;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -217,7 +217,7 @@
 .login-button:hover {
   background: #e85d2c;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.35);
+  box-shadow: 0 6px 20px rgba(30, 58, 95, 0.35);
 }
 
 .login-button:active {
@@ -232,7 +232,7 @@
 }
 
 .forgot-password-link {
-  color: #ff6b35;
+  color: #1e3a5f;
   text-decoration: none;
   font-size: 0.88rem;
   font-weight: 500;
@@ -257,18 +257,18 @@
 
 .register-link {
   display: inline-block;
-  color: #ff6b35;
+  color: #1e3a5f;
   text-decoration: none;
   font-weight: 600;
   font-size: 0.95rem;
   padding: 8px 18px;
-  border: 1.5px solid #ff6b35;
+  border: 1.5px solid #1e3a5f;
   border-radius: 8px;
   transition: background 0.2s, color 0.2s;
 }
 
 .register-link:hover {
-  background: #ff6b35;
+  background: #1e3a5f;
   color: #fff;
 }
 
@@ -282,7 +282,7 @@
 }
 
 .back-link:hover {
-  color: #ff6b35;
+  color: #1e3a5f;
 }
 
 /* === RESPONSIVE === */

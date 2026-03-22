@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/lenovo/Desktop/PFE0/smartjuice1/client/src -type f -name *[Pp]assword* -o -name *[Ii]nput*)",
+      "Bash(find /c/Users/lenovo/Desktop/PFE0/smartjuice1/server/src -type f -name *.js)",
+      "Bash(grep -rn \"ff6b35\\\\|ff8c42\\\\|255,107,53\\\\|255, 107, 53\" /c/Users/lenovo/Desktop/PFE0/smartjuice1/client/src --include=*.css)",
+      "Bash(node resetWorkshop.js)"
+    ]
+  }
+}

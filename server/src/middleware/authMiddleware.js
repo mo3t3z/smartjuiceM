@@ -41,3 +41,19 @@ export const isManager = (req, res, next) => {
   }
   next();
 };
+
+// Vérifier que l'utilisateur authentifié est bien un atelier
+export const isWorkshop = (req, res, next) => {
+  if (!req.user || req.user.role !== "workshop") {
+    return res.status(403).json({ message: "Accès interdit: réservé à l'atelier" });
+  }
+  next();
+};
+
+// Vérifier que l'utilisateur authentifié est bien un vendeur
+export const isSeller = (req, res, next) => {
+  if (!req.user || req.user.role !== "seller") {
+    return res.status(403).json({ message: "Accès interdit: réservé au vendeur" });
+  }
+  next();
+};

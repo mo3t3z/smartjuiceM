@@ -118,12 +118,12 @@ export default function ResetPassword() {
 
           {message && (
             <div className="success-message">
-              ✅ {message}
+              {message}
               <br />
               <small>Redirection vers la page de connexion...</small>
             </div>
           )}
-          {error && <div className="error-message">❌ {error}</div>}
+          {error && <div className="error-message">{error}</div>}
 
           <button type="submit" className="rp-submit-btn" disabled={loading || message}>
             {loading ? 'Réinitialisation...' : 'Réinitialiser le mot de passe'}
