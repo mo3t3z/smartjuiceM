@@ -54,7 +54,7 @@ export default function WorkshopHome() {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
       });
-      setNotifications((prev) => prev.map((n) => ({ ...n, lu: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, luAtelier: true })));
     } catch {
       // silencieux
     }
@@ -66,13 +66,13 @@ export default function WorkshopHome() {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
       });
-      setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, lu: true } : n));
+      setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, luAtelier: true } : n));
     } catch {
       // silencieux
     }
   };
 
-  const nonLues = notifications.filter((n) => !n.lu).length;
+  const nonLues = notifications.filter((n) => !n.luAtelier).length;
 
   const actions = [
     {
@@ -98,7 +98,7 @@ export default function WorkshopHome() {
     },
     {
       icon: "Trans",
-      title: "Enregistrer Quantité à Transférer vers Boutique",
+      title: "Enregistrer Quantité à Transférer",
       description: "Enregistrer les quantités de produits finis à envoyer vers la boutique.",
       path: "/workshop/transfert-boutique",
       color: "blue",
@@ -155,8 +155,8 @@ export default function WorkshopHome() {
                     {notifications.map((n) => (
                       <li
                         key={n._id}
-                        className={`wh-notif-item${n.lu ? " wh-notif-item--lu" : ""}`}
-                        onClick={() => !n.lu && marquerLue(n._id)}
+                        className={`wh-notif-item${n.luAtelier ? " wh-notif-item--lu" : ""}`}
+                        onClick={() => !n.luAtelier && marquerLue(n._id)}
                       >
                         <span className="wh-notif-item-icon">⚠️</span>
                         <div className="wh-notif-item-body">
@@ -168,7 +168,7 @@ export default function WorkshopHome() {
                             })}
                           </span>
                         </div>
-                        {!n.lu && <span className="wh-notif-dot" />}
+                        {!n.luAtelier && <span className="wh-notif-dot" />}
                       </li>
                     ))}
                   </ul>

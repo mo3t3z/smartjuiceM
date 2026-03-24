@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./StockMP.css";
+import { API_WORKSHOP, authHeader } from "../../utils/api";
+import { fmtDate } from "../../utils/date";
+import { useHistoriqueMP, buildTimelineMP } from "../../hooks/useHistoriqueMP";
 
-const API = "http://localhost:5000/api/workshop";
-const token = () => localStorage.getItem("token");
-
-const fmtDate = (d) =>
-  new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const API = API_WORKSHOP;
 
 export default function StockMP() {
   const navigate = useNavigate();
@@ -15,18 +14,15 @@ export default function StockMP() {
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState("");
 
-  // Modal historique
-  const [histModal, setHistModal]   = useState(null); // type name
-  const [histData, setHistData]     = useState(null);
-  const [histLoading, setHistLoading] = useState(false);
+  const { histModal, histData, histLoading, openHistorique, closeHistorique } = useHistoriqueMP(API);
 
   /* ── charger types et stock disponible ── */
   useEffect(() => {
     const load = async () => {
       try {
         const [resTypes, resStock] = await Promise.all([
-          fetch(`${API}/types-mp`, { headers: { Authorization: `Bearer ${token()}` } }),
-          fetch(`${API}/matieres-premieres/disponible`, { headers: { Authorization: `Bearer ${token()}` } }),
+          fetch(`${API}/types-mp`, { headers: authHeader() }),
+          fetch(`${API}/matieres-premieres/disponible`, { headers: authHeader() }),
         ]);
         if (!resTypes.ok) throw new Error("Erreur chargement types.");
         if (!resStock.ok) throw new Error("Erreur chargement stock.");
@@ -55,51 +51,6 @@ export default function StockMP() {
     return Object.values(stockMap).filter((s) => s.type === type);
   };
 
-  /* ── ouvrir historique ── */
-  const openHistorique = async (type) => {
-    setHistModal(type);
-    setHistData(null);
-    setHistLoading(true);
-    try {
-      const res = await fetch(`${API}/historique/mp/${encodeURIComponent(type)}`, {
-        headers: { Authorization: `Bearer ${token()}` },
-      });
-      if (!res.ok) throw new Error("Erreur chargement historique.");
-      setHistData(await res.json());
-    } catch (e) {
-      setHistData({ error: e.message });
-    } finally {
-      setHistLoading(false);
-    }
-  };
-
-  /* ── timeline combinée et triée ── */
-  const buildTimeline = (data) => {
-    if (!data) return [];
-    const events = [
-      ...data.additions.map((a) => ({
-        id: a._id,
-        date: new Date(a.dateEntree),
-        kind: "addition",
-        quantite: a.quantite,
-        unite: a.unite,
-        par: a.enregistrePar?.email || "—",
-        fournisseur: a.fournisseur || null,
-        prix: a.prixUnitaire,
-      })),
-      ...data.reductions.map((r) => ({
-        id: r._id,
-        date: new Date(r.date),
-        kind: "reduction",
-        quantite: r.quantite,
-        unite: r.unite,
-        par: r.enregistrePar?.email || "—",
-        nomJus: r.nomJus,
-        qtyProduite: r.quantiteProduite,
-      })),
-    ];
-    return events.sort((a, b) => b.date - a.date);
-  };
 
   return (
     <div className="smp-page">
@@ -110,7 +61,7 @@ export default function StockMP() {
           <div className="smp-hist-modal">
             <div className="smp-hist-head">
               <h3>Historique — <span className="smp-hist-type">{histModal}</span></h3>
-              <button className="smp-hist-close" onClick={() => setHistModal(null)}>✕</button>
+              <button className="smp-hist-close" onClick={closeHistorique}>✕</button>
             </div>
 
             {histLoading && <div className="smp-hist-loading">Chargement...</div>}
@@ -120,7 +71,7 @@ export default function StockMP() {
             )}
 
             {histData && !histData.error && (() => {
-              const timeline = buildTimeline(histData);
+              const timeline = buildTimelineMP(histData);
               return timeline.length === 0 ? (
                 <div className="smp-hist-empty">Aucun mouvement enregistré pour ce type.</div>
               ) : (
@@ -143,7 +94,7 @@ export default function StockMP() {
                             <>
                               <span>Enregistré par : <strong>{ev.par}</strong></span>
                               {ev.fournisseur && <span>Fournisseur : <strong>{ev.fournisseur}</strong></span>}
-                              <span>Prix unitaire : <strong>{ev.prix} DA/{ev.unite}</strong></span>
+                              <span>Prix unitaire : <strong>{ev.prix} DT/{ev.unite}</strong></span>
                             </>
                           ) : (
                             <>

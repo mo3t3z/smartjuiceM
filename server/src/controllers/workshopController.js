@@ -101,7 +101,7 @@ export const getRecettes = async (req, res) => {
 // POST /api/workshop/recettes
 export const createRecette = async (req, res) => {
   try {
-    const { nomJus, ingredients } = req.body;
+    const { nomJus, ingredients, seuilMinPF } = req.body;
     if (!nomJus || !ingredients || ingredients.length === 0)
       return res.status(400).json({ message: "Le nom du jus et au moins un ingrédient sont requis." });
 
@@ -112,6 +112,7 @@ export const createRecette = async (req, res) => {
     const recette = await Recette.create({
       nomJus: nomJus.trim(),
       ingredients,
+      seuilMinPF: seuilMinPF !== undefined ? Number(seuilMinPF) : 0,
       creerPar: req.user._id,
     });
 
@@ -125,7 +126,7 @@ export const createRecette = async (req, res) => {
 // PUT /api/workshop/recettes/:id
 export const updateRecette = async (req, res) => {
   try {
-    const { nomJus, ingredients } = req.body;
+    const { nomJus, ingredients, seuilMinPF } = req.body;
     if (!nomJus || !ingredients || ingredients.length === 0)
       return res.status(400).json({ message: "Le nom du jus et au moins un ingrédient sont requis." });
 
@@ -138,6 +139,7 @@ export const updateRecette = async (req, res) => {
       {
         nomJus: nomJus.trim(),
         ingredients,
+        seuilMinPF: seuilMinPF !== undefined ? Number(seuilMinPF) : 0,
         modifierPar: req.user._id,
         dateModification: new Date(),
       },
@@ -230,7 +232,7 @@ export const enregistrerProduction = async (req, res) => {
       const key = `${ded.matiere}||${typeDoc.unite}`;
       const stockActuel = stockApres[key]?.disponible ?? 0;
       if (stockActuel <= typeDoc.seuilMin) {
-        const existingNotif = await Notification.findOne({ typeMP: ded.matiere, lu: false });
+        const existingNotif = await Notification.findOne({ typeMP: ded.matiere, categorie: "MP", luAtelier: false });
         if (!existingNotif) {
           await Notification.create({
             typeMP: ded.matiere,
@@ -361,6 +363,24 @@ export const enregistrerTransfert = async (req, res) => {
       enregistrePar: req.user._id,
       dateTransfert: new Date(),
     });
+
+    // Vérifier le seuil PF après le transfert
+    const stockApres = disponible - quantite;
+    const recette = await Recette.findOne({ nomJus });
+    if (recette && recette.seuilMinPF > 0 && stockApres <= recette.seuilMinPF) {
+      const existingNotif = await Notification.findOne({ typeMP: nomJus, categorie: "PF", luAtelier: false });
+      if (!existingNotif) {
+        await Notification.create({
+          categorie: "PF",
+          typeMP: nomJus,
+          message: `Stock de PF "${nomJus}" en dessous du seuil minimum. Stock actuel : ${stockApres} L, Seuil : ${recette.seuilMinPF} L.`,
+          niveauActuel: stockApres,
+          seuilMin: recette.seuilMinPF,
+          unite: "L",
+        });
+      }
+    }
+
     const populated = await transfert.populate("enregistrePar", "email nom prenom");
     res.status(201).json({ message: `Transfert de ${quantite}L de "${nomJus}" enregistré avec succès.`, transfert: populated });
   } catch (error) {
@@ -510,7 +530,7 @@ export const getNotifications = async (req, res) => {
 // PUT /api/workshop/notifications/:id/lire
 export const marquerNotificationLue = async (req, res) => {
   try {
-    const notif = await Notification.findByIdAndUpdate(req.params.id, { lu: true }, { new: true });
+    const notif = await Notification.findByIdAndUpdate(req.params.id, { luAtelier: true }, { new: true });
     if (!notif) return res.status(404).json({ message: "Notification non trouvée." });
     res.json({ message: "Notification marquée comme lue.", notif });
   } catch (error) {
@@ -521,7 +541,38 @@ export const marquerNotificationLue = async (req, res) => {
 // PUT /api/workshop/notifications/lues
 export const marquerToutesLues = async (req, res) => {
   try {
-    await Notification.updateMany({ lu: false }, { lu: true });
+    await Notification.updateMany({ luAtelier: false }, { luAtelier: true });
+    res.json({ message: "Toutes les notifications marquées comme lues." });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+// GET /api/manager/notifications
+export const getNotificationsManager = async (req, res) => {
+  try {
+    const notifications = await Notification.find().sort({ createdAt: -1 }).limit(50);
+    res.json(notifications);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+// PUT /api/manager/notifications/:id/lire
+export const marquerNotificationLueManager = async (req, res) => {
+  try {
+    const notif = await Notification.findByIdAndUpdate(req.params.id, { luManager: true }, { new: true });
+    if (!notif) return res.status(404).json({ message: "Notification non trouvée." });
+    res.json({ message: "Notification marquée comme lue.", notif });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+// PUT /api/manager/notifications/lues
+export const marquerToutesLuesManager = async (req, res) => {
+  try {
+    await Notification.updateMany({ luManager: false }, { luManager: true });
     res.json({ message: "Toutes les notifications marquées comme lues." });
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });

@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./GererRecette.css";
 
 const API = "http://localhost:5000/api/workshop";
-const UNITES = ["kg", "g", "L", "mL", "unité"];
-const emptyIngredient = () => ({ matiere: "", quantite: "", unite: "kg" });
+const emptyIngredient = () => ({ matiere: "", quantite: "", unite: "" });
 const token = () => localStorage.getItem("token");
 
 export default function GererRecette() {
@@ -18,6 +17,7 @@ export default function GererRecette() {
   const [modal, setModal] = useState(null); // null | "add" | "edit"
   const [editing, setEditing] = useState(null);
   const [formNom, setFormNom] = useState("");
+  const [formSeuilMin, setFormSeuilMin] = useState("");
   const [formIngs, setFormIngs] = useState([emptyIngredient()]);
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
@@ -48,7 +48,7 @@ export default function GererRecette() {
       });
       if (res.ok) {
         const data = await res.json();
-        setTypesMP(data.map((t) => t.nom));
+        setTypesMP(data.map((t) => ({ nom: t.nom, unite: t.unite })));
       }
     } catch { /* silencieux */ }
   };
@@ -60,6 +60,7 @@ export default function GererRecette() {
     fetchTypesMP();
     setEditing(null);
     setFormNom("");
+    setFormSeuilMin("");
     setFormIngs([emptyIngredient()]);
     setFormError("");
     setModal("add");
@@ -70,16 +71,24 @@ export default function GererRecette() {
     fetchTypesMP();
     setEditing(r);
     setFormNom(r.nomJus);
+    setFormSeuilMin(r.seuilMinPF !== undefined ? String(r.seuilMinPF) : "");
     setFormIngs(r.ingredients.map((i) => ({ matiere: i.matiere, quantite: String(i.quantite), unite: i.unite })));
     setFormError("");
     setModal("edit");
   };
 
-  const closeModal = () => { setModal(null); setEditing(null); setFormError(""); };
+  const closeModal = () => { setModal(null); setEditing(null); setFormSeuilMin(""); setFormError(""); };
 
   /* ── ingrédients ── */
   const updateIng = (idx, field, val) =>
-    setFormIngs((prev) => prev.map((ing, i) => (i === idx ? { ...ing, [field]: val } : ing)));
+    setFormIngs((prev) => prev.map((ing, i) => {
+      if (i !== idx) return ing;
+      if (field === "matiere") {
+        const type = typesMP.find((t) => t.nom === val);
+        return { ...ing, matiere: val, unite: type ? type.unite : ing.unite };
+      }
+      return { ...ing, [field]: val };
+    }));
   const addIng = () => setFormIngs((prev) => [...prev, emptyIngredient()]);
   const removeIng = (idx) => setFormIngs((prev) => prev.filter((_, i) => i !== idx));
 
@@ -97,6 +106,7 @@ export default function GererRecette() {
     const payload = {
       nomJus: formNom.trim(),
       ingredients: formIngs.map((i) => ({ matiere: i.matiere.trim(), quantite: Number(i.quantite), unite: i.unite })),
+      seuilMinPF: formSeuilMin !== "" ? Number(formSeuilMin) : 0,
     };
 
     setFormLoading(true);
@@ -168,6 +178,22 @@ export default function GererRecette() {
               </div>
 
               <div className="gr-field">
+                <label className="gr-label">Seuil minimum de stock PF (L)</label>
+                <input
+                  className="gr-input"
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={formSeuilMin}
+                  onChange={(e) => setFormSeuilMin(e.target.value)}
+                  placeholder="Ex: 10 (notif. si stock ≤ ce seuil)"
+                />
+                <small style={{ color: "#888", fontSize: "0.78rem" }}>
+                  Une notification sera envoyée quand le stock en atelier descend à ce seuil après un transfert.
+                </small>
+              </div>
+
+              <div className="gr-field">
                 <div className="gr-ings-header">
                   <label className="gr-label">Ingrédients pour 1 litre <span className="gr-req">*</span></label>
                   <button type="button" className="gr-add-ing-btn" onClick={addIng}>+ Ajouter</button>
@@ -182,6 +208,7 @@ export default function GererRecette() {
                   </div>
                 )}
 
+
                 <div className="gr-ings-list">
                   {formIngs.map((ing, idx) => (
                     <div key={idx} className="gr-ing-row">
@@ -193,7 +220,7 @@ export default function GererRecette() {
                       >
                         <option value="">-- Matière --</option>
                         {typesMP.map((t) => (
-                          <option key={t} value={t}>{t}</option>
+                          <option key={t.nom} value={t.nom}>{t.nom}</option>
                         ))}
                       </select>
                       <input
@@ -205,13 +232,7 @@ export default function GererRecette() {
                         onChange={(e) => updateIng(idx, "quantite", e.target.value)}
                         placeholder="Qté"
                       />
-                      <select
-                        className="gr-select gr-ing-unite"
-                        value={ing.unite}
-                        onChange={(e) => updateIng(idx, "unite", e.target.value)}
-                      >
-                        {UNITES.map((u) => <option key={u} value={u}>{u}</option>)}
-                      </select>
+                      <span className="gr-ing-unite-label">{ing.unite}</span>
                       {formIngs.length > 1 && (
                         <button type="button" className="gr-ing-del" onClick={() => removeIng(idx)}>×</button>
                       )}
@@ -299,6 +320,11 @@ export default function GererRecette() {
                   </div>
                 </div>
 
+                {r.seuilMinPF > 0 && (
+                  <p className="gr-card-seuil">
+                    Seuil min. stock : <strong>{r.seuilMinPF} L</strong>
+                  </p>
+                )}
                 <p className="gr-card-for">Pour 1 litre :</p>
                 <ul className="gr-ings-ul">
                   {r.ingredients.map((ing, i) => (

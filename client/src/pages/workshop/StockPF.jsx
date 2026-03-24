@@ -1,15 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./StockPF.css";
+import { API_WORKSHOP, authHeader } from "../../utils/api";
+import { fmtDate } from "../../utils/date";
+import { useHistoriquePF, buildTimelinePF } from "../../hooks/useHistoriquePF";
 
-const API = "http://localhost:5000/api/workshop";
-const token = () => localStorage.getItem("token");
-
-const fmtDate = (d) =>
-  new Date(d).toLocaleDateString("fr-FR", {
-    day: "2-digit", month: "2-digit", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
-  });
+const API = API_WORKSHOP;
 
 export default function StockPF() {
   const navigate = useNavigate();
@@ -17,17 +13,14 @@ export default function StockPF() {
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState("");
 
-  // Modal historique
-  const [histModal, setHistModal]     = useState(null);
-  const [histData, setHistData]       = useState(null);
-  const [histLoading, setHistLoading] = useState(false);
+  const { histModal, histData, histLoading, openHistorique, closeHistorique } = useHistoriquePF(API);
 
   /* ── charger résumé stock PF ── */
   useEffect(() => {
     const load = async () => {
       try {
         const res = await fetch(`${API}/stock/pf/resume`, {
-          headers: { Authorization: `Bearer ${token()}` },
+          headers: authHeader(),
         });
         if (!res.ok) throw new Error("Erreur chargement stock PF.");
         setJusList(await res.json());
@@ -40,46 +33,6 @@ export default function StockPF() {
     load();
   }, []);
 
-  /* ── ouvrir historique ── */
-  const openHistorique = async (nomJus) => {
-    setHistModal(nomJus);
-    setHistData(null);
-    setHistLoading(true);
-    try {
-      const res = await fetch(`${API}/historique/pf/${encodeURIComponent(nomJus)}`, {
-        headers: { Authorization: `Bearer ${token()}` },
-      });
-      if (!res.ok) throw new Error("Erreur chargement historique.");
-      setHistData(await res.json());
-    } catch (e) {
-      setHistData({ error: e.message });
-    } finally {
-      setHistLoading(false);
-    }
-  };
-
-  /* ── timeline combinée ── */
-  const buildTimeline = (data) => {
-    if (!data) return [];
-    const events = [
-      ...data.productions.map((p) => ({
-        id: p._id,
-        date: new Date(p.dateProduction),
-        kind: "production",
-        quantite: p.quantiteProduite,
-        par: p.enregistrePar?.email || "—",
-        deductions: p.deductionsMP,
-      })),
-      ...data.transferts.map((t) => ({
-        id: t._id,
-        date: new Date(t.date),
-        kind: "transfert",
-        quantite: t.quantite,
-        par: t.enregistrePar?.email || "—",
-      })),
-    ];
-    return events.sort((a, b) => b.date - a.date);
-  };
 
   return (
     <div className="spf-page">
@@ -90,14 +43,14 @@ export default function StockPF() {
           <div className="spf-hist-modal">
             <div className="spf-hist-head">
               <h3>Historique — <span className="spf-hist-name">{histModal}</span></h3>
-              <button className="spf-hist-close" onClick={() => setHistModal(null)}>✕</button>
+              <button className="spf-hist-close" onClick={closeHistorique}>✕</button>
             </div>
 
             {histLoading && <div className="spf-hist-loading">Chargement...</div>}
             {histData?.error && <div className="spf-hist-error">{histData.error}</div>}
 
             {histData && !histData.error && (() => {
-              const timeline = buildTimeline(histData);
+              const timeline = buildTimelinePF(histData);
               return timeline.length === 0 ? (
                 <div className="spf-hist-empty">Aucune production enregistrée pour ce jus.</div>
               ) : (

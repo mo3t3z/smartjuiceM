@@ -104,7 +104,13 @@ export default function MatierePremiere() {
 
   /* ── Formulaire MP ── */
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "type") {
+      const selected = customTypes.find((t) => t.nom === value);
+      setForm({ ...form, type: value, unite: selected ? selected.unite : form.unite });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
     setError("");
   };
 
@@ -356,19 +362,13 @@ export default function MatierePremiere() {
               </div>
               <div className="mp-field">
                 <label className="mp-label">Unité <span className="mp-required">*</span></label>
-                <select name="unite" value={form.unite} onChange={handleChange} className="mp-select">
-                  <option value="kg">kg</option>
-                  <option value="g">g</option>
-                  <option value="L">L</option>
-                  <option value="mL">mL</option>
-                  <option value="unité">unité</option>
-                </select>
+                <div className="mp-unite-label">{form.unite || "—"}</div>
               </div>
             </div>
 
             {/* ── Prix unitaire ── */}
             <div className="mp-field">
-              <label className="mp-label">Prix unitaire (DA) <span className="mp-required">*</span></label>
+              <label className="mp-label">Prix unitaire (DT) <span className="mp-required">*</span></label>
               <input
                 type="number"
                 name="prixUnitaire"

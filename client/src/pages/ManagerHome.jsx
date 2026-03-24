@@ -1,9 +1,59 @@
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ManagerHome.css";
 
+const API = "http://localhost:5000/api/manager";
+
 export default function ManagerHome() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
+
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const notifRef = useRef(null);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch(`${API}/notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) setNotifications(await res.json());
+    } catch { /* silencieux */ }
+  };
+
+  useEffect(() => { fetchNotifications(); }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target))
+        setShowNotifs(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const marquerToutesLues = async () => {
+    try {
+      await fetch(`${API}/notifications/lues`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications((prev) => prev.map((n) => ({ ...n, luManager: true })));
+    } catch { /* silencieux */ }
+  };
+
+  const marquerLue = async (id) => {
+    try {
+      await fetch(`${API}/notifications/${id}/lire`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, luManager: true } : n));
+    } catch { /* silencieux */ }
+  };
+
+  const nonLues = notifications.filter((n) => !n.luManager).length;
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -54,6 +104,58 @@ export default function ManagerHome() {
           </div>
         </div>
         <div className="mh-header-right">
+          {/* Cloche de notifications */}
+          <div className="mh-notif-wrapper" ref={notifRef}>
+            <button
+              className="mh-notif-btn"
+              onClick={() => setShowNotifs((v) => !v)}
+              title="Notifications"
+            >
+              <span className="mh-notif-icon">🔔</span>
+              {nonLues > 0 && <span className="mh-notif-badge">{nonLues}</span>}
+            </button>
+
+            {showNotifs && (
+              <div className="mh-notif-panel">
+                <div className="mh-notif-panel-header">
+                  <span className="mh-notif-panel-title">Notifications</span>
+                  {nonLues > 0 && (
+                    <button className="mh-notif-lire-tout" onClick={marquerToutesLues}>
+                      Tout marquer lu
+                    </button>
+                  )}
+                </div>
+                {notifications.length === 0 ? (
+                  <p className="mh-notif-empty">Aucune notification.</p>
+                ) : (
+                  <ul className="mh-notif-list">
+                    {notifications.map((n) => (
+                      <li
+                        key={n._id}
+                        className={`mh-notif-item${n.luManager ? " mh-notif-item--lu" : ""}`}
+                        onClick={() => !n.luManager && marquerLue(n._id)}
+                      >
+                        <span className="mh-notif-item-icon">
+                          {n.categorie === "PF" ? "🧃" : "⚠️"}
+                        </span>
+                        <div className="mh-notif-item-body">
+                          <p className="mh-notif-item-msg">{n.message}</p>
+                          <span className="mh-notif-item-date">
+                            {new Date(n.createdAt).toLocaleString("fr-FR", {
+                              day: "2-digit", month: "2-digit", year: "numeric",
+                              hour: "2-digit", minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                        {!n.luManager && <span className="mh-notif-dot" />}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="mh-user-info">
             <span className="mh-user-avatar">{user?.email?.[0]?.toUpperCase() || "G"}</span>
             <span className="mh-user-email">{user?.email}</span>

@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const notificationSchema = new mongoose.Schema(
   {
+    categorie: {
+      type: String,
+      enum: ["MP", "PF"],
+      default: "MP",
+    },
     typeMP: {
       type: String,
       required: true,
@@ -22,7 +27,11 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    lu: {
+    luAtelier: {
+      type: Boolean,
+      default: false,
+    },
+    luManager: {
       type: Boolean,
       default: false,
     },

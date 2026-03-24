@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import axios from 'axios';
 import './ForgotPassword.css';
+import { API_AUTH } from '../utils/api';
 
-export default function ForgotPassword() {
+export default function ForgotPassword({ source = 'client', backLink = '/login-client' }) {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -16,12 +17,11 @@ export default function ForgotPassword() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/auth/request-password-reset',
-        { email, source: 'client' }
+        `${API_AUTH}/request-password-reset`,
+        { email, source }
       );
-
       setMessage(response.data.message);
-      setEmail(''); // Vider le champ
+      setEmail('');
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -61,7 +61,7 @@ export default function ForgotPassword() {
           </button>
         </form>
 
-        <a href="/login-client" className="back-link">
+        <a href={backLink} className="back-link">
           ← Retour à la connexion
         </a>
       </div>

@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./StockPFBoutique.css";
+import { API_SELLER, authHeader } from "../../utils/api";
+import { fmtDate } from "../../utils/date";
+import { useHistoriquePF } from "../../hooks/useHistoriquePF";
 
-const API = "http://localhost:5000/api/seller";
-const token = () => localStorage.getItem("token");
-
-const fmtDate = (d) =>
-  new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const API = API_SELLER;
 
 export default function StockPFBoutique() {
   const navigate = useNavigate();
@@ -14,34 +13,16 @@ export default function StockPFBoutique() {
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState("");
 
-  const [histModal, setHistModal]     = useState(null);
-  const [histData, setHistData]       = useState(null);
-  const [histLoading, setHistLoading] = useState(false);
+  const { histModal, histData, histLoading, openHistorique, closeHistorique } = useHistoriquePF(API);
 
   useEffect(() => {
-    fetch(`${API}/stock/pf`, { headers: { Authorization: `Bearer ${token()}` } })
+    fetch(`${API}/stock/pf`, { headers: authHeader() })
       .then((r) => r.json())
       .then((d) => setJusList(Array.isArray(d) ? d : []))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
 
-  const openHistorique = async (nomJus) => {
-    setHistModal(nomJus);
-    setHistData(null);
-    setHistLoading(true);
-    try {
-      const res = await fetch(`${API}/historique/pf/${encodeURIComponent(nomJus)}`, {
-        headers: { Authorization: `Bearer ${token()}` },
-      });
-      if (!res.ok) throw new Error("Erreur chargement historique.");
-      setHistData(await res.json());
-    } catch (e) {
-      setHistData({ error: e.message });
-    } finally {
-      setHistLoading(false);
-    }
-  };
 
   return (
     <div className="spfb-page">
@@ -52,7 +33,7 @@ export default function StockPFBoutique() {
           <div className="spfb-hist-modal">
             <div className="spfb-hist-head">
               <h3>Historique — <span className="spfb-hist-name">{histModal}</span></h3>
-              <button className="spfb-hist-close" onClick={() => setHistModal(null)}>✕</button>
+              <button className="spfb-hist-close" onClick={closeHistorique}>✕</button>
             </div>
 
             {histLoading && <div className="spfb-hist-info">Chargement...</div>}

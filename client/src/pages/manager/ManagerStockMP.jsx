@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../workshop/StockMP.css";
+import { API_MANAGER, authHeader } from "../../utils/api";
+import { fmtDate } from "../../utils/date";
+import { useHistoriqueMP, buildTimelineMP } from "../../hooks/useHistoriqueMP";
 
-const API = "http://localhost:5000/api/manager";
-const token = () => localStorage.getItem("token");
-
-const fmtDate = (d) =>
-  new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const API = API_MANAGER;
 
 export default function ManagerStockMP() {
   const navigate = useNavigate();
@@ -14,16 +13,14 @@ export default function ManagerStockMP() {
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState("");
 
-  const [histModal, setHistModal]     = useState(null);
-  const [histData, setHistData]       = useState(null);
-  const [histLoading, setHistLoading] = useState(false);
+  const { histModal, histData, histLoading, openHistorique, closeHistorique } = useHistoriqueMP(API);
 
   /* ── charger stock disponible ── */
   useEffect(() => {
     const load = async () => {
       try {
         const res = await fetch(`${API}/stock/mp`, {
-          headers: { Authorization: `Bearer ${token()}` },
+          headers: authHeader(),
         });
         if (!res.ok) throw new Error("Erreur chargement stock.");
         setStockList(await res.json());
@@ -40,50 +37,6 @@ export default function ManagerStockMP() {
   const getStocksForType = (type) => stockList.filter((s) => s.type === type);
   const types = [...new Set(stockList.map((s) => s.type))];
 
-  /* ── ouvrir historique ── */
-  const openHistorique = async (type) => {
-    setHistModal(type);
-    setHistData(null);
-    setHistLoading(true);
-    try {
-      const res = await fetch(`${API}/historique/mp/${encodeURIComponent(type)}`, {
-        headers: { Authorization: `Bearer ${token()}` },
-      });
-      if (!res.ok) throw new Error("Erreur chargement historique.");
-      setHistData(await res.json());
-    } catch (e) {
-      setHistData({ error: e.message });
-    } finally {
-      setHistLoading(false);
-    }
-  };
-
-  const buildTimeline = (data) => {
-    if (!data) return [];
-    const events = [
-      ...data.additions.map((a) => ({
-        id: a._id,
-        date: new Date(a.dateEntree),
-        kind: "addition",
-        quantite: a.quantite,
-        unite: a.unite,
-        par: a.enregistrePar?.email || "—",
-        fournisseur: a.fournisseur || null,
-        prix: a.prixUnitaire,
-      })),
-      ...data.reductions.map((r) => ({
-        id: r._id,
-        date: new Date(r.date),
-        kind: "reduction",
-        quantite: r.quantite,
-        unite: r.unite,
-        par: r.enregistrePar?.email || "—",
-        nomJus: r.nomJus,
-        qtyProduite: r.quantiteProduite,
-      })),
-    ];
-    return events.sort((a, b) => b.date - a.date);
-  };
 
   return (
     <div className="smp-page">
@@ -94,14 +47,14 @@ export default function ManagerStockMP() {
           <div className="smp-hist-modal">
             <div className="smp-hist-head">
               <h3>Historique — <span className="smp-hist-type">{histModal}</span></h3>
-              <button className="smp-hist-close" onClick={() => setHistModal(null)}>✕</button>
+              <button className="smp-hist-close" onClick={closeHistorique}>✕</button>
             </div>
 
             {histLoading && <div className="smp-hist-loading">Chargement...</div>}
             {histData?.error && <div className="smp-hist-error">{histData.error}</div>}
 
             {histData && !histData.error && (() => {
-              const timeline = buildTimeline(histData);
+              const timeline = buildTimelineMP(histData);
               return timeline.length === 0 ? (
                 <div className="smp-hist-empty">Aucun mouvement enregistré pour ce type.</div>
               ) : (
@@ -124,7 +77,7 @@ export default function ManagerStockMP() {
                             <>
                               <span>Enregistré par : <strong>{ev.par}</strong></span>
                               {ev.fournisseur && <span>Fournisseur : <strong>{ev.fournisseur}</strong></span>}
-                              <span>Prix unitaire : <strong>{ev.prix} DA/{ev.unite}</strong></span>
+                              <span>Prix unitaire : <strong>{ev.prix} DT/{ev.unite}</strong></span>
                             </>
                           ) : (
                             <>

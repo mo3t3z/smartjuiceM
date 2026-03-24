@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
-    "seed:manager": "node src/seeds/seedManager.js"
+    "seed:manager": "node src/seeds/seedManager.js",
+    "reset": "node src/seeds/resetAll.js",
+    "update:manager": "node src/seeds/updateManager.js"
   },
   "keywords": [],
   "author": "",

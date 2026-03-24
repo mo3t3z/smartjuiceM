@@ -15,6 +15,7 @@ const recetteSchema = new mongoose.Schema(
         unite: { type: String, enum: ["kg", "g", "L", "mL", "unité"], required: true },
       },
     ],
+    seuilMinPF: { type: Number, default: 0, min: 0 },
     creerPar: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     modifierPar: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     dateModification: { type: Date, default: null },
