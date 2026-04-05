@@ -65,6 +65,9 @@ export default function CatalogClient() {
         {user ? (
           <div className="user-actions">
             <span className="user-email">{user.email}</span>
+            <button className="account-button" onClick={() => navigate("/client/account")}>
+              Mon Compte
+            </button>
             <button className="logout-button" onClick={handleLogout}>
               Déconnexion
             </button>

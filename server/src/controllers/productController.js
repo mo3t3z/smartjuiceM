@@ -1,4 +1,6 @@
 import Product from "../models/Product.js";
+//f1: récupérer tous les produits (pour manager),f2: récupérer le catalogue public (pour clients),
+// f3: créer un nouveau produit, f4: modifier un produit, f5: supprimer un produit
 
 // Récupérer tous les produits (pour manager)
 export const getAllProducts = async (req, res) => {

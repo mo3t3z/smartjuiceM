@@ -1,6 +1,6 @@
 import express from "express";
 import { login, createStaffAccount, registerClient, changePassword, getStaffAccounts, updateStaffAccount, deleteStaffAccount, requestPasswordReset, resetPassword } from "../controllers/authController.js";
-import { authenticate, isManager } from "../middleware/authMiddleware.js";
+import { authenticate, isManager, isClientOrManager } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -21,8 +21,8 @@ router.post("/reset-password", resetPassword);
 // PB23: création de comptes staff (seller / workshop) par le manager
 router.post("/staff", authenticate, isManager, createStaffAccount);
 
-// Changer le mot de passe (manager connecté)
-router.put("/change-password", authenticate, isManager, changePassword);
+// Changer le mot de passe (client ou manager uniquement)
+router.put("/change-password", authenticate, isClientOrManager, changePassword);
 
 // CRUD comptes staff
 router.get("/staff", authenticate, isManager, getStaffAccounts);

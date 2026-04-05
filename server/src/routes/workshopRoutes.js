@@ -27,13 +27,13 @@ router.get("/matieres-premieres",            authenticate, isWorkshop, getStockM
 router.get("/matieres-premieres/disponible", authenticate, isWorkshop, getDisponibleMP);
 
 // Recettes
+router.get("/recettes/preview", authenticate, isWorkshop, previewProduction);
 router.get("/recettes",         authenticate, isWorkshop, getRecettes);
 router.post("/recettes",        authenticate, isWorkshop, createRecette);
 router.put("/recettes/:id",     authenticate, isWorkshop, updateRecette);
 router.delete("/recettes/:id",  authenticate, isWorkshop, deleteRecette);
 
 // Productions / Stock PF atelier
-router.get("/recettes/preview", authenticate, isWorkshop, previewProduction);
 router.post("/productions",     authenticate, isWorkshop, enregistrerProduction);
 router.get("/productions",      authenticate, isWorkshop, getStockPF);
 router.get("/stock/pf/resume",  authenticate, isWorkshop, getStockPFResume);

@@ -5,13 +5,13 @@ import User from "../models/User.js";
 // Vérifie que l'utilisateur est connecté et attache l'utilisateur à req.user
 export const authenticate = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    const authHeader = req.headers.authorization;// Récupère le token du header 
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ message: "Token manquant ou invalide" });
     }
 
-    const token = authHeader.split(" ")[1];
+    const token = authHeader.split(" ")[1];//extrait le token de la chaîne "Bearer
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -54,6 +54,14 @@ export const isWorkshop = (req, res, next) => {
 export const isSeller = (req, res, next) => {
   if (!req.user || req.user.role !== "seller") {
     return res.status(403).json({ message: "Accès interdit: réservé au vendeur" });
+  }
+  next();
+};
+
+// Vérifier que l'utilisateur est client ou manager
+export const isClientOrManager = (req, res, next) => {
+  if (!req.user || !["client", "manager"].includes(req.user.role)) {
+    return res.status(403).json({ message: "Accès interdit" });
   }
   next();
 };

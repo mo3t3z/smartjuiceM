@@ -72,6 +72,24 @@
   border-radius: 20px;
 }
 
+.account-button {
+  padding: 10px 24px;
+  background: #1e3a5f;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.account-button:hover {
+  background: #2e5a8f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.4);
+}
+
 .logout-button {
   padding: 10px 24px;
   background: #e0e0e0;

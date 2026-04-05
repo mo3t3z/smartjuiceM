@@ -25,11 +25,13 @@ import ManagerStocks from "./pages/manager/ManagerStocks.jsx";
 import ManagerStockMP from "./pages/manager/ManagerStockMP.jsx";
 import ManagerStockPF from "./pages/manager/ManagerStockPF.jsx";
 import ManagerStockBoutique from "./pages/manager/ManagerStockBoutique.jsx";
+import MonCompteClient from "./pages/MonCompteClient.jsx";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<CatalogClient />} />
+      <Route path="/client/account" element={<MonCompteClient />} />
 
       <Route path="/login-client" element={<RedirectIfLoggedIn redirectRoles={["client"]}><LoginClient /></RedirectIfLoggedIn>} />
       <Route path="/register-client" element={<RedirectIfLoggedIn redirectRoles={["client"]}><RegisterClient /></RedirectIfLoggedIn>} />

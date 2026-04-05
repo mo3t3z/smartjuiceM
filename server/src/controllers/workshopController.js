@@ -4,10 +4,10 @@ import ProductionPF from "../models/ProductionPF.js";
 import TransfertBoutique from "../models/TransfertBoutique.js";
 import TypeMP from "../models/TypeMP.js";
 import Notification from "../models/Notification.js";
+//HELPER --> calcDisponible()  ,MATIÈRES PREMIÈRES,TYPES MP ,RECETTES,
+// PRODUCTION (Produits Finis),TRANSFERTS BOUTIQUE,NOTIFICATIONS
 
-/* ═══════════════════════════════════════
-   HELPER — stock disponible par type+unité
-═══════════════════════════════════════ */
+//f1:HELPER --> calcDisponible() 
 const calcDisponible = async () => {
   const regs = await MatierePremiere.aggregate([
     { $group: { _id: { type: "$type", unite: "$unite" }, total: { $sum: "$quantite" } } },

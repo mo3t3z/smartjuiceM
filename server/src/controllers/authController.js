@@ -1,10 +1,14 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import crypto from "crypto";
+import crypto from "crypto"; // générer des tokens aléatoires sécurisés
 import User from "../models/User.js";
 import { sendResetPasswordEmail } from "../config/emailConfig.js";
-/*page role:vérifier email/password et renvoyer un JWT + infos user.*/
+//f1: login (tous les rôles),f2: création de comptes staff (manager),f3: lister tous les comptes staff (manager),
+// f4: modifier un compte staff (manager),f5: supprimer un compte staff (manager),
+// f6: changer le mot de passe (tous les rôles),f7: inscription client, 
+// f8: demander une réinitialisation de mot de passe, f9: réinitialiser le mot de passe avec le token
 
+//f1:login (tous les rôles)
 export const login = async (req, res) => {
   try {
     //req.body vient du frontend grâce à app.use(express.json())
@@ -51,7 +55,7 @@ export const createStaffAccount = async (req, res) => {
     if (!email || !password || !role) {
       return res.status(400).json({ message: "email, password, role sont obligatoires" });
     }
-
+//.trim() pour enlever les espaces avant/après,
     email = email.toLowerCase().trim();
     role = role.trim();
     if (role === "atelier") role = "workshop";
@@ -94,7 +98,7 @@ export const createStaffAccount = async (req, res) => {
 export const getStaffAccounts = async (req, res) => {
   try {
     const accounts = await User.find({ role: { $in: ["seller", "workshop"] } })
-      .select("-passwordHash")
+      .select("-passwordHash")//.select() pour exclure le champ passwordHash
       .sort({ createdAt: -1 });
     res.json(accounts);
   } catch (error) {

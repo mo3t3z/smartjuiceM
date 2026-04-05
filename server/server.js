@@ -1,20 +1,19 @@
-import dotenv from "dotenv";
+import dotenv from "dotenv";//importe la bibliothèque dotenv pour charger les variables d'environnement à partir d'un fichier .env
 dotenv.config();
 
 import express from "express";
-import cors from "cors";
+import cors from "cors";//autorise les requêtes cross-origin (front localhost:5173 → back localhost:5000)
 import { connectDB } from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import productRoutes from "./src/routes/productRoutes.js";
 import workshopRoutes from "./src/routes/workshopRoutes.js";
 import sellerRoutes from "./src/routes/sellerRoutes.js";
 import managerStockRoutes from "./src/routes/managerStockRoutes.js";
- // cors(): autorise le navigateur à faire des requêtes entre 5173 (front) et 5000 (back)
- // express.json(): permet de lire req.body en JSON
+
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+app.use(cors());//active CORS pour toutes les routes
+app.use(express.json());//active la lecture de req.body en JSON
 
 app.get("/", (req, res) => {
   res.send("API Smart Juice fonctionne ");

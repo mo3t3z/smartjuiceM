@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(find /c/Users/lenovo/Desktop/PFE0/smartjuice1 -not -path */node_modules/* -type d -o -not -path */node_modules/* -type f)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\lenovo\\Desktop\\PFE0\\smartjuice1\\server\\src\\seeds"
     ]
   }
 }
