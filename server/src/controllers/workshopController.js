@@ -4,6 +4,8 @@ import ProductionPF from "../models/ProductionPF.js";
 import TransfertBoutique from "../models/TransfertBoutique.js";
 import TypeMP from "../models/TypeMP.js";
 import Notification from "../models/Notification.js";
+import Vente from "../models/Vente.js";
+import Commande from "../models/Commande.js";
 //HELPER --> calcDisponible()  ,MATIÈRES PREMIÈRES,TYPES MP ,RECETTES,
 // PRODUCTION (Produits Finis),TRANSFERTS BOUTIQUE,NOTIFICATIONS
 
@@ -408,15 +410,73 @@ export const getDisponiblePF = async (req, res) => {
 };
 
 // GET /api/seller/stock/pf  (stock PF boutique)
+// Calcul réel : transferts - ventes directes - commandes livrées
 export const getStockPFBoutique = async (req, res) => {
   try {
-    const agg = await TransfertBoutique.aggregate([
+    // Total reçu par transferts (par nomJus)
+    const transferts = await TransfertBoutique.aggregate([
       { $group: { _id: "$nomJus", totalRecu: { $sum: "$quantite" }, nbTransferts: { $sum: 1 } } },
     ]);
-    const result = agg.map((t) => ({
-      nomJus: t._id, totalRecu: t.totalRecu,
-      nbTransferts: t.nbTransferts, disponible: t.totalRecu,
-    }));
+
+    // Total vendu en ventes directes (par nomJus, converti en litres)
+    const ventesDed = await Vente.aggregate([
+      { $unwind: "$produits" },
+      {
+        $group: {
+          _id: "$produits.nom",
+          totalVendu: {
+            $sum: {
+              $multiply: [
+                "$produits.quantite",
+                { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    // Total livré par commandes livrées (par nomJus, converti en litres)
+    const commandesDed = await Commande.aggregate([
+      { $match: { statut: "livree" } },
+      { $unwind: "$produits" },
+      {
+        $group: {
+          _id: "$produits.nom",
+          totalLivre: {
+            $sum: {
+              $multiply: [
+                "$produits.quantite",
+                { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    // Construire les maps de déductions
+    const venteMap = {};
+    ventesDed.forEach((v) => { venteMap[v._id] = v.totalVendu; });
+
+    const commandeMap = {};
+    commandesDed.forEach((c) => { commandeMap[c._id] = c.totalLivre; });
+
+    // Calculer le stock disponible pour chaque jus
+    const result = transferts.map((t) => {
+      const totalVendu = venteMap[t._id] || 0;
+      const totalLivre = commandeMap[t._id] || 0;
+      const disponible = parseFloat((t.totalRecu - totalVendu - totalLivre).toFixed(2));
+      return {
+        nomJus: t._id,
+        totalRecu: t.totalRecu,
+        nbTransferts: t.nbTransferts,
+        totalVendu: parseFloat(totalVendu.toFixed(2)),
+        totalLivre: parseFloat(totalLivre.toFixed(2)),
+        disponible: Math.max(0, disponible), // éviter les négatifs affichés
+      };
+    });
+
     res.json(result);
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });

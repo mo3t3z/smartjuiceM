@@ -13,11 +13,25 @@ export default function SellerHome() {
 
   const actions = [
     {
+      icon: "💰",
+      title: "Nouvelle Vente",
+      description: "Enregistrer une vente directe en boutique et générer un reçu PDF.",
+      path: "/seller/nouvelle-vente",
+      color: "green",
+    },
+    {
+      icon: "📋",
+      title: "Nouvelle Commande Physique",
+      description: "Enregistrer une commande boutique d'un client avec reçu PDF.",
+      path: "/seller/nouvelle-commande",
+      color: "blue",
+    },
+    {
       icon: "PF",
-      title: "Stock de PF du Boutique",
+      title: "Stock Boutique",
       description: "Consulter le stock de produits finis disponibles en boutique.",
       path: "/seller/stock-pf",
-      color: "green",
+      color: "orange",
     },
   ];
 

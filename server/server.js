@@ -9,6 +9,8 @@ import productRoutes from "./src/routes/productRoutes.js";
 import workshopRoutes from "./src/routes/workshopRoutes.js";
 import sellerRoutes from "./src/routes/sellerRoutes.js";
 import managerStockRoutes from "./src/routes/managerStockRoutes.js";
+import commandeRoutes from "./src/routes/commandeRoutes.js";
+import venteRoutes from "./src/routes/venteRoutes.js";
 
 const app = express();
 
@@ -24,6 +26,8 @@ app.use("/api/products", productRoutes);
 app.use("/api/workshop", workshopRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/manager", managerStockRoutes);
+app.use("/api/commandes", commandeRoutes);
+app.use("/api/ventes", venteRoutes);
 
 const PORT = process.env.PORT || 5000;
 

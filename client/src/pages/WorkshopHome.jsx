@@ -110,6 +110,13 @@ export default function WorkshopHome() {
       path: "/workshop/stock",
       color: "green",
     },
+    {
+      icon: "CMD",
+      title: "Commandes à Préparer",
+      description: "Consulter les commandes confirmées et les mettre en préparation.",
+      path: "/workshop/commandes-confirmees",
+      color: "teal",
+    },
   ];
 
   return (

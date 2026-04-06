@@ -1,0 +1,154 @@
+/* Gestion des Commandes — Manager */
+.gc-page { min-height: 100vh; background: #f4f6fb; }
+
+.gc-header {
+  background: #1e3a5f; padding: 18px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.gc-back-btn {
+  background: none; border: none; color: white;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  text-decoration: underline;
+}
+
+.gc-title { font-size: 24px; font-weight: 700; color: white; margin: 0; }
+
+/* Message */
+.gc-message {
+  max-width: 900px; margin: 16px auto; padding: 14px 20px;
+  border-radius: 10px; font-weight: 600;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.gc-message--succes { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+.gc-message--erreur { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+.gc-msg-close { background: none; border: none; cursor: pointer; font-size: 16px; }
+
+/* Filtres */
+.gc-filtres {
+  max-width: 900px; margin: 20px auto; padding: 0 20px;
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+
+.gc-select {
+  padding: 10px 16px; border: 1px solid #ddd; border-radius: 8px;
+  font-size: 14px; background: white; cursor: pointer;
+}
+
+.gc-refresh-btn {
+  padding: 10px 20px; background: #1e3a5f; color: white;
+  border: none; border-radius: 8px; font-size: 14px;
+  font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.gc-refresh-btn:hover { background: #2e5a8f; }
+
+/* Contenu */
+.gc-content { max-width: 900px; margin: 0 auto 40px; padding: 0 20px; }
+.gc-loading, .gc-vide { text-align: center; color: #888; padding: 60px 0; font-size: 18px; }
+
+.gc-liste { display: flex; flex-direction: column; gap: 18px; }
+
+.gc-card {
+  background: white; border-radius: 14px; padding: 22px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.gc-card-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+
+.gc-card-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.gc-cmd-id { font-size: 14px; font-weight: 700; color: #1e3a5f; }
+.gc-cmd-date { font-size: 12px; color: #888; }
+
+/* Badge type */
+.gc-type {
+  padding: 4px 10px; border-radius: 12px;
+  font-size: 12px; font-weight: 600;
+}
+.gc-type--en_ligne  { background: #e8f5e9; color: #2e7d32; }
+.gc-type--physique  { background: #e3f2fd; color: #1565c0; }
+
+/* Badge statut */
+.gc-statut {
+  padding: 6px 14px; border-radius: 20px;
+  font-size: 13px; font-weight: 700;
+}
+.gc-statut--orange  { background: #fff3e0; color: #e65100; }
+.gc-statut--blue    { background: #e3f2fd; color: #1565c0; }
+.gc-statut--red     { background: #ffebee; color: #c62828; }
+.gc-statut--purple  { background: #f3e5f5; color: #6a1b9a; }
+.gc-statut--green   { background: #e8f5e9; color: #2e7d32; }
+
+.gc-client-info {
+  font-size: 14px; color: #555;
+  margin-bottom: 12px; padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.gc-email, .gc-tel { color: #888; }
+
+/* Produits */
+.gc-produits { margin-bottom: 14px; }
+
+.gc-prod-ligne {
+  display: flex; gap: 12px; align-items: center;
+  padding: 5px 0; font-size: 14px;
+}
+.gc-prod-nom { flex: 1; font-weight: 600; color: #1e3a5f; }
+.gc-prod-vol { color: #888; font-size: 12px; }
+.gc-prod-qte { color: #555; }
+.gc-prod-prix { font-weight: 700; color: #764ba2; }
+
+.gc-card-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 14px; border-top: 1px solid #f0f0f0; flex-wrap: wrap; gap: 12px;
+}
+
+.gc-total { font-size: 18px; font-weight: 700; color: #1e3a5f; }
+
+/* Boutons d'action */
+.gc-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.gc-btn {
+  padding: 8px 18px; border: none; border-radius: 20px;
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.gc-btn--valider  { background: #e8f5e9; color: #2e7d32; }
+.gc-btn--valider:hover  { background: #2e7d32; color: white; }
+.gc-btn--refuser  { background: #ffebee; color: #c62828; }
+.gc-btn--refuser:hover  { background: #c62828; color: white; }
+.gc-btn--livree   { background: #e3f2fd; color: #1565c0; }
+.gc-btn--livree:hover   { background: #1565c0; color: white; }
+.gc-btn--pdf      { background: #f3e5f5; color: #6a1b9a; }
+.gc-btn--pdf:hover      { background: #6a1b9a; color: white; }
+.gc-btn--annuler  { background: #f5f5f5; color: #555; }
+.gc-btn--annuler:hover  { background: #ddd; }
+
+.gc-refus-raison { font-size: 13px; color: #c62828; font-style: italic; }
+
+/* Modal */
+.gc-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+
+.gc-modal {
+  background: white; border-radius: 16px; padding: 32px;
+  max-width: 480px; width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.gc-modal-title { font-size: 20px; font-weight: 700; color: #1e3a5f; margin: 0 0 10px; }
+.gc-modal-desc  { color: #555; font-size: 14px; margin-bottom: 16px; }
+
+.gc-modal-textarea {
+  width: 100%; padding: 12px; border: 1px solid #ddd;
+  border-radius: 8px; font-size: 14px; resize: vertical;
+  box-sizing: border-box; margin-bottom: 20px;
+}
+
+.gc-modal-actions { display: flex; gap: 12px; }

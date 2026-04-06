@@ -1,0 +1,140 @@
+/* Commandes Confirmées — Atelier */
+.cc-page { min-height: 100vh; background: #f4f6fb; }
+
+.cc-header {
+  background: #1e3a5f; padding: 18px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.cc-back-btn {
+  background: none; border: none; color: white;
+  font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: underline;
+}
+
+.cc-title { font-size: 22px; font-weight: 700; color: white; margin: 0; }
+
+.cc-refresh-btn {
+  padding: 10px 20px; background: rgba(255,255,255,0.15);
+  color: white; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 20px; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.cc-refresh-btn:hover { background: rgba(255,255,255,0.25); }
+
+/* Message */
+.cc-message {
+  max-width: 900px; margin: 16px auto; padding: 14px 20px;
+  border-radius: 10px; font-weight: 600;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.cc-message--succes { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+.cc-message--erreur { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+.cc-msg-close { background: none; border: none; cursor: pointer; font-size: 16px; }
+
+/* Contenu */
+.cc-content { max-width: 900px; margin: 28px auto; padding: 0 20px; }
+
+.cc-loading { text-align: center; color: #888; font-size: 18px; padding: 60px 0; }
+
+.cc-vide {
+  text-align: center; background: white; border-radius: 16px;
+  padding: 60px 20px; color: #888; font-size: 17px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+/* Compteur */
+.cc-compteur {
+  background: #fff3e0; border: 1px solid #ffcc02;
+  border-radius: 12px; padding: 14px 22px;
+  font-size: 16px; font-weight: 600; color: #e65100;
+  margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+}
+
+.cc-count {
+  font-size: 28px; font-weight: 800; color: #e65100;
+}
+
+/* Cartes */
+.cc-liste { display: flex; flex-direction: column; gap: 20px; }
+
+.cc-card {
+  background: white; border-radius: 16px; padding: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border-left: 5px solid transparent;
+}
+.cc-card--blue   { border-left-color: #1565c0; }
+.cc-card--purple { border-left-color: #6a1b9a; }
+
+.cc-card-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+}
+
+.cc-card-ids { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.cc-cmd-id { font-size: 16px; font-weight: 700; color: #1e3a5f; }
+.cc-cmd-date { font-size: 12px; color: #888; }
+
+/* Badges */
+.cc-type, .cc-statut {
+  padding: 4px 12px; border-radius: 12px;
+  font-size: 12px; font-weight: 600;
+}
+.cc-type--en_ligne { background: #e8f5e9; color: #2e7d32; }
+.cc-type--physique { background: #e3f2fd; color: #1565c0; }
+.cc-statut--blue   { background: #e3f2fd; color: #1565c0; }
+.cc-statut--purple { background: #f3e5f5; color: #6a1b9a; }
+
+.cc-client {
+  font-size: 14px; color: #555;
+  margin-bottom: 16px; padding-bottom: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.cc-tel { color: #888; }
+
+/* Produits */
+.cc-produits-section { margin-bottom: 16px; }
+
+.cc-produits-title {
+  font-size: 14px; font-weight: 700; color: #555;
+  margin: 0 0 10px 0;
+}
+
+.cc-produits-liste { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.cc-produit-item {
+  display: flex; align-items: center; gap: 8px;
+  background: #f8f9ff; border-radius: 10px; padding: 10px 16px;
+  border: 1px solid #e0e4f0;
+}
+
+.cc-produit-qte-badge {
+  width: 32px; height: 32px; background: #1e3a5f; color: white;
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-weight: 700; font-size: 14px;
+  flex-shrink: 0;
+}
+
+.cc-produit-nom { font-size: 14px; font-weight: 700; color: #1e3a5f; }
+.cc-produit-vol { font-size: 12px; color: #888; background: #eee; padding: 2px 8px; border-radius: 10px; }
+
+/* Footer */
+.cc-card-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 14px; border-top: 1px solid #f0f0f0; flex-wrap: wrap; gap: 12px;
+}
+
+.cc-total { font-size: 17px; font-weight: 700; color: #1e3a5f; }
+
+.cc-btn-preparation {
+  padding: 10px 24px; background: #6a1b9a; color: white;
+  border: none; border-radius: 20px; font-size: 14px;
+  font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.cc-btn-preparation:hover { background: #4a148c; transform: translateY(-1px); }
+
+.cc-en-cours {
+  font-size: 14px; font-weight: 600; color: #6a1b9a;
+  background: #f3e5f5; padding: 8px 18px; border-radius: 20px;
+}

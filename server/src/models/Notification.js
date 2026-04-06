@@ -4,7 +4,7 @@ const notificationSchema = new mongoose.Schema(
   {
     categorie: {
       type: String,
-      enum: ["MP", "PF"],
+      enum: ["MP", "PF", "BOUTIQUE"], // BOUTIQUE = alerte stock boutique (PB26)
       default: "MP",
     },
     typeMP: {

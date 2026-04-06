@@ -163,6 +163,7 @@
 .wh-card--orange::before { background: linear-gradient(90deg, #b45309, #d97706); }
 .wh-card--blue::before   { background: linear-gradient(90deg, #1976d2, #42a5f5); }
 .wh-card--green::before  { background: linear-gradient(90deg, #2e7d32, #66bb6a); }
+.wh-card--teal::before   { background: linear-gradient(90deg, #00695c, #26a69a); }
 
 .wh-card:hover {
   transform: translateY(-4px);
@@ -184,6 +185,7 @@
 .wh-card--orange .wh-card-icon { background: #fef3c7; color: #92400e; }
 .wh-card--blue .wh-card-icon   { background: #e3f2fd; color: #1565c0; }
 .wh-card--green .wh-card-icon  { background: #e8f5e9; color: #2e7d32; }
+.wh-card--teal .wh-card-icon   { background: #e0f2f1; color: #00695c; }
 
 .wh-card-title {
   font-size: 1.1rem;
@@ -213,6 +215,7 @@
 .wh-card--orange .wh-card-arrow { color: #b45309; }
 .wh-card--blue .wh-card-arrow   { color: #1976d2; }
 .wh-card--green .wh-card-arrow  { color: #2e7d32; }
+.wh-card--teal .wh-card-arrow   { color: #00695c; }
 
 .wh-card:hover .wh-card-arrow {
   transform: translateX(4px);

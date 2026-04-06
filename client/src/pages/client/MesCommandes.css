@@ -1,0 +1,274 @@
+/* ═══════════════════════════════════════════
+   SmartJuice — Mes Commandes (style e-commerce)
+   ═══════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+.mc-page {
+  min-height: 100vh;
+  background: #f5f6fa;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #222;
+}
+
+/* ══════════ HEADER ══════════ */
+.mc-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #fff;
+  border-bottom: 2px solid #e8e8e8;
+  padding: 0 28px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.mc-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #1e3a5f;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.mc-back-btn:hover { background: #f0f4ff; }
+
+.mc-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e3a5f;
+  margin: 0;
+}
+
+/* ══════════ CONTENU ══════════ */
+.mc-content {
+  max-width: 860px;
+  margin: 32px auto;
+  padding: 0 20px 48px;
+}
+
+/* États */
+.mc-loading {
+  text-align: center;
+  color: #888;
+  font-size: 18px;
+  padding: 80px 0;
+}
+
+.mc-erreur {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.mc-vide {
+  text-align: center;
+  padding: 80px 20px;
+  color: #888;
+}
+
+.mc-vide p { font-size: 18px; margin-bottom: 24px; }
+
+.mc-btn-catalogue {
+  padding: 11px 28px;
+  background: #1e3a5f;
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  width: auto;
+  display: inline-block;
+}
+
+.mc-btn-catalogue:hover {
+  background: #2d6a4f;
+  transform: translateY(-2px);
+}
+
+/* ══════════ LISTE ══════════ */
+.mc-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ══════════ CARTE COMMANDE ══════════ */
+.mc-card {
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 14px;
+  padding: 22px;
+  transition: box-shadow 0.2s;
+}
+
+.mc-card:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+/* Header de carte */
+.mc-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.mc-cmd-id {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e3a5f;
+  display: block;
+}
+
+.mc-cmd-date {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+  display: block;
+}
+
+/* ══════════ BADGES STATUT ══════════ */
+.mc-statut {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mc-statut--orange { background: #fff3e0; color: #e65100; }
+.mc-statut--blue   { background: #e3f2fd; color: #1565c0; }
+.mc-statut--red    { background: #ffebee; color: #c62828; }
+.mc-statut--purple { background: #f3e5f5; color: #6a1b9a; }
+.mc-statut--green  { background: #e8f5e9; color: #2e7d32; }
+.mc-statut--gray   { background: #f5f5f5; color: #555; }
+
+/* ══════════ PRODUITS ══════════ */
+.mc-produits {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 14px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mc-produit-ligne {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 14px;
+  padding: 6px 10px;
+  background: #f8f9fb;
+  border-radius: 8px;
+}
+
+.mc-prod-nom {
+  flex: 1;
+  font-weight: 600;
+  color: #1e3a5f;
+}
+
+.mc-prod-vol {
+  font-size: 12px;
+  color: #888;
+  background: #e8e8e8;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.mc-prod-qte {
+  color: #555;
+  min-width: 36px;
+  font-weight: 600;
+}
+
+.mc-prod-prix {
+  font-weight: 700;
+  color: #c62828;
+  min-width: 70px;
+  text-align: right;
+}
+
+/* ══════════ FOOTER DE CARTE ══════════ */
+.mc-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mc-total {
+  font-size: 17px;
+  font-weight: 800;
+  color: #1e3a5f;
+}
+
+.mc-refus-raison {
+  font-size: 13px;
+  color: #c62828;
+  font-style: italic;
+}
+
+/* ══════════ BARRE DE PROGRESSION ══════════ */
+.mc-progression {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.mc-etape-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.mc-etape {
+  width: 100%;
+  height: 5px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  margin-bottom: 6px;
+  transition: background 0.3s;
+}
+
+.mc-etape--active { background: #2e7d32; }
+.mc-etape--refuse { background: #c62828; }
+
+.mc-etape-label {
+  font-size: 10px;
+  color: #888;
+  text-align: center;
+}
+
+/* ══════════ RESPONSIVE ══════════ */
+@media (max-width: 600px) {
+  .mc-header { padding: 0 14px; }
+  .mc-title  { font-size: 17px; }
+  .mc-produit-ligne { flex-wrap: wrap; }
+  .mc-card { padding: 16px; }
+}

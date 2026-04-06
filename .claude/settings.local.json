@@ -6,7 +6,8 @@
       "Bash(grep -rn \"ff6b35\\\\|ff8c42\\\\|255,107,53\\\\|255, 107, 53\" /c/Users/lenovo/Desktop/PFE0/smartjuice1/client/src --include=*.css)",
       "Bash(node resetWorkshop.js)",
       "Bash(find /c/Users/lenovo/Desktop/PFE0/smartjuice1/server/src -type f \\\\\\(-name *.js -o -name *.json \\\\\\))",
-      "Bash(find /c/Users/lenovo/Desktop/PFE0/smartjuice1/client/src -type f \\\\\\(-name *.js -o -name *.jsx \\\\\\))"
+      "Bash(find /c/Users/lenovo/Desktop/PFE0/smartjuice1/client/src -type f \\\\\\(-name *.js -o -name *.jsx \\\\\\))",
+      "Bash(npm install jspdf)"
     ]
   }
 }

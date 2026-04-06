@@ -90,6 +90,20 @@ export default function ManagerHome() {
       path: "/manager/stocks",
       color: "teal",
     },
+    {
+      icon: "CMD",
+      title: "Gestion des Commandes",
+      description: "Valider, refuser ou suivre les commandes en ligne et physiques.",
+      path: "/manager/commandes",
+      color: "purple",
+    },
+    {
+      icon: "📊",
+      title: "Dashboard Ventes",
+      description: "Suivi des performances commerciales : ventes, commandes, top produits.",
+      path: "/manager/dashboard-ventes",
+      color: "red",
+    },
   ];
 
   return (

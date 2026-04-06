@@ -1,0 +1,155 @@
+/* Page Nouvelle Vente — Vendeur */
+.nv-page { min-height: 100vh; background: #f4f6fb; }
+
+.nv-header {
+  background: #1e3a5f; padding: 18px 32px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.nv-back-btn {
+  background: none; border: none; color: white;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  text-decoration: underline;
+}
+
+.nv-title { font-size: 24px; font-weight: 700; color: white; margin: 0; }
+
+/* Message */
+.nv-message {
+  max-width: 1100px; margin: 16px auto; padding: 14px 20px;
+  border-radius: 10px; font-weight: 600;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.nv-message--succes { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+.nv-message--erreur { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+.nv-msg-close { background: none; border: none; cursor: pointer; font-size: 16px; }
+
+/* Bannière succès */
+.nv-success-banner {
+  max-width: 1100px; margin: 20px auto; padding: 20px 28px;
+  background: #e8f5e9; border: 1px solid #a5d6a7;
+  border-radius: 14px; display: flex; align-items: center; gap: 16px;
+  font-weight: 700; color: #2e7d32; flex-wrap: wrap;
+}
+
+.nv-recu-btn {
+  padding: 10px 22px; background: #2e7d32; color: white;
+  border: none; border-radius: 20px; font-size: 14px;
+  font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.nv-recu-btn:hover { background: #1b5e20; }
+
+.nv-nouvelle-btn {
+  padding: 10px 22px; background: #1e3a5f; color: white;
+  border: none; border-radius: 20px; font-size: 14px;
+  font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.nv-nouvelle-btn:hover { background: #2e5a8f; }
+
+/* Contenu */
+.nv-content {
+  max-width: 1100px; margin: 24px auto; padding: 0 20px;
+  display: grid; grid-template-columns: 1fr 360px; gap: 24px;
+}
+
+.nv-section-title {
+  font-size: 18px; font-weight: 700; color: #1e3a5f;
+  margin: 0 0 16px 0;
+}
+
+/* Grille de produits */
+.nv-produits-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.nv-produit-card {
+  background: white; border-radius: 12px; padding: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  display: flex; flex-direction: column; gap: 8px;
+  transition: transform 0.2s;
+}
+
+.nv-produit-card:hover:not(.nv-produit-card--epuise) { transform: translateY(-3px); }
+.nv-produit-card--epuise { opacity: 0.55; }
+
+.nv-produit-img {
+  width: 100%; height: 120px; object-fit: cover; border-radius: 8px;
+}
+
+.nv-produit-info { display: flex; flex-direction: column; gap: 3px; }
+.nv-produit-nom { font-size: 15px; font-weight: 700; color: #1e3a5f; }
+.nv-produit-vol { font-size: 12px; color: #888; }
+.nv-produit-prix { font-size: 16px; font-weight: 700; color: #764ba2; }
+
+.nv-produit-stock { font-size: 12px; font-weight: 600; }
+.nv-stock--vert { color: #2e7d32; }
+.nv-stock--rouge { color: #c62828; }
+
+.nv-ajouter-btn {
+  padding: 9px 0; background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white; border: none; border-radius: 20px;
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.nv-ajouter-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.nv-ajouter-btn:hover:not(:disabled) { transform: translateY(-1px); }
+
+/* Récapitulatif */
+.nv-recap {
+  background: white; border-radius: 16px; padding: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  height: fit-content; position: sticky; top: 20px;
+}
+
+.nv-field { margin-bottom: 18px; }
+.nv-label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+.nv-input {
+  width: 100%; padding: 10px 14px; border: 1px solid #ddd;
+  border-radius: 8px; font-size: 14px; box-sizing: border-box;
+}
+
+.nv-panier-vide { color: #aaa; font-size: 14px; text-align: center; padding: 20px 0; }
+
+.nv-recap-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid #f0f0f0;
+}
+
+.nv-recap-info { flex: 1; display: flex; flex-direction: column; }
+.nv-recap-nom { font-size: 14px; font-weight: 600; color: #1e3a5f; }
+.nv-recap-vol { font-size: 12px; color: #888; }
+
+.nv-recap-qte {
+  display: flex; align-items: center; gap: 8px; font-weight: 700;
+}
+
+.nv-qty-btn {
+  width: 28px; height: 28px; border: 2px solid #764ba2;
+  background: white; color: #764ba2; border-radius: 50%;
+  font-size: 16px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  transition: all 0.2s; line-height: 1;
+}
+.nv-qty-btn:hover { background: #764ba2; color: white; }
+
+.nv-recap-st { font-weight: 700; color: #1e3a5f; min-width: 70px; text-align: right; }
+
+.nv-total {
+  display: flex; justify-content: space-between;
+  font-size: 20px; font-weight: 700; color: #1e3a5f;
+  padding: 14px 0; margin-top: 8px;
+}
+
+.nv-enregistrer-btn {
+  width: 100%; padding: 16px; background: #2e7d32; color: white;
+  border: none; border-radius: 12px; font-size: 16px;
+  font-weight: 700; cursor: pointer; transition: all 0.3s; margin-top: 8px;
+}
+.nv-enregistrer-btn:hover:not(:disabled) { background: #1b5e20; transform: translateY(-1px); }
+.nv-enregistrer-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nv-content { grid-template-columns: 1fr; }
+}

@@ -65,3 +65,27 @@ export const isClientOrManager = (req, res, next) => {
   }
   next();
 };
+
+// Vérifier que l'utilisateur est un client
+export const isClient = (req, res, next) => {
+  if (!req.user || req.user.role !== "client") {
+    return res.status(403).json({ message: "Accès interdit: réservé aux clients" });
+  }
+  next();
+};
+
+// Vérifier que l'utilisateur est vendeur ou manager
+export const isSellerOrManager = (req, res, next) => {
+  if (!req.user || !["seller", "manager"].includes(req.user.role)) {
+    return res.status(403).json({ message: "Accès interdit: réservé au vendeur ou au gérant" });
+  }
+  next();
+};
+
+// Vérifier que l'utilisateur est atelier ou manager
+export const isWorkshopOrManager = (req, res, next) => {
+  if (!req.user || !["workshop", "manager"].includes(req.user.role)) {
+    return res.status(403).json({ message: "Accès interdit: réservé à l'atelier ou au gérant" });
+  }
+  next();
+};
