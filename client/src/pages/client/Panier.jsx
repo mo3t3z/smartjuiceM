@@ -9,6 +9,8 @@ import {
 } from "../../utils/api";
 import "./Panier.css";
 
+const FRAIS_LIVRAISON = 3; // DT
+
 // PB18 — Gestion du panier (Client)
 // PB19 — Passer une commande en ligne (Client)
 export default function Panier() {
@@ -16,6 +18,9 @@ export default function Panier() {
   const [panier, setPanier] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ texte: "", type: "" });
+  const [modeRemise, setModeRemise] = useState("retrait");
+  const [adresseLivraison, setAdresseLivraison] = useState("");
+  const [telephoneLivraison, setTelephoneLivraison] = useState("");
 
   useEffect(() => {
     // Vérifier que l'utilisateur est connecté et est un client
@@ -27,10 +32,13 @@ export default function Panier() {
     setPanier(getPanier());
   }, []);
 
-  // Calculer le total du panier
-  const calculerTotal = () => {
-    return panier.reduce((acc, item) => acc + item.prix * item.quantite, 0).toFixed(2);
-  };
+  // Calculer le sous-total des articles
+  const calculerSousTotal = () =>
+    panier.reduce((acc, item) => acc + item.prix * item.quantite, 0);
+
+  // Calculer le total avec frais de livraison éventuels
+  const calculerTotal = () =>
+    (calculerSousTotal() + (modeRemise === "livraison" ? FRAIS_LIVRAISON : 0)).toFixed(2);
 
   // Modifier la quantité d'un article
   const modifierQuantite = (produitId, delta) => {
@@ -65,6 +73,14 @@ export default function Panier() {
       setMessage({ texte: "Votre panier est vide.", type: "erreur" });
       return;
     }
+    if (modeRemise === "livraison" && !adresseLivraison.trim()) {
+      setMessage({ texte: "Veuillez saisir votre adresse de livraison.", type: "erreur" });
+      return;
+    }
+    if (modeRemise === "livraison" && !telephoneLivraison.trim()) {
+      setMessage({ texte: "Veuillez saisir votre numéro de téléphone.", type: "erreur" });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -75,7 +91,13 @@ export default function Panier() {
 
       await axios.post(
         API_COMMANDES,
-        { produits },
+        {
+          produits,
+          modeRemise,
+          adresseLivraison: adresseLivraison.trim(),
+          telephoneLivraison: telephoneLivraison.trim(),
+          fraisLivraison: modeRemise === "livraison" ? FRAIS_LIVRAISON : 0,
+        },
         { headers: authHeader() }
       );
 
@@ -163,13 +185,74 @@ export default function Panier() {
             ))}
           </div>
 
-          {/* Récapitulatif */}
+          {/* Récapitulatif + Mode de remise */}
           <div className="panier-recap">
             <h2 className="panier-recap-title">Récapitulatif</h2>
+
             <div className="panier-recap-ligne">
               <span>Articles ({panier.reduce((a, i) => a + i.quantite, 0)})</span>
-              <span>{calculerTotal()} DT</span>
+              <span>{calculerSousTotal().toFixed(2)} DT</span>
             </div>
+
+            {/* Choix du mode de remise */}
+            <div className="panier-mode-remise">
+              <h3 className="panier-mode-title">Mode de remise</h3>
+              <div className="panier-mode-options">
+                <label className={`panier-mode-option ${modeRemise === "retrait" ? "panier-mode-option--active" : ""}`}>
+                  <input
+                    type="radio"
+                    name="modeRemise"
+                    value="retrait"
+                    checked={modeRemise === "retrait"}
+                    onChange={() => setModeRemise("retrait")}
+                  />
+                  <span>🏪 Retrait en boutique</span>
+                </label>
+                <label className={`panier-mode-option ${modeRemise === "livraison" ? "panier-mode-option--active" : ""}`}>
+                  <input
+                    type="radio"
+                    name="modeRemise"
+                    value="livraison"
+                    checked={modeRemise === "livraison"}
+                    onChange={() => setModeRemise("livraison")}
+                  />
+                  <span>🚚 Livraison à domicile (+{FRAIS_LIVRAISON} DT)</span>
+                </label>
+              </div>
+
+              {modeRemise === "livraison" && (
+                <div className="panier-livraison-form">
+                  <div className="panier-livraison-field">
+                    <label className="panier-livraison-label">Adresse de livraison *</label>
+                    <input
+                      className="panier-livraison-input"
+                      type="text"
+                      value={adresseLivraison}
+                      onChange={(e) => setAdresseLivraison(e.target.value)}
+                      placeholder="Ex: 12 Rue de la République, Tunis"
+                    />
+                  </div>
+                  <div className="panier-livraison-field">
+                    <label className="panier-livraison-label">Téléphone *</label>
+                    <input
+                      className="panier-livraison-input"
+                      type="tel"
+                      value={telephoneLivraison}
+                      onChange={(e) => setTelephoneLivraison(e.target.value)}
+                      placeholder="Ex: 55 123 456"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {modeRemise === "livraison" && (
+              <div className="panier-recap-ligne">
+                <span>Frais de livraison</span>
+                <span>{FRAIS_LIVRAISON.toFixed(2)} DT</span>
+              </div>
+            )}
+
             <div className="panier-recap-total">
               <span>Total</span>
               <span>{calculerTotal()} DT</span>

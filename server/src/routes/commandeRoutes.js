@@ -8,6 +8,7 @@ import {
   refuserCommande,
   getCommandesConfirmees,
   mettreEnPreparation,
+  marquerPrete,
   marquerLivree,
   creerCommandePhysique,
   genererRecuCommande,
@@ -50,6 +51,8 @@ router.get("/dashboard", authenticate, isManager, getDashboardVentes);
 router.get("/confirmees", authenticate, isWorkshopOrManager, getCommandesConfirmees);
 // Mettre en préparation
 router.put("/:id/en-preparation", authenticate, isWorkshop, mettreEnPreparation);
+// Marquer comme prête (atelier)
+router.put("/:id/prete", authenticate, isWorkshop, marquerPrete);
 
 // ── Routes Vendeur (PB22) ────────────────────────────────────────────────────
 // PB22 : Créer une commande physique

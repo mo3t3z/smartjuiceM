@@ -11,6 +11,7 @@ export default function NouvelleCommandePhysique() {
   const [panier, setPanier] = useState([]);
   const [nomClient, setNomClient] = useState("");
   const [telephone, setTelephone] = useState("");
+  const [dateRetrait, setDateRetrait] = useState("");
   const [message, setMessage] = useState({ texte: "", type: "" });
   const [loading, setLoading] = useState(false);
   const [commandeCreee, setCommandeCreee] = useState(null);
@@ -72,6 +73,7 @@ export default function NouvelleCommandePhysique() {
         {
           nomClient: nomClient.trim(),
           telephone: telephone.trim(),
+          dateRetrait: dateRetrait || null,
           produits: panier.map((p) => ({ produitId: p.produitId, quantite: p.quantite })),
         },
         { headers: authHeader() }
@@ -81,6 +83,7 @@ export default function NouvelleCommandePhysique() {
       setPanier([]);
       setNomClient("");
       setTelephone("");
+      setDateRetrait("");
       setMessage({ texte: "Commande physique enregistrée !", type: "succes" });
     } catch (err) {
       setMessage({
@@ -184,6 +187,17 @@ export default function NouvelleCommandePhysique() {
                 value={telephone}
                 onChange={(e) => setTelephone(e.target.value)}
                 placeholder="Ex: 55 123 456"
+              />
+            </div>
+
+            <div className="ncp-field">
+              <label className="ncp-label">Date de retrait souhaitée</label>
+              <input
+                className="ncp-input"
+                type="date"
+                value={dateRetrait}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={(e) => setDateRetrait(e.target.value)}
               />
             </div>
 

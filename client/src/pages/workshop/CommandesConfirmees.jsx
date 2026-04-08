@@ -42,9 +42,23 @@ export default function CommandesConfirmees() {
     }
   };
 
+  // Marquer une commande comme prête
+  const marquerPrete = async (id) => {
+    try {
+      await axios.put(`${API_COMMANDES}/${id}/prete`, {}, {
+        headers: authHeader(),
+      });
+      setMessage({ texte: "Commande marquée comme prête.", type: "succes" });
+      fetchCommandes();
+    } catch (err) {
+      setMessage({ texte: err.response?.data?.message || "Erreur.", type: "erreur" });
+    }
+  };
+
   const statutConfig = {
     validee:        { label: "Validée — À préparer", couleur: "blue"   },
     en_preparation: { label: "En préparation",        couleur: "purple" },
+    prete:          { label: "Prête",                 couleur: "green"  },
   };
 
   const formatDate = (d) =>
@@ -115,6 +129,14 @@ export default function CommandesConfirmees() {
                       {(cmd.telephone || cmd.client?.telephone) && (
                         <span className="cc-tel"> — {cmd.telephone || cmd.client?.telephone}</span>
                       )}
+                      {cmd.dateRetrait && (
+                        <span className="cc-date-retrait">
+                          {" "}— Retrait prévu le{" "}
+                          {new Date(cmd.dateRetrait).toLocaleDateString("fr-TN", {
+                            day: "2-digit", month: "long", year: "numeric",
+                          })}
+                        </span>
+                      )}
                     </div>
 
                     {/* Produits à préparer */}
@@ -145,7 +167,15 @@ export default function CommandesConfirmees() {
                         </button>
                       )}
                       {cmd.statut === "en_preparation" && (
-                        <span className="cc-en-cours">⚙️ En cours de préparation</span>
+                        <button
+                          className="cc-btn-prete"
+                          onClick={() => marquerPrete(cmd._id)}
+                        >
+                          ✅ Marquer prête
+                        </button>
+                      )}
+                      {cmd.statut === "prete" && (
+                        <span className="cc-prete">✅ Prête — en attente de remise</span>
                       )}
                     </div>
                   </div>

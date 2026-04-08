@@ -1,18 +1,20 @@
 .mp-page {
   min-height: 100vh;
-  background: #f4f6f9;
+  background: #f5f6fa;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 /* ===== HEADER ===== */
 .mp-header {
+  position: sticky; top: 0; z-index: 100;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #1e3a5f 0%, #2e5d9c 100%);
+  background: #fff;
+  border-bottom: 2px solid #e8e8e8;
   padding: 0 2.5rem;
-  height: 70px;
-  box-shadow: 0 2px 12px rgba(30, 58, 95, 0.3);
+  height: 68px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .mp-brand {
@@ -21,26 +23,26 @@
   gap: 12px;
 }
 
-.mp-logo-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.22); color: #fff; font-size: 0.88rem; font-weight: 800; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; border: 1.5px solid rgba(255,255,255,0.4); flex-shrink: 0; }
+.mp-logo-icon { width: 38px; height: 38px; border-radius: 10px; background: #1e3a5f; color: #fff; font-size: 0.88rem; font-weight: 800; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; flex-shrink: 0; }
 
 .mp-brand-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #1e3a5f;
   margin: 0;
   line-height: 1.2;
 }
 
 .mp-brand-sub {
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.82);
+  color: #888;
   margin: 0;
 }
 
 .mp-back-btn {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: #f5f6fa;
+  color: #1e3a5f;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 7px 18px;
   font-size: 0.85rem;
@@ -50,7 +52,7 @@
 }
 
 .mp-back-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #e8e8e8;
 }
 
 /* ===== CONTENT ===== */
@@ -65,6 +67,7 @@
   border-radius: 20px;
   padding: 2.5rem;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eaeaea;
   width: 100%;
   max-width: 580px;
 }
@@ -84,7 +87,7 @@
 .mp-form-title {
   font-size: 1.3rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #1e3a5f;
   margin: 0 0 4px;
 }
 
@@ -235,7 +238,7 @@
 
 .mp-type-add-btn-full {
   width: 100%;
-  background: linear-gradient(135deg, #1e3a5f, #2e5d9c);
+  background: #1e3a5f;
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -243,10 +246,10 @@
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: background 0.2s;
 }
 
-.mp-type-add-btn-full:hover { opacity: 0.88; }
+.mp-type-add-btn-full:hover { background: #2e5a8f; }
 
 .mp-type-add-block {
   display: flex;
@@ -279,7 +282,7 @@
 
 .mp-type-add-btn {
   flex: 1;
-  background: linear-gradient(135deg, #1e3a5f, #2e5d9c);
+  background: #1e3a5f;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -287,10 +290,10 @@
   font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: background 0.2s;
 }
 
-.mp-type-add-btn:hover { opacity: 0.88; }
+.mp-type-add-btn:hover { background: #2e5a8f; }
 
 .mp-type-cancel-btn {
   flex: 1;
@@ -332,8 +335,8 @@
   align-items: center;
   gap: 6px;
   background: #fff;
-  border: 1.5px solid #d1c4e9;
-  color: #6a1b9a;
+  border: 1.5px solid #e0e0e0;
+  color: #555;
   border-radius: 20px;
   padding: 4px 12px 4px 14px;
   font-size: 0.83rem;
@@ -343,7 +346,7 @@
 .mp-type-tag-del {
   background: none;
   border: none;
-  color: #ab47bc;
+  color: #aaa;
   font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
@@ -357,8 +360,8 @@
 
 .mp-type-tag-seuil {
   font-size: 0.75rem;
-  color: #9c4dcc;
-  background: #f3e5f5;
+  color: #555;
+  background: #f0f0f0;
   border-radius: 10px;
   padding: 1px 7px;
   font-weight: 500;
@@ -404,7 +407,7 @@
 .mp-modal-title {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #1e3a5f;
   margin: 0 0 0.75rem;
 }
 
@@ -415,7 +418,7 @@
   margin: 0 0 2rem;
 }
 
-.mp-modal-text strong { color: #1a1a2e; }
+.mp-modal-text strong { color: #1e3a5f; }
 
 .mp-modal-actions {
   display: flex;
@@ -456,7 +459,7 @@
 /* ===== SUBMIT ===== */
 .mp-submit-btn {
   margin-top: 0.5rem;
-  background: linear-gradient(135deg, #1e3a5f, #2e5d9c);
+  background: #2e7d32;
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -464,12 +467,12 @@
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
+  transition: background 0.2s, transform 0.1s;
   letter-spacing: 0.3px;
 }
 
 .mp-submit-btn:hover:not(:disabled) {
-  opacity: 0.9;
+  background: #1b5e20;
   transform: translateY(-1px);
 }
 

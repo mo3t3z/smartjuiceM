@@ -1,26 +1,27 @@
 .smp-page {
   min-height: 100vh;
-  background: #f4f6f9;
+  background: #f5f6fa;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* HEADER */
 .smp-header {
+  position: sticky; top: 0; z-index: 100;
   display: flex; justify-content: space-between; align-items: center;
-  background: linear-gradient(135deg, #1e3a5f 0%, #2e5d9c 100%);
-  padding: 0 2.5rem; height: 70px;
-  box-shadow: 0 2px 12px rgba(30,58,95,0.3);
+  background: #fff; border-bottom: 2px solid #e8e8e8;
+  padding: 0 2.5rem; height: 68px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 .smp-brand { display: flex; align-items: center; gap: 12px; }
-.smp-logo-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.22); color: #fff; font-size: 0.88rem; font-weight: 800; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; border: 1.5px solid rgba(255,255,255,0.4); flex-shrink: 0; }
-.smp-brand-name { font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0; line-height: 1.2; }
-.smp-brand-sub  { font-size: 0.78rem; color: rgba(255,255,255,0.82); margin: 0; }
+.smp-logo-icon { width: 38px; height: 38px; border-radius: 10px; background: #1e3a5f; color: #fff; font-size: 0.88rem; font-weight: 800; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; flex-shrink: 0; }
+.smp-brand-name { font-size: 1.3rem; font-weight: 800; color: #1e3a5f; margin: 0; line-height: 1.2; }
+.smp-brand-sub  { font-size: 0.78rem; color: #888; margin: 0; }
 .smp-back-btn {
-  background: rgba(255,255,255,0.18); color: #fff;
-  border: 1px solid rgba(255,255,255,0.45); border-radius: 8px;
+  background: #f5f6fa; color: #1e3a5f;
+  border: 1px solid #e0e0e0; border-radius: 8px;
   padding: 7px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
 }
-.smp-back-btn:hover { background: rgba(255,255,255,0.3); }
+.smp-back-btn:hover { background: #e8e8e8; }
 
 /* CONTENT */
 .smp-content { max-width: 1100px; margin: 0 auto; padding: 2rem 2rem 3rem; }
@@ -31,16 +32,16 @@
 }
 .smp-title-block { display: flex; align-items: center; gap: 0.85rem; }
 .smp-title-block > span { font-size: 2.2rem; }
-.smp-title    { font-size: 1.6rem; font-weight: 700; color: #1a1a2e; margin: 0 0 4px; }
+.smp-title    { font-size: 1.6rem; font-weight: 700; color: #1e3a5f; margin: 0 0 4px; }
 .smp-subtitle { font-size: 0.88rem; color: #888; margin: 0; }
 
 .smp-add-btn {
-  background: linear-gradient(135deg, #1e3a5f, #2e5d9c);
+  background: #1e3a5f;
   color: #fff; border: none; border-radius: 10px;
   padding: 10px 20px; font-size: 0.88rem; font-weight: 700;
-  cursor: pointer; transition: opacity 0.2s;
+  cursor: pointer; transition: background 0.2s;
 }
-.smp-add-btn:hover { opacity: 0.88; }
+.smp-add-btn:hover { background: #2e5a8f; }
 
 /* STATES */
 .smp-loader { text-align: center; padding: 3rem; color: #888; }
@@ -61,6 +62,7 @@
   border-radius: 18px;
   padding: 1.5rem;
   box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+  border: 1px solid #eaeaea;
   display: flex; flex-direction: column; gap: 0.85rem;
   border-top: 4px solid transparent;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -74,7 +76,7 @@
 .smp-card-icon-wrap {
   width: 44px; height: 44px; border-radius: 12px;
   background: #f1f8e9; display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem; font-weight: 800; color: #6a1b9a;
+  font-size: 1.1rem; font-weight: 800; color: #1e3a5f;
 }
 .smp-card--low .smp-card-icon-wrap { background: #fdecea; }
 
@@ -86,7 +88,7 @@
 .smp-status--low { background: #fdecea; color: #c62828; }
 
 .smp-card-name {
-  font-size: 1.05rem; font-weight: 700; color: #1a1a2e;
+  font-size: 1.05rem; font-weight: 700; color: #1e3a5f;
   margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -153,8 +155,8 @@
   border-bottom: 2px solid #f0f0f0;
   flex-shrink: 0;
 }
-.smp-hist-head h3 { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin: 0; }
-.smp-hist-type { color: #6a1b9a; }
+.smp-hist-head h3 { font-size: 1.1rem; font-weight: 700; color: #1e3a5f; margin: 0; }
+.smp-hist-type { color: #1e3a5f; }
 .smp-hist-close {
   background: #f0f0f0; border: none; border-radius: 8px;
   width: 32px; height: 32px; font-size: 1rem; cursor: pointer;

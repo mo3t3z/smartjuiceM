@@ -1,18 +1,20 @@
 .sa-page {
   min-height: 100vh;
-  background: #f4f6f9;
+  background: #f5f6fa;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 /* ===== HEADER ===== */
 .sa-header {
+  position: sticky; top: 0; z-index: 100;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #1e3a5f 0%, #2e5d9c 100%);
+  background: #fff;
+  border-bottom: 2px solid #e8e8e8;
   padding: 0 2.5rem;
-  height: 70px;
-  box-shadow: 0 2px 12px rgba(30, 58, 95, 0.3);
+  height: 68px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .sa-brand {
@@ -25,7 +27,7 @@
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  background: rgba(255,255,255,0.22);
+  background: #1e3a5f;
   color: #fff;
   font-size: 0.88rem;
   font-weight: 800;
@@ -33,21 +35,20 @@
   align-items: center;
   justify-content: center;
   letter-spacing: 0.5px;
-  border: 1.5px solid rgba(255,255,255,0.4);
   flex-shrink: 0;
 }
 
 .sa-brand-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #1e3a5f;
   margin: 0;
   line-height: 1.2;
 }
 
 .sa-brand-sub {
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.82);
+  color: #888;
   margin: 0;
   letter-spacing: 0.3px;
 }
@@ -68,26 +69,25 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.25);
+  background: #1e3a5f;
   color: #fff;
   font-size: 0.95rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
 .sa-user-email {
   font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #555;
   font-weight: 500;
 }
 
 .sa-back-btn {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: #f5f6fa;
+  color: #1e3a5f;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 7px 18px;
   font-size: 0.85rem;
@@ -97,8 +97,7 @@
 }
 
 .sa-back-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: transparent;
+  background: #e8e8e8;
 }
 
 /* ===== WELCOME BANNER ===== */
@@ -111,7 +110,7 @@
   width: 56px;
   height: 56px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #1e3a5f, #2e5d9c);
+  background: #1e3a5f;
   color: #fff;
   font-size: 0.78rem;
   font-weight: 800;
@@ -125,7 +124,7 @@
 .sa-welcome-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #1e3a5f;
   margin: 0 0 8px;
 }
 
@@ -150,7 +149,7 @@
   flex-direction: column;
   align-items: flex-start;
   background: #fff;
-  border: none;
+  border: 1px solid #eaeaea;
   border-radius: 16px;
   padding: 2rem;
   text-align: left;
@@ -171,8 +170,8 @@
   border-radius: 16px 16px 0 0;
 }
 
-.sa-card--purple::before { background: linear-gradient(90deg, #6a1b9a, #ab47bc); }
-.sa-card--green::before  { background: linear-gradient(90deg, #2e7d32, #66bb6a); }
+.sa-card--purple::before { background: #1e3a5f; }
+.sa-card--green::before  { background: #2e7d32; }
 
 .sa-card:hover {
   transform: translateY(-4px);
@@ -189,13 +188,13 @@
   display: inline-block;
   line-height: 1.4;
 }
-.sa-card--purple .sa-card-icon { background: #f3e5f5; color: #6a1b9a; }
+.sa-card--purple .sa-card-icon { background: #e8f0fe; color: #1e3a5f; }
 .sa-card--green .sa-card-icon  { background: #e8f5e9; color: #2e7d32; }
 
 .sa-card-title {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #1e3a5f;
   margin: 0 0 8px;
 }
 
@@ -215,7 +214,7 @@
   transition: transform 0.2s;
 }
 
-.sa-card--purple .sa-card-arrow { color: #6a1b9a; }
+.sa-card--purple .sa-card-arrow { color: #1e3a5f; }
 .sa-card--green .sa-card-arrow  { color: #2e7d32; }
 
 .sa-card:hover .sa-card-arrow {

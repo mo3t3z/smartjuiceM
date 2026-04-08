@@ -6,6 +6,8 @@ import TypeMP from "../models/TypeMP.js";
 import Notification from "../models/Notification.js";
 import Vente from "../models/Vente.js";
 import Commande from "../models/Commande.js";
+import StockBoutique from "../models/StockBoutique.js";
+import { ajouterStockBoutique } from "./commandeController.js";
 //HELPER --> calcDisponible()  ,MATIÈRES PREMIÈRES,TYPES MP ,RECETTES,
 // PRODUCTION (Produits Finis),TRANSFERTS BOUTIQUE,NOTIFICATIONS
 
@@ -383,6 +385,9 @@ export const enregistrerTransfert = async (req, res) => {
       }
     }
 
+    // Incrémenter le stock boutique
+    await ajouterStockBoutique(nomJus, quantite);
+
     const populated = await transfert.populate("enregistrePar", "email nom prenom");
     res.status(201).json({ message: `Transfert de ${quantite}L de "${nomJus}" enregistré avec succès.`, transfert: populated });
   } catch (error) {
@@ -410,72 +415,25 @@ export const getDisponiblePF = async (req, res) => {
 };
 
 // GET /api/seller/stock/pf  (stock PF boutique)
-// Calcul réel : transferts - ventes directes - commandes livrées
+// disponible lu depuis StockBoutique (source de vérité)
 export const getStockPFBoutique = async (req, res) => {
   try {
-    // Total reçu par transferts (par nomJus)
+    // Transferts : pour le détail historique (totalRecu, nbTransferts)
     const transferts = await TransfertBoutique.aggregate([
       { $group: { _id: "$nomJus", totalRecu: { $sum: "$quantite" }, nbTransferts: { $sum: 1 } } },
     ]);
 
-    // Total vendu en ventes directes (par nomJus, converti en litres)
-    const ventesDed = await Vente.aggregate([
-      { $unwind: "$produits" },
-      {
-        $group: {
-          _id: "$produits.nom",
-          totalVendu: {
-            $sum: {
-              $multiply: [
-                "$produits.quantite",
-                { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
-              ],
-            },
-          },
-        },
-      },
-    ]);
+    // Stock actuel depuis la collection dédiée
+    const stockDocs = await StockBoutique.find();
+    const stockMap = {};
+    stockDocs.forEach((s) => { stockMap[s.nomJus] = s.stockActuel; });
 
-    // Total livré par commandes livrées (par nomJus, converti en litres)
-    const commandesDed = await Commande.aggregate([
-      { $match: { statut: "livree" } },
-      { $unwind: "$produits" },
-      {
-        $group: {
-          _id: "$produits.nom",
-          totalLivre: {
-            $sum: {
-              $multiply: [
-                "$produits.quantite",
-                { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
-              ],
-            },
-          },
-        },
-      },
-    ]);
-
-    // Construire les maps de déductions
-    const venteMap = {};
-    ventesDed.forEach((v) => { venteMap[v._id] = v.totalVendu; });
-
-    const commandeMap = {};
-    commandesDed.forEach((c) => { commandeMap[c._id] = c.totalLivre; });
-
-    // Calculer le stock disponible pour chaque jus
-    const result = transferts.map((t) => {
-      const totalVendu = venteMap[t._id] || 0;
-      const totalLivre = commandeMap[t._id] || 0;
-      const disponible = parseFloat((t.totalRecu - totalVendu - totalLivre).toFixed(2));
-      return {
-        nomJus: t._id,
-        totalRecu: t.totalRecu,
-        nbTransferts: t.nbTransferts,
-        totalVendu: parseFloat(totalVendu.toFixed(2)),
-        totalLivre: parseFloat(totalLivre.toFixed(2)),
-        disponible: Math.max(0, disponible), // éviter les négatifs affichés
-      };
-    });
+    const result = transferts.map((t) => ({
+      nomJus: t._id,
+      totalRecu: t.totalRecu,
+      nbTransferts: t.nbTransferts,
+      disponible: Math.max(0, stockMap[t._id] ?? 0),
+    }));
 
     res.json(result);
   } catch (error) {

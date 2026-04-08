@@ -1,30 +1,32 @@
 .gr-page {
   min-height: 100vh;
-  background: #f4f6f9;
+  background: #f5f6fa;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* HEADER */
 .gr-header {
+  position: sticky; top: 0; z-index: 100;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #1e3a5f 0%, #2e5d9c 100%);
+  background: #fff;
+  border-bottom: 2px solid #e8e8e8;
   padding: 0 2.5rem;
-  height: 70px;
-  box-shadow: 0 2px 12px rgba(30,58,95,0.3);
+  height: 68px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 .gr-brand { display: flex; align-items: center; gap: 12px; }
-.gr-logo-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.22); color: #fff; font-size: 0.88rem; font-weight: 800; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; border: 1.5px solid rgba(255,255,255,0.4); flex-shrink: 0; }
-.gr-brand-name { font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0; line-height: 1.2; }
-.gr-brand-sub { font-size: 0.78rem; color: rgba(255,255,255,0.82); margin: 0; }
+.gr-logo-icon { width: 38px; height: 38px; border-radius: 10px; background: #1e3a5f; color: #fff; font-size: 0.88rem; font-weight: 800; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; flex-shrink: 0; }
+.gr-brand-name { font-size: 1.3rem; font-weight: 800; color: #1e3a5f; margin: 0; line-height: 1.2; }
+.gr-brand-sub { font-size: 0.78rem; color: #888; margin: 0; }
 .gr-back-btn {
-  background: rgba(255,255,255,0.18); color: #fff;
-  border: 1px solid rgba(255,255,255,0.45); border-radius: 8px;
+  background: #f5f6fa; color: #1e3a5f;
+  border: 1px solid #e0e0e0; border-radius: 8px;
   padding: 7px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
   transition: background 0.2s;
 }
-.gr-back-btn:hover { background: rgba(255,255,255,0.3); }
+.gr-back-btn:hover { background: #e8e8e8; }
 
 /* CONTENT */
 .gr-content { max-width: 1100px; margin: 0 auto; padding: 2rem 2rem 3rem; }
@@ -35,16 +37,16 @@
 }
 .gr-title-block { display: flex; align-items: center; gap: 0.85rem; }
 .gr-title-icon { display: none; }
-.gr-title { font-size: 1.6rem; font-weight: 700; color: #1a1a2e; margin: 0 0 4px; }
+.gr-title { font-size: 1.6rem; font-weight: 700; color: #1e3a5f; margin: 0 0 4px; }
 .gr-subtitle { font-size: 0.88rem; color: #888; margin: 0; }
 
 .gr-new-btn {
-  background: linear-gradient(135deg, #1e3a5f, #2e5d9c);
+  background: #1e3a5f;
   color: #fff; border: none; border-radius: 10px;
   padding: 10px 22px; font-size: 0.92rem; font-weight: 700;
-  cursor: pointer; transition: opacity 0.2s;
+  cursor: pointer; transition: background 0.2s;
 }
-.gr-new-btn:hover { opacity: 0.88; }
+.gr-new-btn:hover { background: #2e5a8f; }
 
 /* STATES */
 .gr-loader { text-align: center; padding: 3rem; color: #888; }
@@ -72,6 +74,7 @@
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  border: 1px solid #eaeaea;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -80,7 +83,7 @@
 .gr-card-head { display: flex; justify-content: space-between; align-items: flex-start; }
 .gr-card-title-row { display: flex; align-items: center; gap: 8px; }
 .gr-card-icon { width: 34px; height: 34px; border-radius: 8px; background: #fff3e0; color: #e65100; font-size: 0.85rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.gr-card-name { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+.gr-card-name { font-size: 1.1rem; font-weight: 700; color: #1e3a5f; margin: 0; }
 .gr-card-actions { display: flex; gap: 6px; }
 
 .gr-btn-edit {
@@ -112,8 +115,8 @@
 .gr-card-footer { margin-top: auto; padding-top: 0.75rem; border-top: 1px solid #f0f0f0; display: flex; flex-direction: column; gap: 3px; }
 .gr-trace { font-size: 0.75rem; color: #aaa; }
 .gr-trace strong { color: #888; }
-.gr-trace--mod { color: #b39ddb; }
-.gr-trace--mod strong { color: #9575cd; }
+.gr-trace--mod { color: #aaa; }
+.gr-trace--mod strong { color: #888; }
 
 /* OVERLAY */
 .gr-overlay {
@@ -139,7 +142,7 @@
 }
 
 .gr-modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
-.gr-modal-head h3 { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+.gr-modal-head h3 { font-size: 1.15rem; font-weight: 700; color: #1e3a5f; margin: 0; }
 .gr-modal-close {
   background: #f0f0f0; border: none; border-radius: 8px;
   width: 32px; height: 32px; font-size: 1rem; cursor: pointer;
@@ -207,9 +210,9 @@
 
 /* DELETE MODAL */
 .gr-del-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-.gr-del-title { font-size: 1.2rem; font-weight: 700; color: #1a1a2e; margin: 0 0 0.75rem; }
+.gr-del-title { font-size: 1.2rem; font-weight: 700; color: #1e3a5f; margin: 0 0 0.75rem; }
 .gr-del-text { font-size: 0.92rem; color: #666; line-height: 1.6; margin: 0 0 2rem; }
-.gr-del-text strong { color: #1a1a2e; }
+.gr-del-text strong { color: #1e3a5f; }
 
 /* ACTIONS */
 .gr-modal-actions { display: flex; gap: 12px; margin-top: 0.5rem; }
@@ -220,12 +223,12 @@
 }
 .gr-btn-cancel:hover { background: #e0e0e0; }
 .gr-btn-save {
-  flex: 2; background: linear-gradient(135deg, #1e3a5f, #2e5d9c);
+  flex: 2; background: #1e3a5f;
   color: #fff; border: none; border-radius: 10px;
   padding: 12px; font-size: 0.9rem; font-weight: 700;
-  cursor: pointer; transition: opacity 0.2s;
+  cursor: pointer; transition: background 0.2s;
 }
-.gr-btn-save:hover:not(:disabled) { opacity: 0.9; }
+.gr-btn-save:hover:not(:disabled) { background: #2e5a8f; }
 .gr-btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 .gr-btn-delete {
   flex: 1; background: #e53935; color: #fff; border: none;

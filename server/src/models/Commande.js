@@ -47,7 +47,7 @@ const commandeSchema = new mongoose.Schema(
     // Statut de la commande
     statut: {
       type: String,
-      enum: ["en_attente", "validee", "refusee", "en_preparation", "livree"],
+      enum: ["en_attente", "validee", "refusee", "en_preparation", "prete", "livree"],
       default: "en_attente",
     },
 
@@ -56,6 +56,37 @@ const commandeSchema = new mongoose.Schema(
       type: String,
       enum: ["en_ligne", "physique"],
       required: true,
+    },
+
+    // Date de retrait souhaitée (pour les commandes physiques à la demande)
+    dateRetrait: {
+      type: Date,
+      default: null,
+    },
+
+    // Mode de remise : livraison à domicile ou retrait en boutique
+    modeRemise: {
+      type: String,
+      enum: ["livraison", "retrait"],
+      default: "retrait",
+    },
+
+    // Adresse de livraison (si modeRemise = livraison)
+    adresseLivraison: {
+      type: String,
+      default: "",
+    },
+
+    // Téléphone pour la livraison
+    telephoneLivraison: {
+      type: String,
+      default: "",
+    },
+
+    // Frais de livraison (en DT)
+    fraisLivraison: {
+      type: Number,
+      default: 0,
     },
 
     // Vendeur qui a enregistré la commande physique

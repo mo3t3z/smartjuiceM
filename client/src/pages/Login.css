@@ -1,103 +1,113 @@
-/* Page background */
+/* ═══════════════════════════════════════════
+   SmartJuice — Login Staff (style e-commerce)
+   ═══════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
 .sj-login-page {
   min-height: 100vh;
-  background: linear-gradient(#fef6f2, #fde8dc);
-  font-family: Arial, sans-serif;
+  background: #f5f6fa;
+  font-family: 'Segoe UI', Arial, sans-serif;
 }
 
-/* Top header */
+/* ══════ HEADER ══════ */
 .sj-topbar {
-  height: 86px;
-  background: #1e3a5f;
-  color: #fff;
+  background: #fff;
+  border-bottom: 2px solid #e8e8e8;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 28px;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .sj-topbar-left {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .sj-brand {
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e3a5f;
+  letter-spacing: -0.3px;
 }
 
 .sj-subtitle {
-  font-size: 12px;
-  opacity: 0.9;
+  font-size: 10px;
+  color: #888;
   letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .sj-topbar-right .sj-pill {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 10px 14px;
-  border-radius: 999px;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  color: #2e7d32;
+  padding: 6px 14px;
+  border-radius: 20px;
   font-size: 12px;
+  font-weight: 600;
 }
 
-/* Center content */
+/* ══════ CONTENU ══════ */
 .sj-login-content {
   display: flex;
   justify-content: center;
-  padding: 40px 16px;
+  align-items: center;
+  padding: 48px 16px;
+  min-height: calc(100vh - 68px);
 }
 
-/* Card */
+/* ══════ CARTE ══════ */
 .sj-login-card {
   width: 100%;
-  max-width: 560px;
+  max-width: 480px;
   background: #fff;
-  border: 1px solid #fde0d0;
-  border-radius: 10px;
-  box-shadow: 0 12px 30px rgba(30, 58, 95, 0.1);
-  padding: 26px;
+  border: 1px solid #eaeaea;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  padding: 32px 36px;
 }
 
-/* Title */
+/* ══════ TITRE ══════ */
 .sj-card-title h2 {
   margin: 0;
   font-size: 22px;
   color: #1e3a5f;
   font-weight: 800;
-  letter-spacing: 0.4px;
 }
 
 .sj-card-title p {
-  margin: 8px 0 18px;
-  color: #5b6b7c;
+  margin: 6px 0 22px;
+  color: #888;
   font-size: 13px;
 }
 
-/* Error alert */
+/* ══════ ALERTE ══════ */
 .sj-alert {
-  background: #fff2f2;
-  border: 1px solid #ffd0d0;
-  color: #b00020;
-  padding: 10px 12px;
+  background: #ffebee;
+  border: 1px solid #ef9a9a;
+  color: #c62828;
+  padding: 10px 14px;
   border-radius: 8px;
   font-size: 13px;
-  margin-bottom: 12px;
-  border-left: 3px solid #b00020;
+  font-weight: 600;
+  margin-bottom: 16px;
 }
 
-/* Form fields */
+/* ══════ FORMULAIRE ══════ */
 .sj-form .sj-field {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .sj-form label {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  color: #1d2a35;
+  color: #333;
   letter-spacing: 0.6px;
   text-transform: uppercase;
   margin-bottom: 6px;
@@ -106,20 +116,22 @@
 .sj-form input {
   width: 100%;
   height: 44px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1.5px solid #ddd;
   padding: 0 12px;
   outline: none;
   font-size: 14px;
-  box-sizing: border-box;
+  background: #f8f9fb;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .sj-form input:focus {
   border-color: #1e3a5f;
-  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(30,58,95,0.08);
 }
 
-/* Password wrapper */
+/* Mot de passe + œil */
 .sj-password-row {
   position: relative;
   width: 100%;
@@ -127,8 +139,6 @@
 
 .sj-password-row input {
   padding-right: 46px;
-  width: 100%;
-  box-sizing: border-box;
 }
 
 .sj-eye-btn {
@@ -136,11 +146,11 @@
   right: 0;
   top: 0;
   bottom: 0;
-  width: 40px;
+  width: 42px;
   background: none;
   border: none;
-  border-left: 1px solid #ddd;
-  border-radius: 0 8px 8px 0;
+  border-left: 1px solid #e0e0e0;
+  border-radius: 0 10px 10px 0;
   padding: 0;
   margin: 0;
   cursor: pointer;
@@ -149,50 +159,41 @@
   align-items: center;
   justify-content: center;
   z-index: 2;
-  transition: color 0.2s, border-color 0.2s;
+  transition: color 0.2s;
 }
 
-.sj-eye-btn:hover {
-  color: #1e3a5f;
-  border-color: #1e3a5f;
-}
+.sj-eye-btn:hover { color: #1e3a5f; }
 
-/* Submit button */
+/* ══════ BOUTON CONNEXION ══════ */
 .sj-btn-primary {
   width: 100%;
   height: 46px;
   border: none;
-  border-radius: 8px;
-  background: #1e3a5f;
+  border-radius: 10px;
+  background: #2e7d32;
   color: #fff;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   margin-top: 6px;
-  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  transition: background 0.2s, transform 0.15s;
+  font-family: inherit;
 }
 
 .sj-btn-primary:hover:not(:disabled) {
-  background: #e85d2c;
+  background: #1b5e20;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(30, 58, 95, 0.35);
-}
-
-.sj-btn-primary:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: none;
 }
 
 .sj-btn-primary:disabled {
-  opacity: 0.75;
+  opacity: 0.65;
   cursor: not-allowed;
 }
 
-/* Forgot password */
+/* ══════ LIEN MOT DE PASSE OUBLIÉ ══════ */
 .sj-forgot-password {
   text-align: right;
-  margin-top: 8px;
-  margin-bottom: 4px;
+  margin-top: 10px;
 }
 
 .sj-forgot-password a {
@@ -200,48 +201,16 @@
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
+  transition: color 0.2s;
 }
 
 .sj-forgot-password a:hover {
-  color: #e85d2c;
+  color: #2e7d32;
   text-decoration: underline;
 }
 
-/* Security box */
-.sj-security-box {
-  margin-top: 16px;
-  background: linear-gradient(#1e3a5f, #e85d2c);
-  border-radius: 8px;
-  padding: 14px 14px 14px 0;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  color: #fff;
-}
-
-.sj-security-bar {
-  width: 4px;
-  height: 44px;
-  background: #fff;
-  border-radius: 4px;
-  margin-left: 14px;
-  opacity: 0.7;
-}
-
-.sj-security-text {
-  font-size: 13px;
-  line-height: 1.5;
-  opacity: 0.95;
-}
-
-/* Mobile */
+/* ══════ RESPONSIVE ══════ */
 @media (max-width: 520px) {
-  .sj-topbar {
-    padding: 0 16px;
-    height: 80px;
-  }
-
-  .sj-brand {
-    font-size: 24px;
-  }
+  .sj-topbar { padding: 0 16px; }
+  .sj-login-card { padding: 24px 20px; }
 }

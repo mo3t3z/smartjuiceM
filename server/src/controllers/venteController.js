@@ -1,11 +1,10 @@
 import PDFDocument from "pdfkit";
 import Vente from "../models/Vente.js";
 import Product from "../models/Product.js";
-import { calcStockBoutique } from "./commandeController.js";
+import { calcStockBoutique, ajouterStockBoutique } from "./commandeController.js";
 import Recette from "../models/Recette.js";
 import Notification from "../models/Notification.js";
-import TransfertBoutique from "../models/TransfertBoutique.js";
-import Commande from "../models/Commande.js";
+import StockBoutique from "../models/StockBoutique.js";
 
 /* ═══════════════════════════════════════════════════════════════
    HELPER : vérifier et créer une alerte de stock boutique (PB26)
@@ -92,6 +91,12 @@ export const creerVente = async (req, res) => {
       dateVente: new Date(),
     });
 
+    // Décrémenter le stock boutique pour chaque produit vendu
+    for (const p of produitsDetails) {
+      const litres = (p.volume === "1L" ? 1 : 0.5) * p.quantite;
+      await ajouterStockBoutique(p.nom, -litres);
+    }
+
     // Vérifier les alertes boutique pour chaque produit vendu (PB26)
     const nomsJus = [...new Set(produitsDetails.map((p) => p.nom))];
     for (const nomJus of nomsJus) {
@@ -141,18 +146,13 @@ export const getMesVentes = async (req, res) => {
 ═══════════════════════════════════════════════════════════════ */
 export const getStockBoutiqueDisponible = async (req, res) => {
   try {
-    // Récupérer tous les nomJus distincts transférés en boutique
-    const nomJusList = await TransfertBoutique.distinct("nomJus");
-
-    const stockMap = {};
-    for (const nomJus of nomJusList) {
-      stockMap[nomJus] = {
-        nomJus,
-        disponible: parseFloat((await calcStockBoutique(nomJus)).toFixed(2)),
-      };
-    }
-
-    res.json(Object.values(stockMap));
+    const stocks = await StockBoutique.find().sort({ nomJus: 1 });
+    res.json(
+      stocks.map((s) => ({
+        nomJus: s.nomJus,
+        disponible: Math.max(0, parseFloat(s.stockActuel.toFixed(2))),
+      }))
+    );
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }

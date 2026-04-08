@@ -1,38 +1,115 @@
-.sh-page { min-height: 100vh; background: #f4f6f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+/* ══════════════════════════════════════
+   SmartJuice — SellerHome (e-commerce)
+   ══════════════════════════════════════ */
 
-.sh-header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #1e3a5f 0%, #2e5d9c 100%); padding: 0 2.5rem; height: 70px; box-shadow: 0 2px 12px rgba(30,58,95,0.3); }
-.sh-brand { display: flex; align-items: center; gap: 12px; }
-.sh-logo-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.22); color: #fff; font-size: 0.88rem; font-weight: 800; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; border: 1.5px solid rgba(255,255,255,0.4); flex-shrink: 0; }
-.sh-brand-name { font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0; line-height: 1.2; }
-.sh-brand-sub  { font-size: 0.78rem; color: rgba(255,255,255,0.82); margin: 0; letter-spacing: 0.3px; }
-.sh-header-right { display: flex; align-items: center; gap: 16px; }
-.sh-user-info { display: flex; align-items: center; gap: 10px; }
-.sh-user-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.25); color: #fff; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.5); }
-.sh-user-email { font-size: 0.88rem; color: rgba(255,255,255,0.9); font-weight: 500; }
-.sh-logout-btn { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.45); border-radius: 8px; padding: 7px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-.sh-logout-btn:hover { background: rgba(255,255,255,0.3); }
+*, *::before, *::after { box-sizing: border-box; }
 
+.sh-page {
+  min-height: 100vh;
+  background: #f5f6fa;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* ══════ HEADER ══════ */
+.sh-header {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; justify-content: space-between; align-items: center;
+  background: #fff; border-bottom: 2px solid #e8e8e8;
+  padding: 0 28px; height: 68px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.sh-brand { display: flex; align-items: center; gap: 10px; }
+
+.sh-logo-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: #1e3a5f; color: #fff;
+  font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  letter-spacing: 0.5px; flex-shrink: 0;
+}
+
+.sh-brand-name { font-size: 18px; font-weight: 800; color: #1e3a5f; margin: 0; line-height: 1.2; }
+.sh-brand-sub  { font-size: 11px; color: #888; margin: 0; }
+
+.sh-header-right { display: flex; align-items: center; gap: 12px; }
+.sh-user-info    { display: flex; align-items: center; gap: 8px; }
+
+.sh-user-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #1e3a5f; color: #fff;
+  font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.sh-user-email { font-size: 13px; color: #555; font-weight: 500; }
+
+.sh-logout-btn {
+  background: #f5f6fa; color: #333;
+  border: 1.5px solid #e0e0e0; border-radius: 8px;
+  padding: 7px 16px; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.sh-logout-btn:hover { background: #ffebee; border-color: #c62828; color: #c62828; }
+
+/* ══════ BIENVENUE ══════ */
 .sh-welcome { text-align: center; padding: 3rem 1rem 2rem; }
-.sh-welcome-title { font-size: 2rem; font-weight: 700; color: #1a1a2e; margin: 0 0 8px; }
-.sh-welcome-sub { font-size: 1rem; color: #666; margin: 0; }
+.sh-welcome-title { font-size: 1.9rem; font-weight: 800; color: #1e3a5f; margin: 0 0 8px; }
+.sh-welcome-sub { font-size: 15px; color: #666; margin: 0; }
 
-.sh-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 500px; margin: 0 auto; padding: 0 2rem 3rem; }
+/* ══════ CARTES ══════ */
+.sh-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
 
-.sh-card { display: flex; flex-direction: column; align-items: flex-start; background: #fff; border: none; border-radius: 16px; padding: 2rem; text-align: left; cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.07); transition: transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden; }
-.sh-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; border-radius: 16px 16px 0 0; }
-.sh-card--green::before { background: linear-gradient(90deg, #2e7d32, #66bb6a); }
-.sh-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,0.12); }
-.sh-card-icon { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px; padding: 4px 10px; border-radius: 6px; margin-bottom: 1rem; display: inline-block; line-height: 1.4; }
-.sh-card--green .sh-card-icon { background: #e8f5e9; color: #2e7d32; }
-.sh-card-title { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; margin: 0 0 8px; }
-.sh-card-desc { font-size: 0.88rem; color: #777; margin: 0; line-height: 1.5; flex: 1; }
-.sh-card-arrow { margin-top: 1.4rem; font-size: 1.2rem; font-weight: 700; align-self: flex-end; transition: transform 0.2s; }
-.sh-card--green .sh-card-arrow { color: #2e7d32; }
-.sh-card:hover .sh-card-arrow { transform: translateX(4px); }
+.sh-card {
+  display: flex; flex-direction: column; align-items: flex-start;
+  background: #fff; border: 1px solid #eaeaea; border-radius: 14px;
+  padding: 24px; text-align: left; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative; overflow: hidden;
+}
 
+.sh-card::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0;
+  height: 4px; border-radius: 14px 14px 0 0;
+}
+
+.sh-card--green::before  { background: linear-gradient(90deg, #2e7d32, #66bb6a); }
+.sh-card--blue::before   { background: linear-gradient(90deg, #1976d2, #42a5f5); }
+.sh-card--orange::before { background: linear-gradient(90deg, #b45309, #d97706); }
+
+.sh-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+
+.sh-card-icon {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.5px;
+  padding: 4px 10px; border-radius: 6px; margin-bottom: 14px;
+  display: inline-block; line-height: 1.4;
+}
+
+.sh-card--green .sh-card-icon  { background: #e8f5e9; color: #2e7d32; }
+.sh-card--blue .sh-card-icon   { background: #e3f2fd; color: #1565c0; }
+.sh-card--orange .sh-card-icon { background: #fef3c7; color: #92400e; }
+
+.sh-card-title { font-size: 16px; font-weight: 700; color: #1e3a5f; margin: 0 0 8px; }
+.sh-card-desc  { font-size: 13px; color: #777; margin: 0; line-height: 1.5; flex: 1; }
+
+.sh-card-arrow { margin-top: 18px; font-size: 1.1rem; font-weight: 700; align-self: flex-end; transition: transform 0.2s; }
+.sh-card--green .sh-card-arrow  { color: #2e7d32; }
+.sh-card--blue .sh-card-arrow   { color: #1976d2; }
+.sh-card--orange .sh-card-arrow { color: #b45309; }
+.sh-card:hover .sh-card-arrow   { transform: translateX(4px); }
+
+/* ══════ RESPONSIVE ══════ */
 @media (max-width: 768px) {
-  .sh-header { padding: 0 1.2rem; height: auto; padding-top: 14px; padding-bottom: 14px; flex-wrap: wrap; gap: 12px; }
+  .sh-header { padding: 0 16px; }
   .sh-user-email { display: none; }
   .sh-welcome-title { font-size: 1.5rem; }
-  .sh-cards { grid-template-columns: 1fr; padding: 0 1rem 2rem; }
+  .sh-cards { grid-template-columns: 1fr; padding: 0 16px 32px; }
 }

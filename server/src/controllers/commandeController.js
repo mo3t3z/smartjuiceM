@@ -5,20 +5,19 @@ import Product from "../models/Product.js";
 import TransfertBoutique from "../models/TransfertBoutique.js";
 import Recette from "../models/Recette.js";
 import Notification from "../models/Notification.js";
+import StockBoutique from "../models/StockBoutique.js";
 
 /* ═══════════════════════════════════════════════════════════════
-   HELPER : calcul du stock boutique disponible par nomJus
-   Stock = transferts reçus - ventes directes - commandes livrées
+   HELPER PRIVÉ : recalcule le stock depuis les collections brutes
+   Utilisé uniquement pour initialiser un nouveau jus (lazy init)
 ═══════════════════════════════════════════════════════════════ */
-export const calcStockBoutique = async (nomJus) => {
-  // Total reçu par transferts depuis l'atelier
+const recalculerStockDepuisDB = async (nomJus) => {
   const transAgg = await TransfertBoutique.aggregate([
     { $match: { nomJus } },
     { $group: { _id: null, total: { $sum: "$quantite" } } },
   ]);
   const totalRecu = transAgg[0]?.total || 0;
 
-  // Total vendu (ventes directes) — quantite * volume en litres
   const ventesAgg = await Vente.aggregate([
     { $unwind: "$produits" },
     { $match: { "produits.nom": nomJus } },
@@ -29,13 +28,7 @@ export const calcStockBoutique = async (nomJus) => {
           $sum: {
             $multiply: [
               "$produits.quantite",
-              {
-                $cond: [
-                  { $eq: ["$produits.volume", "1L"] },
-                  1,
-                  0.5,
-                ],
-              },
+              { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
             ],
           },
         },
@@ -44,7 +37,6 @@ export const calcStockBoutique = async (nomJus) => {
   ]);
   const totalVendu = ventesAgg[0]?.total || 0;
 
-  // Total livré par commandes (en ligne + physiques livrées)
   const commandesAgg = await Commande.aggregate([
     { $match: { statut: "livree" } },
     { $unwind: "$produits" },
@@ -56,13 +48,7 @@ export const calcStockBoutique = async (nomJus) => {
           $sum: {
             $multiply: [
               "$produits.quantite",
-              {
-                $cond: [
-                  { $eq: ["$produits.volume", "1L"] },
-                  1,
-                  0.5,
-                ],
-              },
+              { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
             ],
           },
         },
@@ -71,7 +57,38 @@ export const calcStockBoutique = async (nomJus) => {
   ]);
   const totalLivre = commandesAgg[0]?.total || 0;
 
-  return totalRecu - totalVendu - totalLivre;
+  return parseFloat((totalRecu - totalVendu - totalLivre).toFixed(2));
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPER PUBLIC : lire le stock boutique depuis la collection
+   Lazy init : si le document n'existe pas encore, recalcule et crée
+═══════════════════════════════════════════════════════════════ */
+export const calcStockBoutique = async (nomJus) => {
+  const doc = await StockBoutique.findOne({ nomJus });
+  if (doc) return doc.stockActuel;
+
+  // Premier appel pour ce jus : initialise depuis les données existantes
+  const stock = await recalculerStockDepuisDB(nomJus);
+  await StockBoutique.findOneAndUpdate(
+    { nomJus },
+    { $setOnInsert: { stockActuel: stock } },
+    { upsert: true }
+  );
+  return stock;
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPER PUBLIC : incrémenter/décrémenter le stock boutique
+   delta > 0 → entrée (transfert), delta < 0 → sortie (vente/livraison)
+═══════════════════════════════════════════════════════════════ */
+export const ajouterStockBoutique = async (nomJus, delta) => {
+  await calcStockBoutique(nomJus); // garantit que le doc existe
+  return StockBoutique.findOneAndUpdate(
+    { nomJus },
+    { $inc: { stockActuel: parseFloat(delta.toFixed(4)) } },
+    { new: true }
+  );
 };
 
 /* ═══════════════════════════════════════════════════════════════
@@ -110,10 +127,19 @@ const verifierAlerteBoutique = async (nomJus) => {
 ═══════════════════════════════════════════════════════════════ */
 export const creerCommandeEnLigne = async (req, res) => {
   try {
-    const { produits } = req.body;
+    const { produits, modeRemise, adresseLivraison, telephoneLivraison, fraisLivraison } = req.body;
 
     if (!produits || produits.length === 0) {
       return res.status(400).json({ message: "Le panier est vide." });
+    }
+
+    // Validation livraison
+    const mode = modeRemise === "livraison" ? "livraison" : "retrait";
+    if (mode === "livraison" && !adresseLivraison?.trim()) {
+      return res.status(400).json({ message: "L'adresse de livraison est obligatoire." });
+    }
+    if (mode === "livraison" && !telephoneLivraison?.trim()) {
+      return res.status(400).json({ message: "Le téléphone de livraison est obligatoire." });
     }
 
     // Récupérer les produits depuis la base de données pour vérification
@@ -141,14 +167,20 @@ export const creerCommandeEnLigne = async (req, res) => {
       });
     }
 
+    const frais = mode === "livraison" ? parseFloat(fraisLivraison) || 0 : 0;
+
     const commande = await Commande.create({
       client: req.user._id,
       nomClient: `${req.user.prenom || ""} ${req.user.nom || ""}`.trim() || req.user.email,
       telephone: req.user.telephone || "",
       produits: produitsDetails,
-      total: parseFloat(total.toFixed(2)),
+      total: parseFloat((total + frais).toFixed(2)),
       statut: "en_attente",
       type: "en_ligne",
+      modeRemise: mode,
+      adresseLivraison: mode === "livraison" ? adresseLivraison.trim() : "",
+      telephoneLivraison: mode === "livraison" ? telephoneLivraison.trim() : "",
+      fraisLivraison: frais,
     });
 
     const populated = await commande.populate("client", "email nom prenom telephone");
@@ -259,7 +291,7 @@ export const refuserCommande = async (req, res) => {
 ═══════════════════════════════════════════════════════════════ */
 export const getCommandesConfirmees = async (req, res) => {
   try {
-    const commandes = await Commande.find({ statut: { $in: ["validee", "en_preparation"] } })
+    const commandes = await Commande.find({ statut: { $in: ["validee", "en_preparation", "prete"] } })
       .populate("client", "email nom prenom telephone")
       .populate("enregistrePar", "email nom prenom")
       .sort({ createdAt: -1 });
@@ -291,6 +323,27 @@ export const mettreEnPreparation = async (req, res) => {
 };
 
 /* ═══════════════════════════════════════════════════════════════
+   MARQUER COMME PRÊTE (Atelier)
+   → L'atelier signale que la commande est prête à être remise
+═══════════════════════════════════════════════════════════════ */
+export const marquerPrete = async (req, res) => {
+  try {
+    const commande = await Commande.findById(req.params.id);
+    if (!commande) return res.status(404).json({ message: "Commande introuvable." });
+    if (commande.statut !== "en_preparation") {
+      return res.status(400).json({ message: "La commande doit être en préparation pour être marquée prête." });
+    }
+
+    commande.statut = "prete";
+    await commande.save();
+
+    res.json({ message: "Commande marquée comme prête.", commande });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════
    MARQUER COMME LIVRÉE (Gérant ou Vendeur)
    → Déduit du stock boutique + vérifie alerte PB26
 ═══════════════════════════════════════════════════════════════ */
@@ -298,12 +351,18 @@ export const marquerLivree = async (req, res) => {
   try {
     const commande = await Commande.findById(req.params.id);
     if (!commande) return res.status(404).json({ message: "Commande introuvable." });
-    if (!["validee", "en_preparation"].includes(commande.statut)) {
-      return res.status(400).json({ message: "La commande doit être validée ou en préparation pour être livrée." });
+    if (!["prete"].includes(commande.statut)) {
+      return res.status(400).json({ message: "La commande doit être prête pour être marquée livrée." });
     }
 
     commande.statut = "livree";
     await commande.save();
+
+    // Décrémenter le stock boutique pour chaque produit livré
+    for (const p of commande.produits) {
+      const litres = (p.volume === "1L" ? 1 : 0.5) * p.quantite;
+      await ajouterStockBoutique(p.nom, -litres);
+    }
 
     // Vérifier les alertes boutique pour chaque produit de la commande (PB26)
     const nomsJus = [...new Set(commande.produits.map((p) => p.nom))];
@@ -322,7 +381,7 @@ export const marquerLivree = async (req, res) => {
 ═══════════════════════════════════════════════════════════════ */
 export const creerCommandePhysique = async (req, res) => {
   try {
-    const { nomClient, telephone, produits } = req.body;
+    const { nomClient, telephone, dateRetrait, produits } = req.body;
 
     if (!produits || produits.length === 0) {
       return res.status(400).json({ message: "La commande doit contenir au moins un produit." });
@@ -352,6 +411,7 @@ export const creerCommandePhysique = async (req, res) => {
     const commande = await Commande.create({
       nomClient: nomClient || "Client boutique",
       telephone: telephone || "",
+      dateRetrait: dateRetrait || null,
       produits: produitsDetails,
       total: parseFloat(total.toFixed(2)),
       statut: "en_attente",
@@ -418,6 +478,21 @@ export const genererRecuCommande = async (req, res) => {
       if (commande.telephone) doc.text(`Tél : ${commande.telephone}`);
     }
 
+    // ── Mode de remise ───────────────────────────────────────────
+    doc.moveDown(0.5);
+    doc.fontSize(12).font("Helvetica-Bold").text("Mode de remise :");
+    doc.fontSize(10).font("Helvetica");
+    if (commande.modeRemise === "livraison") {
+      doc.text("Livraison à domicile");
+      doc.text(`Adresse : ${commande.adresseLivraison}`);
+      if (commande.telephoneLivraison) doc.text(`Tél livraison : ${commande.telephoneLivraison}`);
+    } else {
+      doc.text("Retrait en boutique");
+      if (commande.dateRetrait) {
+        doc.text(`Date de retrait : ${new Date(commande.dateRetrait).toLocaleDateString("fr-TN")}`);
+      }
+    }
+
     // ── Tableau des produits ─────────────────────────────────────
     doc.moveDown(0.5);
     doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
@@ -453,6 +528,12 @@ export const genererRecuCommande = async (req, res) => {
     doc.moveDown(0.3);
     doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
     doc.moveDown(0.5);
+    if (commande.modeRemise === "livraison" && commande.fraisLivraison > 0) {
+      const sousTotal = commande.total - commande.fraisLivraison;
+      doc.fontSize(11).font("Helvetica").text(`Sous-total : ${sousTotal.toFixed(2)} DT`, { align: "right" });
+      doc.fontSize(11).font("Helvetica").text(`Frais de livraison : ${commande.fraisLivraison.toFixed(2)} DT`, { align: "right" });
+      doc.moveDown(0.2);
+    }
     doc.fontSize(14).font("Helvetica-Bold").text(`TOTAL : ${commande.total.toFixed(2)} DT`, { align: "right" });
 
     // ── Pied de page ─────────────────────────────────────────────

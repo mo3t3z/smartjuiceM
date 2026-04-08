@@ -36,9 +36,10 @@ export default function MesCommandes() {
   // Libellés et couleurs des statuts
   const statutConfig = {
     en_attente:     { label: "En attente",      couleur: "orange" },
-    validee:        { label: "Validée",          couleur: "blue"   },
+    validee:        { label: "Acceptée",         couleur: "blue"   },
     refusee:        { label: "Refusée",          couleur: "red"    },
     en_preparation: { label: "En préparation",   couleur: "purple" },
+    prete:          { label: "Prête",            couleur: "teal"   },
     livree:         { label: "Livrée",           couleur: "green"  },
   };
 
@@ -101,9 +102,31 @@ export default function MesCommandes() {
                     ))}
                   </div>
 
+                  {/* Mode de remise */}
+                  <div className="mc-remise">
+                    {cmd.modeRemise === "livraison" ? (
+                      <div className="mc-livraison-info">
+                        <span className="mc-remise-badge mc-remise-badge--livraison">🚚 Livraison</span>
+                        <span className="mc-livraison-adresse">{cmd.adresseLivraison}</span>
+                        {cmd.telephoneLivraison && (
+                          <span className="mc-livraison-tel"> — {cmd.telephoneLivraison}</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="mc-remise-badge mc-remise-badge--retrait">🏪 Retrait en boutique</span>
+                    )}
+                  </div>
+
                   {/* Total */}
                   <div className="mc-card-footer">
-                    <span className="mc-total">Total : {cmd.total.toFixed(2)} DT</span>
+                    <div className="mc-totaux">
+                      {cmd.modeRemise === "livraison" && cmd.fraisLivraison > 0 && (
+                        <span className="mc-frais">
+                          Frais de livraison : {cmd.fraisLivraison.toFixed(2)} DT
+                        </span>
+                      )}
+                      <span className="mc-total">Total : {cmd.total.toFixed(2)} DT</span>
+                    </div>
                     {cmd.statut === "refusee" && cmd.commentaireRefus && (
                       <span className="mc-refus-raison">
                         Motif : {cmd.commentaireRefus}
@@ -113,12 +136,12 @@ export default function MesCommandes() {
 
                   {/* Barre de progression du statut */}
                   <div className="mc-progression">
-                    {["en_attente", "validee", "en_preparation", "livree"].map((s, i) => (
+                    {["en_attente", "validee", "en_preparation", "prete", "livree"].map((s, i) => (
                       <div key={s} className="mc-etape-wrapper">
                         <div
                           className={`mc-etape ${
                             cmd.statut === "refusee" ? "mc-etape--refuse" :
-                            ["en_attente","validee","en_preparation","livree"].indexOf(cmd.statut) >= i
+                            ["en_attente","validee","en_preparation","prete","livree"].indexOf(cmd.statut) >= i
                               ? "mc-etape--active" : ""
                           }`}
                         />

@@ -1,19 +1,23 @@
 /* Page Nouvelle Vente — Vendeur */
-.nv-page { min-height: 100vh; background: #f4f6fb; }
+.nv-page { min-height: 100vh; background: #f5f6fa; }
 
 .nv-header {
-  background: #1e3a5f; padding: 18px 32px;
+  position: sticky; top: 0; z-index: 100;
+  background: #fff; border-bottom: 2px solid #e8e8e8;
+  padding: 0 28px; height: 68px;
   display: flex; justify-content: space-between; align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .nv-back-btn {
-  background: none; border: none; color: white;
-  font-size: 15px; font-weight: 600; cursor: pointer;
-  text-decoration: underline;
+  background: none; border: none; color: #1e3a5f;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 6px 12px; border-radius: 8px; transition: background 0.15s;
+  text-decoration: none;
 }
+.nv-back-btn:hover { background: #f0f4ff; }
 
-.nv-title { font-size: 24px; font-weight: 700; color: white; margin: 0; }
+.nv-title { font-size: 20px; font-weight: 800; color: #1e3a5f; margin: 0; }
 
 /* Message */
 .nv-message {
@@ -66,7 +70,7 @@
 
 .nv-produit-card {
   background: white; border-radius: 12px; padding: 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 1px solid #eaeaea;
   display: flex; flex-direction: column; gap: 8px;
   transition: transform 0.2s;
 }
@@ -81,24 +85,24 @@
 .nv-produit-info { display: flex; flex-direction: column; gap: 3px; }
 .nv-produit-nom { font-size: 15px; font-weight: 700; color: #1e3a5f; }
 .nv-produit-vol { font-size: 12px; color: #888; }
-.nv-produit-prix { font-size: 16px; font-weight: 700; color: #764ba2; }
+.nv-produit-prix { font-size: 16px; font-weight: 700; color: #c62828; }
 
 .nv-produit-stock { font-size: 12px; font-weight: 600; }
 .nv-stock--vert { color: #2e7d32; }
 .nv-stock--rouge { color: #c62828; }
 
 .nv-ajouter-btn {
-  padding: 9px 0; background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 9px 0; background: #2e7d32;
   color: white; border: none; border-radius: 20px;
   font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;
 }
 .nv-ajouter-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.nv-ajouter-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.nv-ajouter-btn:hover:not(:disabled) { background: #1b5e20; transform: translateY(-1px); }
 
 /* Récapitulatif */
 .nv-recap {
   background: white; border-radius: 16px; padding: 24px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08); border: 1px solid #eaeaea;
   height: fit-content; position: sticky; top: 20px;
 }
 
@@ -125,13 +129,13 @@
 }
 
 .nv-qty-btn {
-  width: 28px; height: 28px; border: 2px solid #764ba2;
-  background: white; color: #764ba2; border-radius: 50%;
+  width: 28px; height: 28px; border: 2px solid #2e7d32;
+  background: white; color: #2e7d32; border-radius: 50%;
   font-size: 16px; cursor: pointer; display: flex;
   align-items: center; justify-content: center;
   transition: all 0.2s; line-height: 1;
 }
-.nv-qty-btn:hover { background: #764ba2; color: white; }
+.nv-qty-btn:hover { background: #2e7d32; color: white; }
 
 .nv-recap-st { font-weight: 700; color: #1e3a5f; min-width: 70px; text-align: right; }
 

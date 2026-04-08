@@ -1,19 +1,22 @@
 /* Dashboard Ventes — Manager */
-.dv-page { min-height: 100vh; background: #f4f6fb; }
+.dv-page { min-height: 100vh; background: #f5f6fa; }
 
 .dv-header {
-  background: #1e3a5f; padding: 18px 32px;
+  position: sticky; top: 0; z-index: 100;
+  background: #fff; border-bottom: 2px solid #e8e8e8;
+  padding: 0 28px; height: 68px;
   display: flex; justify-content: space-between; align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .dv-back-btn {
-  background: none; border: none; color: white;
-  font-size: 15px; font-weight: 600; cursor: pointer;
-  text-decoration: underline;
+  background: none; border: none; color: #1e3a5f;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 6px 12px; border-radius: 8px; transition: background 0.15s;
 }
+.dv-back-btn:hover { background: #f0f4ff; }
 
-.dv-title { font-size: 24px; font-weight: 700; color: white; margin: 0; }
+.dv-title { font-size: 20px; font-weight: 800; color: #1e3a5f; margin: 0; }
 
 .dv-loading { text-align: center; padding: 80px; font-size: 18px; color: #888; }
 
@@ -29,7 +32,7 @@
 }
 
 .dv-voir-tout {
-  background: none; border: none; color: #764ba2;
+  background: none; border: none; color: #1e3a5f;
   font-size: 14px; font-weight: 600; cursor: pointer;
   text-decoration: underline;
 }
@@ -102,7 +105,7 @@
 }
 .dv-top-nom  { flex: 1; font-weight: 600; color: #1e3a5f; }
 .dv-top-qte  { color: #555; font-size: 14px; }
-.dv-top-ca   { font-weight: 700; color: #764ba2; }
+.dv-top-ca   { font-weight: 700; color: #c62828; }
 
 /* Table évolution */
 .dv-evolution-table { overflow-x: auto; }

@@ -29,7 +29,7 @@ const juices = [
     name: "Jus d'Orange",
     description: "Jus d'orange frais pressé, riche en vitamine C",
     price: 5.50,
-    image: "https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=400",
+    image: "https://images.unsplash.com/photo-1613478223719-2ab802602423?w=600",
     volume: "1L",
     available: true
   },
@@ -37,7 +37,7 @@ const juices = [
     name: "Jus de Citron",
     description: "Jus de citron frais, rafraîchissant et énergisant",
     price: 4.50,
-    image: "https://images.unsplash.com/photo-1590004953392-5aba2e72269a?w=400",
+    image: "https://images.unsplash.com/photo-1523362628745-0c100150b504?w=600",
     volume: "0.5L",
     available: true
   },
@@ -45,7 +45,7 @@ const juices = [
     name: "Jus de Fraise",
     description: "Jus de fraise naturel, doux et parfumé",
     price: 6.00,
-    image: "https://images.unsplash.com/photo-1464454709131-ffd692591ee5?w=400",
+    image: "https://images.unsplash.com/photo-1556881286-fc6915169721?w=600",
     volume: "1L",
     available: true
   },
@@ -53,7 +53,7 @@ const juices = [
     name: "Jus de Banane",
     description: "Smoothie à la banane fraîche, onctueux et nutritif",
     price: 5.00,
-    image: "https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=400",
+    image: "https://images.unsplash.com/photo-1610992015732-2449b068da6c?w=600",
     volume: "0.5L",
     available: true
   },
@@ -61,7 +61,7 @@ const juices = [
     name: "Jus de Kiwi",
     description: "Jus de kiwi frais, acidulé et vitaminé",
     price: 6.50,
-    image: "https://images.unsplash.com/photo-1585059895524-72359e06133a?w=400",
+    image: "https://images.unsplash.com/photo-1589736173479-0520d20dffdf?w=600",
     volume: "1L",
     available: true
   },
@@ -69,7 +69,7 @@ const juices = [
     name: "Jus Citron-Menthe",
     description: "Mélange rafraîchissant de citron et menthe fraîche",
     price: 5.50,
-    image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=400",
+    image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600",
     volume: "0.5L",
     available: true
   },
@@ -77,7 +77,7 @@ const juices = [
     name: "Jus de Pistache",
     description: "Boisson crémeuse à la pistache, unique et délicieux",
     price: 7.00,
-    image: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400",
+    image: "https://images.unsplash.com/photo-1638202206716-e5c94d0eac19?w=600",
     volume: "1L",
     available: true
   }

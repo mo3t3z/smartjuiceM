@@ -1,26 +1,31 @@
 /* Commandes Confirmées — Atelier */
-.cc-page { min-height: 100vh; background: #f4f6fb; }
+.cc-page { min-height: 100vh; background: #f5f6fa; }
 
 .cc-header {
-  background: #1e3a5f; padding: 18px 32px;
+  position: sticky; top: 0; z-index: 100;
+  background: #fff; border-bottom: 2px solid #e8e8e8;
+  padding: 0 28px; height: 68px;
   display: flex; justify-content: space-between; align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .cc-back-btn {
-  background: none; border: none; color: white;
-  font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: underline;
+  background: none; border: none; color: #1e3a5f;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 6px 12px; border-radius: 8px; transition: background 0.15s;
+  text-decoration: none;
 }
+.cc-back-btn:hover { background: #f0f4ff; }
 
-.cc-title { font-size: 22px; font-weight: 700; color: white; margin: 0; }
+.cc-title { font-size: 20px; font-weight: 800; color: #1e3a5f; margin: 0; }
 
 .cc-refresh-btn {
-  padding: 10px 20px; background: rgba(255,255,255,0.15);
-  color: white; border: 1px solid rgba(255,255,255,0.3);
+  padding: 8px 18px; background: #f5f6fa;
+  color: #555; border: 1px solid #e0e0e0;
   border-radius: 20px; font-size: 14px; font-weight: 600;
   cursor: pointer; transition: all 0.2s;
 }
-.cc-refresh-btn:hover { background: rgba(255,255,255,0.25); }
+.cc-refresh-btn:hover { background: #e8e8e8; }
 
 /* Message */
 .cc-message {
@@ -60,11 +65,11 @@
 
 .cc-card {
   background: white; border-radius: 16px; padding: 24px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08); border: 1px solid #eaeaea;
   border-left: 5px solid transparent;
 }
 .cc-card--blue   { border-left-color: #1565c0; }
-.cc-card--purple { border-left-color: #6a1b9a; }
+.cc-card--purple { border-left-color: #1e3a5f; }
 
 .cc-card-header {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -84,7 +89,7 @@
 .cc-type--en_ligne { background: #e8f5e9; color: #2e7d32; }
 .cc-type--physique { background: #e3f2fd; color: #1565c0; }
 .cc-statut--blue   { background: #e3f2fd; color: #1565c0; }
-.cc-statut--purple { background: #f3e5f5; color: #6a1b9a; }
+.cc-statut--purple { background: #e8f0fe; color: #1e3a5f; }
 
 .cc-client {
   font-size: 14px; color: #555;
@@ -105,8 +110,8 @@
 
 .cc-produit-item {
   display: flex; align-items: center; gap: 8px;
-  background: #f8f9ff; border-radius: 10px; padding: 10px 16px;
-  border: 1px solid #e0e4f0;
+  background: #f8f9fb; border-radius: 10px; padding: 10px 16px;
+  border: 1px solid #e8e8e8;
 }
 
 .cc-produit-qte-badge {
@@ -128,13 +133,13 @@
 .cc-total { font-size: 17px; font-weight: 700; color: #1e3a5f; }
 
 .cc-btn-preparation {
-  padding: 10px 24px; background: #6a1b9a; color: white;
+  padding: 10px 24px; background: #2e7d32; color: white;
   border: none; border-radius: 20px; font-size: 14px;
   font-weight: 700; cursor: pointer; transition: all 0.2s;
 }
-.cc-btn-preparation:hover { background: #4a148c; transform: translateY(-1px); }
+.cc-btn-preparation:hover { background: #1b5e20; transform: translateY(-1px); }
 
 .cc-en-cours {
-  font-size: 14px; font-weight: 600; color: #6a1b9a;
-  background: #f3e5f5; padding: 8px 18px; border-radius: 20px;
+  font-size: 14px; font-weight: 600; color: #2e7d32;
+  background: #e8f5e9; padding: 8px 18px; border-radius: 20px;
 }

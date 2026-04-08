@@ -105,6 +105,7 @@ export default function GererCommandes() {
     validee:        { label: "Validée",         couleur: "blue"   },
     refusee:        { label: "Refusée",         couleur: "red"    },
     en_preparation: { label: "En préparation",  couleur: "purple" },
+    prete:          { label: "Prête",           couleur: "teal"   },
     livree:         { label: "Livrée",          couleur: "green"  },
   };
 
@@ -141,6 +142,7 @@ export default function GererCommandes() {
           <option value="validee">Validée</option>
           <option value="refusee">Refusée</option>
           <option value="en_preparation">En préparation</option>
+          <option value="prete">Prête</option>
           <option value="livree">Livrée</option>
         </select>
 
@@ -191,6 +193,17 @@ export default function GererCommandes() {
                     {(cmd.telephone || cmd.client?.telephone) && (
                       <span className="gc-tel"> — Tél : {cmd.telephone || cmd.client?.telephone}</span>
                     )}
+                    {cmd.modeRemise === "livraison" ? (
+                      <div className="gc-livraison-info">
+                        <span className="gc-remise-badge gc-remise-badge--livraison">🚚 Livraison</span>
+                        <span className="gc-livraison-adresse"> {cmd.adresseLivraison}</span>
+                        {cmd.telephoneLivraison && (
+                          <span className="gc-livraison-tel"> — {cmd.telephoneLivraison}</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="gc-remise-badge gc-remise-badge--retrait"> 🏪 Retrait boutique</span>
+                    )}
                   </div>
 
                   {/* Produits */}
@@ -206,7 +219,12 @@ export default function GererCommandes() {
                   </div>
 
                   <div className="gc-card-footer">
-                    <span className="gc-total">Total : {cmd.total.toFixed(2)} DT</span>
+                    <div className="gc-totaux">
+                      {cmd.modeRemise === "livraison" && cmd.fraisLivraison > 0 && (
+                        <span className="gc-frais">Frais livraison : {cmd.fraisLivraison.toFixed(2)} DT</span>
+                      )}
+                      <span className="gc-total">Total : {cmd.total.toFixed(2)} DT</span>
+                    </div>
 
                     {/* Actions selon statut */}
                     <div className="gc-actions">
@@ -220,7 +238,7 @@ export default function GererCommandes() {
                           </button>
                         </>
                       )}
-                      {(cmd.statut === "validee" || cmd.statut === "en_preparation") && (
+                      {cmd.statut === "prete" && (
                         <button className="gc-btn gc-btn--livree" onClick={() => marquerLivree(cmd._id)}>
                           ✓ Marquer livrée
                         </button>
