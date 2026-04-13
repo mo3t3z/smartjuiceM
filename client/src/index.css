@@ -33,3 +33,30 @@ button:focus-visible {
   outline: 2px solid #1e3a5f;
   outline-offset: 2px;
 }
+
+/* ══════════ BOUTON RETOUR GLOBAL ══════════ */
+[class*="-back-btn"],
+[class*="back-button"],
+.checkout-back,
+.back-link {
+  padding: 10px 20px !important;
+  background: #f5f5f5 !important;
+  border: 1px solid #ddd !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #333 !important;
+  transition: all 0.2s !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+[class*="-back-btn"]:hover,
+[class*="back-button"]:hover,
+.checkout-back:hover,
+.back-link:hover {
+  background: #e8e8e8 !important;
+  border-color: #ccc !important;
+}

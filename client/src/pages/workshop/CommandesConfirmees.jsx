@@ -1,78 +1,76 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { authHeader, API_COMMANDES } from "../../utils/api";
 import "./CommandesConfirmees.css";
 
-// PB23 — Consulter les commandes confirmées (Atelier)
 export default function CommandesConfirmees() {
   const navigate = useNavigate();
   const [commandes, setCommandes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+  const [modeFiltre, setModeFiltre] = useState("date"); // "date" | "mois"
+  const [dateRecherche, setDateRecherche] = useState("");
+  const [moisRecherche, setMoisRecherche] = useState("");
   const [message, setMessage] = useState({ texte: "", type: "" });
 
-  useEffect(() => {
-    fetchCommandes();
-  }, []);
+  const afficherMessage = (texte, type) => {
+    setMessage({ texte, type });
+    setTimeout(() => setMessage({ texte: "", type: "" }), 4000);
+  };
 
-  const fetchCommandes = async () => {
+  const fetchCommandes = async (params) => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_COMMANDES}/confirmees`, {
+      const res = await axios.get(`${API_COMMANDES}/confirmees?${params}`, {
         headers: authHeader(),
       });
       setCommandes(res.data);
+      setSearched(true);
     } catch {
-      setMessage({ texte: "Erreur de chargement.", type: "erreur" });
+      afficherMessage("Erreur de chargement.", "erreur");
     } finally {
       setLoading(false);
     }
   };
 
-  // Mettre une commande en préparation
-  const mettreEnPreparation = async (id) => {
-    try {
-      await axios.put(`${API_COMMANDES}/${id}/en-preparation`, {}, {
-        headers: authHeader(),
-      });
-      setMessage({ texte: "Commande mise en préparation.", type: "succes" });
-      fetchCommandes();
-    } catch (err) {
-      setMessage({ texte: err.response?.data?.message || "Erreur.", type: "erreur" });
+  const handleRecherche = () => {
+    if (modeFiltre === "date") {
+      if (!dateRecherche) { afficherMessage("Veuillez choisir une date.", "erreur"); return; }
+      fetchCommandes(`date=${dateRecherche}`);
+    } else {
+      if (!moisRecherche) { afficherMessage("Veuillez choisir un mois.", "erreur"); return; }
+      fetchCommandes(`mois=${moisRecherche}`);
     }
   };
 
-  // Marquer une commande comme prête
   const marquerPrete = async (id) => {
     try {
-      await axios.put(`${API_COMMANDES}/${id}/prete`, {}, {
-        headers: authHeader(),
-      });
-      setMessage({ texte: "Commande marquée comme prête.", type: "succes" });
-      fetchCommandes();
+      await axios.put(`${API_COMMANDES}/${id}/prete`, {}, { headers: authHeader() });
+      afficherMessage("Commande marquée comme prête.", "succes");
+      fetchCommandes(dateRecherche);
     } catch (err) {
-      setMessage({ texte: err.response?.data?.message || "Erreur.", type: "erreur" });
+      afficherMessage(err.response?.data?.message || "Erreur.", "erreur");
     }
-  };
-
-  const statutConfig = {
-    validee:        { label: "Validée — À préparer", couleur: "blue"   },
-    en_preparation: { label: "En préparation",        couleur: "purple" },
-    prete:          { label: "Prête",                 couleur: "green"  },
   };
 
   const formatDate = (d) =>
     new Date(d).toLocaleDateString("fr-TN", {
-      day: "2-digit", month: "short", year: "numeric",
+      day: "2-digit", month: "long", year: "numeric",
       hour: "2-digit", minute: "2-digit",
+    });
+
+  const formatDateRetrait = (d) =>
+    new Date(d).toLocaleDateString("fr-TN", {
+      day: "2-digit", month: "long", year: "numeric",
     });
 
   return (
     <div className="cc-page">
       <header className="cc-header">
         <button className="cc-back-btn" onClick={() => navigate("/workshop")}>← Accueil</button>
-        <h1 className="cc-title">Commandes Confirmées à Préparer</h1>
-        <button className="cc-refresh-btn" onClick={fetchCommandes}>↻ Actualiser</button>
+        <h1 className="cc-title">Commandes à préparer</h1>
+        <div />
       </header>
 
       {message.texte && (
@@ -82,66 +80,109 @@ export default function CommandesConfirmees() {
         </div>
       )}
 
+      {/* Recherche par date ou mois */}
+      <div className="cc-search-bar">
+        <div className="cc-filtre-toggle">
+          <button
+            className={`cc-toggle-btn ${modeFiltre === "date" ? "cc-toggle-btn--active" : ""}`}
+            onClick={() => { setModeFiltre("date"); setCommandes([]); setSearched(false); }}
+          >
+            Par date exacte
+          </button>
+          <button
+            className={`cc-toggle-btn ${modeFiltre === "mois" ? "cc-toggle-btn--active" : ""}`}
+            onClick={() => { setModeFiltre("mois"); setCommandes([]); setSearched(false); }}
+          >
+            Par mois
+          </button>
+        </div>
+        <div className="cc-search-row">
+          {modeFiltre === "date" ? (
+            <input
+              className="cc-search-input"
+              type="date"
+              value={dateRecherche}
+              onChange={(e) => setDateRecherche(e.target.value)}
+            />
+          ) : (
+            <input
+              className="cc-search-input"
+              type="month"
+              value={moisRecherche}
+              onChange={(e) => setMoisRecherche(e.target.value)}
+            />
+          )}
+          <button className="cc-search-btn" onClick={handleRecherche}>
+            Rechercher
+          </button>
+        </div>
+      </div>
+
       <div className="cc-content">
         {loading ? (
           <div className="cc-loading">Chargement...</div>
+        ) : !searched ? (
+          <div className="cc-vide">
+            <p>Sélectionnez une date pour afficher les commandes à préparer.</p>
+          </div>
         ) : commandes.length === 0 ? (
           <div className="cc-vide">
-            <p>Aucune commande confirmée en attente de préparation.</p>
+            <p>Aucune commande trouvée pour cette période.</p>
           </div>
         ) : (
           <>
-            {/* Compteur */}
             <div className="cc-compteur">
               <span className="cc-count">{commandes.length}</span>
-              commande(s) à traiter
+              {modeFiltre === "date"
+                ? `commande(s) pour le ${new Date(dateRecherche).toLocaleDateString("fr-TN", { day: "2-digit", month: "long", year: "numeric" })}`
+                : `commande(s) pour ${new Date(moisRecherche + "-01").toLocaleDateString("fr-TN", { month: "long", year: "numeric" })}`
+              }
             </div>
 
             <div className="cc-liste">
               {commandes.map((cmd) => {
-                const cfg = statutConfig[cmd.statut] || { label: cmd.statut, couleur: "gray" };
                 const nomClient =
                   cmd.client
                     ? `${cmd.client.prenom || ""} ${cmd.client.nom || ""}`.trim() || cmd.client.email
                     : cmd.nomClient || "Client boutique";
+                const isPrete = cmd.statut === "prete";
 
                 return (
-                  <div key={cmd._id} className={`cc-card cc-card--${cfg.couleur}`}>
-                    {/* En-tête */}
+                  <div key={cmd._id} className={`cc-card ${isPrete ? "cc-card--green" : "cc-card--blue"}`}>
                     <div className="cc-card-header">
                       <div className="cc-card-ids">
-                        <span className="cc-cmd-id">
-                          #{cmd._id.slice(-8).toUpperCase()}
-                        </span>
+                        <span className="cc-cmd-id">#{cmd._id.slice(-8).toUpperCase()}</span>
                         <span className={`cc-type cc-type--${cmd.type}`}>
                           {cmd.type === "en_ligne" ? "En ligne" : "Boutique"}
                         </span>
-                        <span className={`cc-statut cc-statut--${cfg.couleur}`}>
-                          {cfg.label}
+                        <span className={`cc-statut ${isPrete ? "cc-statut--green" : "cc-statut--blue"}`}>
+                          {isPrete ? "Prête" : "À préparer"}
                         </span>
                       </div>
                       <span className="cc-cmd-date">{formatDate(cmd.createdAt)}</span>
                     </div>
 
-                    {/* Client */}
                     <div className="cc-client">
                       <strong>Client :</strong> {nomClient}
                       {(cmd.telephone || cmd.client?.telephone) && (
-                        <span className="cc-tel"> — {cmd.telephone || cmd.client?.telephone}</span>
-                      )}
-                      {cmd.dateRetrait && (
-                        <span className="cc-date-retrait">
-                          {" "}— Retrait prévu le{" "}
-                          {new Date(cmd.dateRetrait).toLocaleDateString("fr-TN", {
-                            day: "2-digit", month: "long", year: "numeric",
-                          })}
-                        </span>
+                        <span className="cc-tel"> — Tél : {cmd.telephone || cmd.client?.telephone}</span>
                       )}
                     </div>
 
-                    {/* Produits à préparer */}
+                    {cmd.dateRetrait && (
+                      <div className="cc-date-retrait-row">
+                        <span className={`cc-remise-badge cc-remise-badge--${cmd.modeRemise}`}>
+                          {cmd.modeRemise === "livraison" ? "Livraison" : "Retrait boutique"}
+                        </span>
+                        <span className="cc-date-retrait-val">
+                          {formatDateRetrait(cmd.dateRetrait)}
+                          {cmd.heureRetrait && ` à ${cmd.heureRetrait}`}
+                        </span>
+                      </div>
+                    )}
+
                     <div className="cc-produits-section">
-                      <h3 className="cc-produits-title">Produits à préparer :</h3>
+                      <h3 className="cc-produits-title">Produits :</h3>
                       <div className="cc-produits-liste">
                         {cmd.produits.map((p, idx) => (
                           <div key={idx} className="cc-produit-item">
@@ -153,29 +194,14 @@ export default function CommandesConfirmees() {
                       </div>
                     </div>
 
-                    {/* Total + action */}
                     <div className="cc-card-footer">
-                      <span className="cc-total">
-                        Total : {cmd.total.toFixed(2)} DT
-                      </span>
-                      {cmd.statut === "validee" && (
-                        <button
-                          className="cc-btn-preparation"
-                          onClick={() => mettreEnPreparation(cmd._id)}
-                        >
-                          🔄 Mettre en préparation
+                      <span className="cc-total">Total : {cmd.total.toFixed(2)} DT</span>
+                      {!isPrete ? (
+                        <button className="cc-btn-prete" onClick={() => marquerPrete(cmd._id)}>
+                          Marquer prête
                         </button>
-                      )}
-                      {cmd.statut === "en_preparation" && (
-                        <button
-                          className="cc-btn-prete"
-                          onClick={() => marquerPrete(cmd._id)}
-                        >
-                          ✅ Marquer prête
-                        </button>
-                      )}
-                      {cmd.statut === "prete" && (
-                        <span className="cc-prete">✅ Prête — en attente de remise</span>
+                      ) : (
+                        <span className="cc-prete-label">Prête — en attente de remise</span>
                       )}
                     </div>
                   </div>

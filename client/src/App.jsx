@@ -29,9 +29,11 @@ import MonCompteClient from "./pages/MonCompteClient.jsx";
 
 // ── Sprint 3 : Gestion des Ventes et Commandes ──────────────────────────────
 import Panier from "./pages/client/Panier.jsx";
+import CommandeCheckout from "./pages/client/CommandeCheckout.jsx";
 import MesCommandes from "./pages/client/MesCommandes.jsx";
 import GererCommandes from "./pages/manager/GererCommandes.jsx";
 import DashboardVentes from "./pages/manager/DashboardVentes.jsx";
+import HistoriqueVentes from "./pages/manager/HistoriqueVentes.jsx";
 import NouvelleVente from "./pages/seller/NouvelleVente.jsx";
 import NouvelleCommandePhysique from "./pages/seller/NouvelleCommandePhysique.jsx";
 import CommandesConfirmees from "./pages/workshop/CommandesConfirmees.jsx";
@@ -44,7 +46,8 @@ export default function App() {
 
       {/* ── Routes Client ── */}
       <Route path="/client/account" element={<MonCompteClient />} />
-      <Route path="/client/panier" element={<ProtectedRoute allowedRoles={["client"]}><Panier /></ProtectedRoute>} />
+      <Route path="/client/panier" element={<Panier />} />
+      <Route path="/client/checkout" element={<CommandeCheckout />} />
       <Route path="/client/mes-commandes" element={<ProtectedRoute allowedRoles={["client"]}><MesCommandes /></ProtectedRoute>} />
 
       {/* ── Authentification ── */}
@@ -68,6 +71,8 @@ export default function App() {
       <Route path="/manager/commandes" element={<ProtectedRoute allowedRoles={["manager"]}><GererCommandes /></ProtectedRoute>} />
       {/* PB25 — Dashboard ventes */}
       <Route path="/manager/dashboard-ventes" element={<ProtectedRoute allowedRoles={["manager"]}><DashboardVentes /></ProtectedRoute>} />
+      {/* Historique des ventes */}
+      <Route path="/manager/ventes" element={<ProtectedRoute allowedRoles={["manager"]}><HistoriqueVentes /></ProtectedRoute>} />
 
       {/* ── Vendeur ── */}
       <Route path="/seller" element={<ProtectedRoute allowedRoles={["seller"]}><SellerHome /></ProtectedRoute>} />

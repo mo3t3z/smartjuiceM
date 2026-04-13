@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./LoginClient.css";
 
 export default function RegisterClient() {
@@ -16,7 +16,9 @@ export default function RegisterClient() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const from      = location.state?.from || "/";
 
   const handleChange = (e) => {
     setFormData({
@@ -26,7 +28,7 @@ export default function RegisterClient() {
   };
 
   const validateForm = () => {
-    if (!formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.email || !formData.password || !formData.confirmPassword || !formData.telephone) {
       setError("Veuillez remplir tous les champs obligatoires");
       return false;
     }
@@ -72,7 +74,7 @@ export default function RegisterClient() {
       
       // Redirection vers la page de connexion après 2 secondes
       setTimeout(() => {
-        navigate("/login-client");
+        navigate("/login-client", { state: { from } });
       }, 2000);
     } catch (err) {
       setError(err.response?.data?.message || "Erreur lors de la création du compte");
@@ -134,7 +136,7 @@ export default function RegisterClient() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="telephone">Téléphone</label>
+            <label htmlFor="telephone">Téléphone *</label>
             <input
               id="telephone"
               name="telephone"
@@ -142,6 +144,7 @@ export default function RegisterClient() {
               value={formData.telephone}
               onChange={handleChange}
               placeholder="+216 12 345 678"
+              required
             />
           </div>
 

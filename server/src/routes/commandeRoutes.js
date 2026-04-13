@@ -13,6 +13,9 @@ import {
   creerCommandePhysique,
   genererRecuCommande,
   getDashboardVentes,
+  getMesNotifications,
+  marquerNotifLue,
+  marquerToutesNotifsLues,
 } from "../controllers/commandeController.js";
 import {
   authenticate,
@@ -57,6 +60,11 @@ router.put("/:id/prete", authenticate, isWorkshop, marquerPrete);
 // ── Routes Vendeur (PB22) ────────────────────────────────────────────────────
 // PB22 : Créer une commande physique
 router.post("/physique", authenticate, isSeller, creerCommandePhysique);
+
+// ── Notifications client ──────────────────────────────────────────────────────
+router.get("/mes-notifications",         authenticate, isClient, getMesNotifications);
+router.put("/mes-notifications/lues",    authenticate, isClient, marquerToutesNotifsLues);
+router.put("/mes-notifications/:id/lue", authenticate, isClient, marquerNotifLue);
 
 // ── Reçu PDF (vendeur ou gérant) ─────────────────────────────────────────────
 router.get("/:id/recu", authenticate, isSellerOrManager, genererRecuCommande);

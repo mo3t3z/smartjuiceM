@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./LoginClient.css";
 
 export default function LoginClient() {
@@ -8,7 +8,9 @@ export default function LoginClient() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const from      = location.state?.from || "/";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,8 +39,8 @@ export default function LoginClient() {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      // Rediriger vers le catalogue
-      navigate("/");
+      const prenom = user.prenom || user.nom || user.email;
+      navigate(from, { state: { welcome: `Bonjour ${prenom} !` } });
     } catch (err) {
       setError(err.response?.data?.message || "Email ou mot de passe incorrect");
     }
@@ -112,7 +114,7 @@ export default function LoginClient() {
 
           <div className="login-client-footer">
             <p>Pas encore de compte ?</p>
-            <Link to="/register-client" className="register-link">
+            <Link to="/register-client" state={{ from }} className="register-link">
               Créer un compte client
             </Link>
             <Link to="/" className="back-link">

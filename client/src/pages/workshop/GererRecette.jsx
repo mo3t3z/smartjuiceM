@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./GererRecette.css";
 
 const API = "http://localhost:5000/api/workshop";
+const API_PRODUCTS = "http://localhost:5000/api/products";
 const emptyIngredient = () => ({ matiere: "", quantite: "", unite: "" });
 const token = () => localStorage.getItem("token");
 
@@ -10,6 +11,7 @@ export default function GererRecette() {
   const navigate = useNavigate();
   const [typesMP, setTypesMP] = useState([]);
   const [recettes, setRecettes] = useState([]);
+  const [catalogProducts, setCatalogProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -18,6 +20,7 @@ export default function GererRecette() {
   const [editing, setEditing] = useState(null);
   const [formNom, setFormNom] = useState("");
   const [formSeuilMin, setFormSeuilMin] = useState("");
+  const [formSeuilBoutique, setFormSeuilBoutique] = useState("");
   const [formIngs, setFormIngs] = useState([emptyIngredient()]);
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
@@ -53,7 +56,17 @@ export default function GererRecette() {
     } catch { /* silencieux */ }
   };
 
-  useEffect(() => { fetchRecettes(); fetchTypesMP(); }, []);
+  const fetchCatalogProducts = async () => {
+    try {
+      const res = await fetch(`${API_PRODUCTS}/catalog`);
+      if (res.ok) {
+        const data = await res.json();
+        setCatalogProducts(data);
+      }
+    } catch { /* silencieux */ }
+  };
+
+  useEffect(() => { fetchRecettes(); fetchTypesMP(); fetchCatalogProducts(); }, []);
 
   /* ── ouvrir modal add ── */
   const openAdd = () => {
@@ -61,6 +74,7 @@ export default function GererRecette() {
     setEditing(null);
     setFormNom("");
     setFormSeuilMin("");
+    setFormSeuilBoutique("");
     setFormIngs([emptyIngredient()]);
     setFormError("");
     setModal("add");
@@ -72,12 +86,13 @@ export default function GererRecette() {
     setEditing(r);
     setFormNom(r.nomJus);
     setFormSeuilMin(r.seuilMinPF !== undefined ? String(r.seuilMinPF) : "");
+    setFormSeuilBoutique(r.seuilMinBoutique !== undefined ? String(r.seuilMinBoutique) : "");
     setFormIngs(r.ingredients.map((i) => ({ matiere: i.matiere, quantite: String(i.quantite), unite: i.unite })));
     setFormError("");
     setModal("edit");
   };
 
-  const closeModal = () => { setModal(null); setEditing(null); setFormSeuilMin(""); setFormError(""); };
+  const closeModal = () => { setModal(null); setEditing(null); setFormSeuilMin(""); setFormSeuilBoutique(""); setFormError(""); };
 
   /* ── ingrédients ── */
   const updateIng = (idx, field, val) =>
@@ -106,7 +121,8 @@ export default function GererRecette() {
     const payload = {
       nomJus: formNom.trim(),
       ingredients: formIngs.map((i) => ({ matiere: i.matiere.trim(), quantite: Number(i.quantite), unite: i.unite })),
-      seuilMinPF: formSeuilMin !== "" ? Number(formSeuilMin) : 0,
+      seuilMinPF:       formSeuilMin     !== "" ? Number(formSeuilMin)     : 0,
+      seuilMinBoutique: formSeuilBoutique !== "" ? Number(formSeuilBoutique) : 0,
     };
 
     setFormLoading(true);
@@ -169,16 +185,39 @@ export default function GererRecette() {
             <form onSubmit={handleSubmit} className="gr-modal-form">
               <div className="gr-field">
                 <label className="gr-label">Nom du jus <span className="gr-req">*</span></label>
-                <input
-                  className="gr-input"
-                  value={formNom}
-                  onChange={(e) => setFormNom(e.target.value)}
-                  placeholder="Ex: Jus de fraise"
-                />
+                {catalogProducts.length > 0 ? (
+                  <select
+                    className="gr-select"
+                    value={formNom}
+                    onChange={(e) => setFormNom(e.target.value)}
+                    required
+                  >
+                    <option value="">-- Choisir un produit du catalogue --</option>
+                    {catalogProducts.map((p) => (
+                      <option key={p._id} value={p.name}>{p.name}</option>
+                    ))}
+                    {/* Garder la valeur existante si elle ne correspond pas au catalogue (ancien enregistrement) */}
+                    {formNom && !catalogProducts.find((p) => p.name === formNom) && (
+                      <option value={formNom}>{formNom} (existant)</option>
+                    )}
+                  </select>
+                ) : (
+                  <input
+                    className="gr-input"
+                    value={formNom}
+                    onChange={(e) => setFormNom(e.target.value)}
+                    placeholder="Ex: Jus de fraise"
+                  />
+                )}
+                {catalogProducts.length === 0 && (
+                  <small style={{ color: "#888", fontSize: "0.78rem" }}>
+                    Aucun produit dans le catalogue. Demandez au gérant d'ajouter des produits.
+                  </small>
+                )}
               </div>
 
               <div className="gr-field">
-                <label className="gr-label">Seuil minimum de stock PF (L)</label>
+                <label className="gr-label">Seuil minimum stock PF — Atelier (L)</label>
                 <input
                   className="gr-input"
                   type="number"
@@ -186,10 +225,26 @@ export default function GererRecette() {
                   step="0.5"
                   value={formSeuilMin}
                   onChange={(e) => setFormSeuilMin(e.target.value)}
-                  placeholder="Ex: 10 (notif. si stock ≤ ce seuil)"
+                  placeholder="Ex: 10"
                 />
                 <small style={{ color: "#888", fontSize: "0.78rem" }}>
-                  Une notification sera envoyée quand le stock en atelier descend à ce seuil après un transfert.
+                  Alerte atelier quand le stock PF atelier descend à ce seuil après un transfert.
+                </small>
+              </div>
+
+              <div className="gr-field">
+                <label className="gr-label">Seuil minimum stock PF — Boutique (L)</label>
+                <input
+                  className="gr-input"
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={formSeuilBoutique}
+                  onChange={(e) => setFormSeuilBoutique(e.target.value)}
+                  placeholder="Ex: 5"
+                />
+                <small style={{ color: "#888", fontSize: "0.78rem" }}>
+                  Alerte atelier + gérant quand le stock boutique descend à ce seuil (ventes).
                 </small>
               </div>
 
@@ -322,7 +377,12 @@ export default function GererRecette() {
 
                 {r.seuilMinPF > 0 && (
                   <p className="gr-card-seuil">
-                    Seuil min. stock : <strong>{r.seuilMinPF} L</strong>
+                    Seuil atelier : <strong>{r.seuilMinPF} L</strong>
+                  </p>
+                )}
+                {r.seuilMinBoutique > 0 && (
+                  <p className="gr-card-seuil">
+                    Seuil boutique : <strong>{r.seuilMinBoutique} L</strong>
                   </p>
                 )}
                 <p className="gr-card-for">Pour 1 litre :</p>

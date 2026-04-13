@@ -26,18 +26,22 @@ export const getCatalog = async (req, res) => {
 // Créer un nouveau produit
 export const createProduct = async (req, res) => {
   try {
-    const { name, description, price, image, volume, available } = req.body;
+    const { name, description, price, volume, available } = req.body;
 
     if (!name || !price) {
       return res.status(400).json({ message: "Nom et prix sont obligatoires" });
     }
 
+    const imageUrl = req.file
+      ? `http://localhost:5000/uploads/products/${req.file.filename}`
+      : "";
+
     const product = await Product.create({
       name,
       description,
       price,
-      image: image || "",
-      volume: volume || "0.5L",
+      image: imageUrl,
+      volume: volume || "1L",
       available: available !== undefined ? available : true
     });
 
@@ -51,11 +55,17 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, price, image, volume, available } = req.body;
+    const { name, description, price, volume, available } = req.body;
+
+    const updateData = { name, description, price, volume, available };
+
+    if (req.file) {
+      updateData.image = `http://localhost:5000/uploads/products/${req.file.filename}`;
+    }
 
     const product = await Product.findByIdAndUpdate(
       id,
-      { name, description, price, image, volume, available },
+      updateData,
       { returnDocument: 'after', runValidators: true }
     );
 

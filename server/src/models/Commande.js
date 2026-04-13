@@ -31,7 +31,7 @@ const commandeSchema = new mongoose.Schema(
           required: true,
         },
         nom: { type: String, required: true },       // Nom dénormalisé pour l'historique
-        volume: { type: String, default: "0.5L" },   // Volume du produit
+        volume: { type: String, default: "1L" },   // Volume du produit
         quantite: { type: Number, required: true, min: 1 },
         prixUnitaire: { type: Number, required: true, min: 0 },
       },
@@ -58,10 +58,16 @@ const commandeSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Date de retrait souhaitée (pour les commandes physiques à la demande)
+    // Date de retrait souhaitée
     dateRetrait: {
       type: Date,
       default: null,
+    },
+
+    // Heure de retrait souhaitée (format "HH:MM", entre 09:00 et 17:00)
+    heureRetrait: {
+      type: String,
+      default: "",
     },
 
     // Mode de remise : livraison à domicile ou retrait en boutique

@@ -58,7 +58,6 @@ export default function ManagerStocks() {
         <p className="ms-welcome-sub">Choisissez le type de stock à consulter</p>
       </div>
 
-      {/* Cards */}
       <div className="ms-cards">
         {cards.map((card) => (
           <button

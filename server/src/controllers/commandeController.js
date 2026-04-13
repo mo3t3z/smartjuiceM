@@ -1,5 +1,6 @@
 import PDFDocument from "pdfkit";
 import Commande from "../models/Commande.js";
+import NotificationClient from "../models/NotificationClient.js";
 import Vente from "../models/Vente.js";
 import Product from "../models/Product.js";
 import TransfertBoutique from "../models/TransfertBoutique.js";
@@ -98,27 +99,27 @@ const verifierAlerteBoutique = async (nomJus) => {
   const stockActuel = await calcStockBoutique(nomJus);
   const recette = await Recette.findOne({ nomJus });
 
-  // On utilise seuilMinPF comme seuil boutique également
-  if (recette && recette.seuilMinPF > 0 && stockActuel <= recette.seuilMinPF) {
-    // Vérifier si une notification boutique non-lue existe déjà
-    const existingNotif = await Notification.findOne({
-      typeMP: nomJus,
+  const seuil = recette?.seuilMinBoutique > 0 ? recette.seuilMinBoutique : 0;
+  if (!seuil || stockActuel > seuil) return;
+
+  // Vérifier si une notification boutique non-lue existe déjà (atelier ou gérant)
+  const existingNotif = await Notification.findOne({
+    typeMP: nomJus,
+    categorie: "BOUTIQUE",
+    $or: [{ luAtelier: false }, { luManager: false }],
+  });
+
+  if (!existingNotif) {
+    await Notification.create({
       categorie: "BOUTIQUE",
+      typeMP: nomJus,
+      message: `Stock boutique de "${nomJus}" en dessous du seuil minimum. Stock actuel : ${stockActuel.toFixed(2)} L, Seuil : ${seuil} L. Un transfert est nécessaire.`,
+      niveauActuel: parseFloat(stockActuel.toFixed(2)),
+      seuilMin: seuil,
+      unite: "L",
+      luAtelier: false,
       luManager: false,
     });
-
-    if (!existingNotif) {
-      await Notification.create({
-        categorie: "BOUTIQUE",
-        typeMP: nomJus,
-        message: `Stock boutique de "${nomJus}" en dessous du seuil minimum. Stock actuel : ${stockActuel.toFixed(2)} L, Seuil : ${recette.seuilMinPF} L.`,
-        niveauActuel: parseFloat(stockActuel.toFixed(2)),
-        seuilMin: recette.seuilMinPF,
-        unite: "L",
-        luAtelier: false,
-        luManager: false,
-      });
-    }
   }
 };
 
@@ -127,19 +128,24 @@ const verifierAlerteBoutique = async (nomJus) => {
 ═══════════════════════════════════════════════════════════════ */
 export const creerCommandeEnLigne = async (req, res) => {
   try {
-    const { produits, modeRemise, adresseLivraison, telephoneLivraison, fraisLivraison } = req.body;
+    const { produits, modeRemise, adresseLivraison, telephoneLivraison, fraisLivraison, dateRetrait, heureRetrait } = req.body;
 
     if (!produits || produits.length === 0) {
       return res.status(400).json({ message: "Le panier est vide." });
+    }
+
+    // Validation date et heure
+    if (!dateRetrait) {
+      return res.status(400).json({ message: "La date de retrait est obligatoire." });
+    }
+    if (!heureRetrait) {
+      return res.status(400).json({ message: "L'heure de retrait est obligatoire." });
     }
 
     // Validation livraison
     const mode = modeRemise === "livraison" ? "livraison" : "retrait";
     if (mode === "livraison" && !adresseLivraison?.trim()) {
       return res.status(400).json({ message: "L'adresse de livraison est obligatoire." });
-    }
-    if (mode === "livraison" && !telephoneLivraison?.trim()) {
-      return res.status(400).json({ message: "Le téléphone de livraison est obligatoire." });
     }
 
     // Récupérer les produits depuis la base de données pour vérification
@@ -179,8 +185,10 @@ export const creerCommandeEnLigne = async (req, res) => {
       type: "en_ligne",
       modeRemise: mode,
       adresseLivraison: mode === "livraison" ? adresseLivraison.trim() : "",
-      telephoneLivraison: mode === "livraison" ? telephoneLivraison.trim() : "",
+      telephoneLivraison: mode === "livraison" ? telephoneLivraison?.trim() || "" : "",
       fraisLivraison: frais,
+      dateRetrait: new Date(dateRetrait),
+      heureRetrait: heureRetrait || "",
     });
 
     const populated = await commande.populate("client", "email nom prenom telephone");
@@ -256,6 +264,15 @@ export const validerCommande = async (req, res) => {
     commande.statut = "validee";
     await commande.save();
 
+    if (commande.client) {
+      await NotificationClient.create({
+        client: commande.client,
+        commande: commande._id,
+        statut: "validee",
+        message: `Votre commande #${commande._id.toString().slice(-6).toUpperCase()} a été acceptée et est en cours de traitement.`,
+      });
+    }
+
     const populated = await commande.populate("client", "email nom prenom");
     res.json({ message: "Commande validée avec succès.", commande: populated });
   } catch (error) {
@@ -279,6 +296,15 @@ export const refuserCommande = async (req, res) => {
     commande.commentaireRefus = commentaireRefus || "";
     await commande.save();
 
+    if (commande.client) {
+      await NotificationClient.create({
+        client: commande.client,
+        commande: commande._id,
+        statut: "refusee",
+        message: `Votre commande #${commande._id.toString().slice(-6).toUpperCase()} a été refusée.${commentaireRefus ? ` Motif : ${commentaireRefus}` : ""}`,
+      });
+    }
+
     const populated = await commande.populate("client", "email nom prenom");
     res.json({ message: "Commande refusée.", commande: populated });
   } catch (error) {
@@ -291,10 +317,26 @@ export const refuserCommande = async (req, res) => {
 ═══════════════════════════════════════════════════════════════ */
 export const getCommandesConfirmees = async (req, res) => {
   try {
-    const commandes = await Commande.find({ statut: { $in: ["validee", "en_preparation", "prete"] } })
+    const { date, mois } = req.query; // date="YYYY-MM-DD" | mois="YYYY-MM"
+    const filtre = { statut: { $in: ["validee", "prete"] } };
+
+    if (date) {
+      const debut = new Date(date);
+      debut.setHours(0, 0, 0, 0);
+      const fin = new Date(date);
+      fin.setHours(23, 59, 59, 999);
+      filtre.dateRetrait = { $gte: debut, $lte: fin };
+    } else if (mois) {
+      const [annee, moisNum] = mois.split("-").map(Number);
+      const debut = new Date(annee, moisNum - 1, 1, 0, 0, 0, 0);
+      const fin   = new Date(annee, moisNum, 0, 23, 59, 59, 999); // dernier jour du mois
+      filtre.dateRetrait = { $gte: debut, $lte: fin };
+    }
+
+    const commandes = await Commande.find(filtre)
       .populate("client", "email nom prenom telephone")
       .populate("enregistrePar", "email nom prenom")
-      .sort({ createdAt: -1 });
+      .sort({ dateRetrait: 1 });
 
     res.json(commandes);
   } catch (error) {
@@ -316,6 +358,15 @@ export const mettreEnPreparation = async (req, res) => {
     commande.statut = "en_preparation";
     await commande.save();
 
+    if (commande.client) {
+      await NotificationClient.create({
+        client: commande.client,
+        commande: commande._id,
+        statut: "en_preparation",
+        message: `Votre commande #${commande._id.toString().slice(-6).toUpperCase()} est en cours de préparation.`,
+      });
+    }
+
     res.json({ message: "Commande mise en préparation.", commande });
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
@@ -330,12 +381,33 @@ export const marquerPrete = async (req, res) => {
   try {
     const commande = await Commande.findById(req.params.id);
     if (!commande) return res.status(404).json({ message: "Commande introuvable." });
-    if (commande.statut !== "en_preparation") {
-      return res.status(400).json({ message: "La commande doit être en préparation pour être marquée prête." });
+    if (!["validee", "en_preparation"].includes(commande.statut)) {
+      return res.status(400).json({ message: "La commande doit être validée pour être marquée prête." });
     }
 
     commande.statut = "prete";
     await commande.save();
+
+    if (commande.client) {
+      const modeMsg = commande.modeRemise === "livraison"
+        ? "Votre commande est prête et sera livrée bientôt."
+        : "Votre commande est prête. Vous pouvez la récupérer en boutique.";
+      await NotificationClient.create({
+        client: commande.client,
+        commande: commande._id,
+        statut: "prete",
+        message: `Votre commande #${commande._id.toString().slice(-6).toUpperCase()} est prête — ${modeMsg}`,
+      });
+    }
+
+    // Notification pour le gérant
+    const typeCommande = commande.type === "en_ligne" ? "En ligne" : "Physique";
+    await Notification.create({
+      categorie: "COMMANDE",
+      commandeRef: commande._id,
+      message: `Commande #${commande._id.toString().slice(-6).toUpperCase()} (${typeCommande}) est prête — signalée par l'atelier.`,
+      luManager: false,
+    });
 
     res.json({ message: "Commande marquée comme prête.", commande });
   } catch (error) {
@@ -357,6 +429,15 @@ export const marquerLivree = async (req, res) => {
 
     commande.statut = "livree";
     await commande.save();
+
+    if (commande.client) {
+      await NotificationClient.create({
+        client: commande.client,
+        commande: commande._id,
+        statut: "livree",
+        message: `Votre commande #${commande._id.toString().slice(-6).toUpperCase()} a été livrée. Merci pour votre confiance !`,
+      });
+    }
 
     // Décrémenter le stock boutique pour chaque produit livré
     for (const p of commande.produits) {
@@ -381,14 +462,43 @@ export const marquerLivree = async (req, res) => {
 ═══════════════════════════════════════════════════════════════ */
 export const creerCommandePhysique = async (req, res) => {
   try {
-    const { nomClient, telephone, dateRetrait, produits } = req.body;
+    const { nomClient, telephone, modeRemise, adresseLivraison, fraisLivraison, dateRetrait, heureRetrait, produits } = req.body;
 
     if (!produits || produits.length === 0) {
       return res.status(400).json({ message: "La commande doit contenir au moins un produit." });
     }
+    if (!nomClient?.trim()) {
+      return res.status(400).json({ message: "Le nom et prénom du client est obligatoire." });
+    }
+    if (!telephone?.trim()) {
+      return res.status(400).json({ message: "Le numéro de téléphone est obligatoire." });
+    }
+    if (!dateRetrait) {
+      return res.status(400).json({ message: "La date est obligatoire." });
+    }
+    const today = new Date(); today.setHours(0,0,0,0);
+    const maxDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+    const dateDemande = new Date(dateRetrait);
+    if (dateDemande < today || dateDemande > maxDate) {
+      return res.status(400).json({ message: "La date doit être comprise entre aujourd'hui et 3 mois à venir." });
+    }
+    if (!heureRetrait) {
+      return res.status(400).json({ message: "L'heure est obligatoire." });
+    }
+    // Vérifier que la date+heure n'est pas dans le passé
+    const [h, min] = heureRetrait.split(":").map(Number);
+    const dateHeureDemande = new Date(dateRetrait);
+    dateHeureDemande.setHours(h, min, 0, 0);
+    if (dateHeureDemande <= new Date()) {
+      return res.status(400).json({ message: "La date et l'heure choisies sont déjà passées." });
+    }
+    const mode = modeRemise === "livraison" ? "livraison" : "retrait";
+    if (mode === "livraison" && !adresseLivraison?.trim()) {
+      return res.status(400).json({ message: "L'adresse de livraison est obligatoire." });
+    }
 
     const produitsDetails = [];
-    let total = 0;
+    let sousTotal = 0;
 
     for (const item of produits) {
       const produit = await Product.findById(item.produitId);
@@ -397,7 +507,7 @@ export const creerCommandePhysique = async (req, res) => {
       }
 
       const ligneTotal = produit.price * item.quantite;
-      total += ligneTotal;
+      sousTotal += ligneTotal;
 
       produitsDetails.push({
         produit: produit._id,
@@ -408,13 +518,21 @@ export const creerCommandePhysique = async (req, res) => {
       });
     }
 
+    const remise = sousTotal > 200 ? sousTotal * 0.10 : 0;
+    const frais  = mode === "livraison" ? (fraisLivraison || 3) : 0;
+    const total  = parseFloat((sousTotal - remise + frais).toFixed(2));
+
     const commande = await Commande.create({
-      nomClient: nomClient || "Client boutique",
-      telephone: telephone || "",
-      dateRetrait: dateRetrait || null,
+      nomClient: nomClient.trim(),
+      telephone: telephone.trim(),
+      modeRemise: mode,
+      adresseLivraison: mode === "livraison" ? adresseLivraison.trim() : "",
+      fraisLivraison: frais,
+      dateRetrait: new Date(dateRetrait),
+      heureRetrait: heureRetrait || "",
       produits: produitsDetails,
-      total: parseFloat(total.toFixed(2)),
-      statut: "en_attente",
+      total,
+      statut: "validee",   // commande physique = validée automatiquement
       type: "physique",
       enregistrePar: req.user._id,
     });
@@ -459,10 +577,16 @@ export const genererRecuCommande = async (req, res) => {
     doc.fontSize(14).font("Helvetica-Bold").text("REÇU DE COMMANDE");
     doc.moveDown(0.3);
     doc.fontSize(10).font("Helvetica");
-    doc.text(`N° Commande  : ${commande._id}`);
-    doc.text(`Date         : ${new Date(commande.createdAt).toLocaleString("fr-TN")}`);
-    doc.text(`Type         : ${commande.type === "en_ligne" ? "Commande en ligne" : "Commande boutique"}`);
-    doc.text(`Statut       : ${commande.statut.replace("_", " ").toUpperCase()}`);
+    doc.text(`N° Commande      : ${commande._id}`);
+    doc.text(`Date de passation : ${new Date(commande.createdAt).toLocaleString("fr-TN")}`);
+    if (commande.dateRetrait) {
+      const dateRecup = new Date(commande.dateRetrait).toLocaleDateString("fr-TN", { day: "2-digit", month: "long", year: "numeric" });
+      const heureRecup = commande.heureRetrait ? ` à ${commande.heureRetrait}` : "";
+      const labelRecup = commande.modeRemise === "livraison" ? "Date de livraison " : "Date de récupération";
+      doc.text(`${labelRecup} : ${dateRecup}${heureRecup}`);
+    }
+    doc.text(`Type              : ${commande.type === "en_ligne" ? "Commande en ligne" : "Commande boutique"}`);
+    doc.text(`Statut            : ${commande.statut.replace("_", " ").toUpperCase()}`);
 
     // ── Informations client ──────────────────────────────────────
     doc.moveDown(0.5);
@@ -488,9 +612,6 @@ export const genererRecuCommande = async (req, res) => {
       if (commande.telephoneLivraison) doc.text(`Tél livraison : ${commande.telephoneLivraison}`);
     } else {
       doc.text("Retrait en boutique");
-      if (commande.dateRetrait) {
-        doc.text(`Date de retrait : ${new Date(commande.dateRetrait).toLocaleDateString("fr-TN")}`);
-      }
     }
 
     // ── Tableau des produits ─────────────────────────────────────
@@ -550,6 +671,43 @@ export const genererRecuCommande = async (req, res) => {
 /* ═══════════════════════════════════════════════════════════════
    PB25 — DASHBOARD VENTES ET COMMANDES (Gérant)
 ═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   NOTIFICATIONS CLIENT — MES NOTIFICATIONS
+═══════════════════════════════════════════════════════════════ */
+export const getMesNotifications = async (req, res) => {
+  try {
+    const notifs = await NotificationClient.find({ client: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(30);
+    res.json(notifs);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+export const marquerNotifLue = async (req, res) => {
+  try {
+    const notif = await NotificationClient.findOneAndUpdate(
+      { _id: req.params.id, client: req.user._id },
+      { lue: true },
+      { new: true }
+    );
+    if (!notif) return res.status(404).json({ message: "Notification introuvable." });
+    res.json(notif);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+export const marquerToutesNotifsLues = async (req, res) => {
+  try {
+    await NotificationClient.updateMany({ client: req.user._id, lue: false }, { lue: true });
+    res.json({ message: "Toutes les notifications marquées comme lues." });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
 export const getDashboardVentes = async (req, res) => {
   try {
     const maintenant = new Date();

@@ -14,6 +14,8 @@ export default function CatalogClient() {
   const [panier, setPanier]       = useState([]);
   const [nbPanier, setNbPanier]   = useState(0);
   const [searchQuery, setSearch]  = useState("");
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifs, setShowNotifs] = useState(false);
 
   useEffect(() => {
     fetchCatalog();
@@ -22,6 +24,44 @@ export default function CatalogClient() {
     setPanier(p);
     setNbPanier(p.reduce((a, i) => a + i.quantite, 0));
   }, []);
+
+  useEffect(() => {
+    if (user && user.role === "client") {
+      fetchNotifications();
+    }
+  }, [user]);
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("http://localhost:5000/api/commandes/mes-notifications", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications(res.data);
+    } catch { /* silencieux */ }
+  };
+
+  const marquerLue = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(`http://localhost:5000/api/commandes/mes-notifications/${id}/lue`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, lue: true } : n));
+    } catch { /* silencieux */ }
+  };
+
+  const marquerToutesLues = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put("http://localhost:5000/api/commandes/mes-notifications/lues", {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications((prev) => prev.map((n) => ({ ...n, lue: true })));
+    } catch { /* silencieux */ }
+  };
+
+  const nonLues = notifications.filter((n) => !n.lue).length;
 
   const checkUser = () => {
     const stored = localStorage.getItem("user");
@@ -63,7 +103,6 @@ export default function CatalogClient() {
 
   // PB18 — Ajouter au panier (première fois)
   const handleAjouter = (produit) => {
-    if (!user) { navigate("/login-client"); return; }
     const newPanier = [...panier, {
       produitId: produit._id,
       nom: produit.name,
@@ -152,22 +191,65 @@ export default function CatalogClient() {
             </button>
           )}
 
-          {/* Mes commandes (icône liste) */}
+
+          {/* Cloche notifications */}
           {user && (
-            <button className="sj-icon-btn" onClick={() => navigate("/client/mes-commandes")} title="Mes commandes">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-                <rect x="9" y="3" width="6" height="4" rx="1"/>
-                <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
-              </svg>
-              <span className="sj-icon-label">Commandes</span>
-            </button>
+            <div className="sj-notif-wrapper">
+              <button
+                className="sj-icon-btn sj-notif-btn"
+                onClick={() => setShowNotifs((v) => !v)}
+                title="Notifications"
+              >
+                <div className="sj-notif-icon-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                  {nonLues > 0 && <span className="sj-notif-badge">{nonLues}</span>}
+                </div>
+              </button>
+
+              {showNotifs && (
+                <div className="sj-notif-dropdown">
+                  <div className="sj-notif-dropdown-header">
+                    <span>Notifications</span>
+                    {nonLues > 0 && (
+                      <button className="sj-notif-lire-tout" onClick={marquerToutesLues}>
+                        Tout lire
+                      </button>
+                    )}
+                  </div>
+                  {notifications.length === 0 ? (
+                    <p className="sj-notif-vide">Aucune notification.</p>
+                  ) : (
+                    <ul className="sj-notif-list">
+                      {notifications.map((n) => (
+                        <li
+                          key={n._id}
+                          className={`sj-notif-item ${n.lue ? "sj-notif-item--lue" : ""}`}
+                          onClick={() => !n.lue && marquerLue(n._id)}
+                        >
+                          <p className="sj-notif-msg">{n.message}</p>
+                          <span className="sj-notif-date">
+                            {new Date(n.createdAt).toLocaleString("fr-FR", {
+                              day: "2-digit", month: "2-digit", year: "numeric",
+                              hour: "2-digit", minute: "2-digit",
+                            })}
+                          </span>
+                          {!n.lue && <span className="sj-notif-dot" />}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           {/* Panier avec badge */}
           <button
             className="sj-cart-btn"
-            onClick={() => user ? navigate("/client/panier") : navigate("/login-client")}
+            onClick={() => navigate("/client/panier")}
             title="Mon panier"
           >
             <div className="sj-cart-icon-wrapper">
@@ -246,7 +328,20 @@ export default function CatalogClient() {
                             className="sj-qty-btn sj-qty-minus"
                             onClick={() => handleDecrement(product._id)}
                           >−</button>
-                          <span className="sj-qty-val">{qte}</span>
+                          <input
+                            className="sj-qty-val"
+                            type="number"
+                            min="1"
+                            value={qte}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10);
+                              if (!val || val < 1) return;
+                              const newPanier = panier.map((p) =>
+                                p.produitId === product._id ? { ...p, quantite: val } : p
+                              );
+                              syncPanier(newPanier);
+                            }}
+                          />
                           <button
                             className="sj-qty-btn sj-qty-plus"
                             onClick={() => handleIncrement(product._id)}

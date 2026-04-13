@@ -105,7 +105,7 @@ export const getRecettes = async (req, res) => {
 // POST /api/workshop/recettes
 export const createRecette = async (req, res) => {
   try {
-    const { nomJus, ingredients, seuilMinPF } = req.body;
+    const { nomJus, ingredients, seuilMinPF, seuilMinBoutique } = req.body;
     if (!nomJus || !ingredients || ingredients.length === 0)
       return res.status(400).json({ message: "Le nom du jus et au moins un ingrédient sont requis." });
 
@@ -116,7 +116,8 @@ export const createRecette = async (req, res) => {
     const recette = await Recette.create({
       nomJus: nomJus.trim(),
       ingredients,
-      seuilMinPF: seuilMinPF !== undefined ? Number(seuilMinPF) : 0,
+      seuilMinPF:       seuilMinPF       !== undefined ? Number(seuilMinPF)       : 0,
+      seuilMinBoutique: seuilMinBoutique !== undefined ? Number(seuilMinBoutique) : 0,
       creerPar: req.user._id,
     });
 
@@ -130,7 +131,7 @@ export const createRecette = async (req, res) => {
 // PUT /api/workshop/recettes/:id
 export const updateRecette = async (req, res) => {
   try {
-    const { nomJus, ingredients, seuilMinPF } = req.body;
+    const { nomJus, ingredients, seuilMinPF, seuilMinBoutique } = req.body;
     if (!nomJus || !ingredients || ingredients.length === 0)
       return res.status(400).json({ message: "Le nom du jus et au moins un ingrédient sont requis." });
 
@@ -143,7 +144,8 @@ export const updateRecette = async (req, res) => {
       {
         nomJus: nomJus.trim(),
         ingredients,
-        seuilMinPF: seuilMinPF !== undefined ? Number(seuilMinPF) : 0,
+        seuilMinPF:       seuilMinPF       !== undefined ? Number(seuilMinPF)       : 0,
+        seuilMinBoutique: seuilMinBoutique !== undefined ? Number(seuilMinBoutique) : 0,
         modifierPar: req.user._id,
         dateModification: new Date(),
       },

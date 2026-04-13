@@ -98,10 +98,10 @@ export default function ManagerHome() {
       color: "purple",
     },
     {
-      icon: "📊",
-      title: "Dashboard Ventes",
-      description: "Suivi des performances commerciales : ventes, commandes, top produits.",
-      path: "/manager/dashboard-ventes",
+      icon: "Ventes",
+      title: "Historique des Ventes",
+      description: "Consulter l'historique complet des ventes réalisées en boutique.",
+      path: "/manager/ventes",
       color: "red",
     },
   ];
@@ -150,7 +150,7 @@ export default function ManagerHome() {
                         onClick={() => !n.luManager && marquerLue(n._id)}
                       >
                         <span className="mh-notif-item-icon">
-                          {n.categorie === "PF" ? "🧃" : "⚠️"}
+                          {n.categorie === "PF" ? "PF" : n.categorie === "COMMANDE" ? "CMD" : "!"}
                         </span>
                         <div className="mh-notif-item-body">
                           <p className="mh-notif-item-msg">{n.message}</p>

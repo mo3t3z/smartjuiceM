@@ -19,13 +19,55 @@
 
 .cc-title { font-size: 20px; font-weight: 800; color: #1e3a5f; margin: 0; }
 
-.cc-refresh-btn {
-  padding: 8px 18px; background: #f5f6fa;
-  color: #555; border: 1px solid #e0e0e0;
-  border-radius: 20px; font-size: 14px; font-weight: 600;
+/* Barre de recherche */
+.cc-search-bar {
+  max-width: 860px; margin: 24px auto 0; padding: 0 20px;
+}
+
+.cc-filtre-toggle {
+  display: flex; gap: 8px; margin-bottom: 12px;
+}
+
+.cc-toggle-btn {
+  padding: 8px 20px; border: 2px solid #1e3a5f; border-radius: 20px;
+  background: white; color: #1e3a5f; font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all 0.2s;
 }
-.cc-refresh-btn:hover { background: #e8e8e8; }
+.cc-toggle-btn--active {
+  background: #1e3a5f; color: white;
+}
+.cc-toggle-btn:hover:not(.cc-toggle-btn--active) { background: #f0f4ff; }
+
+.cc-search-row {
+  display: flex; gap: 12px; align-items: center;
+}
+.cc-search-input {
+  padding: 10px 14px; border: 1px solid #ddd;
+  border-radius: 8px; font-size: 14px; font-family: inherit;
+  flex: 1; max-width: 220px;
+}
+.cc-search-input:focus { outline: none; border-color: #1e3a5f; }
+.cc-search-btn {
+  padding: 10px 24px; background: #1e3a5f; color: white;
+  border: none; border-radius: 8px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: background 0.2s;
+}
+.cc-search-btn:hover { background: #2e5a8f; }
+
+/* Date retrait */
+.cc-date-retrait-row {
+  display: flex; align-items: center; gap: 10px;
+  margin: 6px 0;
+}
+.cc-remise-badge {
+  font-size: 11px; font-weight: 700; padding: 3px 10px;
+  border-radius: 20px;
+}
+.cc-remise-badge--livraison { background: #e3f2fd; color: #1565c0; }
+.cc-remise-badge--retrait   { background: #e8f5e9; color: #2e7d32; }
+.cc-date-retrait-val { font-size: 13px; font-weight: 600; color: #1e3a5f; }
+
+.cc-prete-label { font-size: 13px; font-weight: 600; color: #2e7d32; }
 
 /* Message */
 .cc-message {
@@ -70,6 +112,7 @@
 }
 .cc-card--blue   { border-left-color: #1565c0; }
 .cc-card--purple { border-left-color: #1e3a5f; }
+.cc-card--green  { border-left-color: #2e7d32; }
 
 .cc-card-header {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -90,6 +133,7 @@
 .cc-type--physique { background: #e3f2fd; color: #1565c0; }
 .cc-statut--blue   { background: #e3f2fd; color: #1565c0; }
 .cc-statut--purple { background: #e8f0fe; color: #1e3a5f; }
+.cc-statut--green  { background: #e8f5e9; color: #2e7d32; }
 
 .cc-client {
   font-size: 14px; color: #555;
@@ -132,12 +176,14 @@
 
 .cc-total { font-size: 17px; font-weight: 700; color: #1e3a5f; }
 
-.cc-btn-preparation {
+.cc-btn-preparation,
+.cc-btn-prete {
   padding: 10px 24px; background: #2e7d32; color: white;
   border: none; border-radius: 20px; font-size: 14px;
   font-weight: 700; cursor: pointer; transition: all 0.2s;
 }
-.cc-btn-preparation:hover { background: #1b5e20; transform: translateY(-1px); }
+.cc-btn-preparation:hover,
+.cc-btn-prete:hover { background: #1b5e20; transform: translateY(-1px); }
 
 .cc-en-cours {
   font-size: 14px; font-weight: 600; color: #2e7d32;

@@ -4,12 +4,12 @@ const notificationSchema = new mongoose.Schema(
   {
     categorie: {
       type: String,
-      enum: ["MP", "PF", "BOUTIQUE"], // BOUTIQUE = alerte stock boutique (PB26)
+      enum: ["MP", "PF", "BOUTIQUE", "COMMANDE"],
       default: "MP",
     },
     typeMP: {
       type: String,
-      required: true,
+      default: "",
     },
     message: {
       type: String,
@@ -17,15 +17,21 @@ const notificationSchema = new mongoose.Schema(
     },
     niveauActuel: {
       type: Number,
-      required: true,
+      default: 0,
     },
     seuilMin: {
       type: Number,
-      required: true,
+      default: 0,
     },
     unite: {
       type: String,
-      required: true,
+      default: "",
+    },
+    // Référence à la commande physique (si categorie = COMMANDE)
+    commandeRef: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Commande",
+      default: null,
     },
     luAtelier: {
       type: Boolean,

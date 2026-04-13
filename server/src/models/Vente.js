@@ -12,16 +12,23 @@ const venteSchema = new mongoose.Schema(
           required: true,
         },
         nom: { type: String, required: true },       // Nom dénormalisé pour l'historique
-        volume: { type: String, default: "0.5L" },   // Volume du produit
+        volume: { type: String, default: "1L" },   // Volume du produit
         quantite: { type: Number, required: true, min: 1 },
         prixUnitaire: { type: Number, required: true, min: 0 },
       },
     ],
 
-    // Montant total de la vente
+    // Montant total de la vente (après escompte)
     total: {
       type: Number,
       required: true,
+      min: 0,
+    },
+
+    // Escompte appliqué (10% si total brut > 200 DT)
+    escompte: {
+      type: Number,
+      default: 0,
       min: 0,
     },
 
@@ -30,12 +37,6 @@ const venteSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    },
-
-    // Nom du client (optionnel pour vente anonyme)
-    nomClient: {
-      type: String,
-      default: "",
     },
 
     // Date de la vente

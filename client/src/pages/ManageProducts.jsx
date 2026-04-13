@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./ManageProducts.css";
@@ -18,10 +18,12 @@ export default function ManageProducts() {
     name: "",
     description: "",
     price: "",
-    image: "",
-    volume: "0.5L",
+    volume: "1L",
     available: true
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const fileInputRef = useRef(null);
 
   // Charger les produits
   useEffect(() => {
@@ -45,19 +47,27 @@ export default function ManageProducts() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("description", formData.description);
+    data.append("price", formData.price);
+    data.append("volume", formData.volume);
+    data.append("available", formData.available);
+    if (imageFile) {
+      data.append("image", imageFile);
+    }
+
     try {
       if (editingId) {
-        // Modification
         await axios.put(
           `http://localhost:5000/api/products/${editingId}`,
-          formData,
-          { headers: { Authorization: `Bearer ${token}` } }
+          data,
+          { headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } }
         );
         setMessage("Produit modifié avec succès !");
       } else {
-        // Création
-        await axios.post("http://localhost:5000/api/products", formData, {
-          headers: { Authorization: `Bearer ${token}` }
+        await axios.post("http://localhost:5000/api/products", data, {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" }
         });
         setMessage("Produit créé avec succès !");
       }
@@ -67,10 +77,11 @@ export default function ManageProducts() {
         name: "",
         description: "",
         price: "",
-        image: "",
-        volume: "0.5L",
+        volume: "1L",
         available: true
       });
+      setImageFile(null);
+      setImagePreview("");
       setEditingId(null);
       setShowForm(false);
       fetchProducts();
@@ -105,10 +116,11 @@ export default function ManageProducts() {
       name: product.name,
       description: product.description || "",
       price: product.price,
-      image: product.image || "",
-      volume: product.volume || "0.5L",
+      volume: product.volume || "1L",
       available: product.available
     });
+    setImageFile(null);
+    setImagePreview(product.image || "");
     setEditingId(product._id);
     setShowForm(true);
   };
@@ -119,12 +131,21 @@ export default function ManageProducts() {
       name: "",
       description: "",
       price: "",
-      image: "",
-      volume: "0.5L",
+      volume: "1L",
       available: true
     });
+    setImageFile(null);
+    setImagePreview("");
     setEditingId(null);
     setShowForm(false);
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
   return (
@@ -193,26 +214,45 @@ export default function ManageProducts() {
             </div>
 
             <div className="form-group">
-              <label>URL de l'image</label>
+              <label>Image du produit</label>
               <input
-                type="text"
-                value={formData.image}
-                onChange={(e) =>
-                  setFormData({ ...formData, image: e.target.value })
-                }
-                placeholder="https://exemple.com/image.jpg"
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={handleImageChange}
+                style={{ display: "none" }}
               />
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current.click()}
+                  style={{
+                    padding: "8px 16px",
+                    border: "1px solid #ccc",
+                    borderRadius: "6px",
+                    background: "#f5f5f5",
+                    cursor: "pointer",
+                    fontSize: "14px"
+                  }}
+                >
+                  Choisir une photo
+                </button>
+                <span style={{ fontSize: "13px", color: "#666" }}>
+                  {imageFile ? imageFile.name : "Aucune photo sélectionnée"}
+                </span>
+              </div>
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="Aperçu"
+                  style={{ marginTop: "8px", maxHeight: "120px", borderRadius: "8px", objectFit: "cover" }}
+                />
+              )}
             </div>
 
             <div className="form-group">
               <label>Volume</label>
-              <select
-                value={formData.volume}
-                onChange={(e) => setFormData({ ...formData, volume: e.target.value })}
-              >
-                <option value="0.5L">0.5L</option>
-                <option value="1L">1L</option>
-              </select>
+              <input className="gr-input" value="1L" disabled style={{ background: "#f5f5f5", color: "#888", cursor: "not-allowed" }} />
             </div>
 
             <div className="form-group checkbox-group">

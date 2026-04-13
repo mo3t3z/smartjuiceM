@@ -1,63 +1,46 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { authHeader, API_VENTES, API_PRODUCTS } from "../../utils/api";
+import { authHeader, API_VENTES } from "../../utils/api";
 import "./NouvelleVente.css";
 
 // PB24 — Enregistrer une vente en boutique + reçu PDF (Vendeur)
 export default function NouvelleVente() {
   const navigate = useNavigate();
-  const [catalogue, setCatalogue] = useState([]);
-  const [stockBoutique, setStockBoutique] = useState([]);
+  const [produitsBoutique, setProduitsBoutique] = useState([]);
   const [panier, setPanier] = useState([]); // articles de la vente
-  const [nomClient, setNomClient] = useState("");
   const [message, setMessage] = useState({ texte: "", type: "" });
   const [loading, setLoading] = useState(false);
   const [venteCreee, setVenteCreee] = useState(null); // vente créée (pour reçu)
 
   useEffect(() => {
-    fetchCatalogue();
-    fetchStockBoutique();
+    fetchProduitsBoutique();
   }, []);
 
-  const fetchCatalogue = async () => {
-    try {
-      const res = await axios.get(`${API_PRODUCTS}/catalog`);
-      setCatalogue(res.data);
-    } catch {
-      setMessage({ texte: "Impossible de charger le catalogue.", type: "erreur" });
-    }
-  };
-
-  const fetchStockBoutique = async () => {
+  const fetchProduitsBoutique = async () => {
     try {
       const res = await axios.get(`${API_VENTES}/stock-boutique`, {
         headers: authHeader(),
       });
-      setStockBoutique(res.data);
+      setProduitsBoutique(res.data);
     } catch {
-      // Non bloquant
+      setMessage({ texte: "Impossible de charger le stock boutique.", type: "erreur" });
     }
-  };
-
-  // Récupérer le stock disponible en boutique pour un produit
-  const getStockDispo = (nomProduit) => {
-    const item = stockBoutique.find((s) => s.nomJus === nomProduit);
-    return item ? item.disponible : 0;
   };
 
   // Ajouter un produit à la vente
   const ajouterProduit = (produit) => {
-    const stockDispo = getStockDispo(produit.name);
-    const litresParUnite = produit.volume === "1L" ? 1 : 0.5;
+    if (!produit._id) {
+      setMessage({ texte: `"${produit.nom}" n'est pas lié au catalogue. Ajoutez-le d'abord comme produit.`, type: "erreur" });
+      return;
+    }
 
     const existant = panier.find((p) => p.produitId === produit._id);
     const qteActuelle = existant ? existant.quantite : 0;
-    const litresDemandes = (qteActuelle + 1) * litresParUnite;
 
-    if (litresDemandes > stockDispo) {
+    if (qteActuelle + 1 > produit.unitsDispo) {
       setMessage({
-        texte: `Stock insuffisant pour "${produit.name}". Disponible : ${stockDispo.toFixed(2)} L.`,
+        texte: `Stock insuffisant pour "${produit.nom}". Disponible : ${produit.unitsDispo} unité(s).`,
         type: "erreur",
       });
       return;
@@ -70,9 +53,9 @@ export default function NouvelleVente() {
     } else {
       setPanier([...panier, {
         produitId: produit._id,
-        nom: produit.name,
+        nom: produit.nom,
         volume: produit.volume,
-        prix: produit.price,
+        prix: produit.prix,
         quantite: 1,
       }]);
     }
@@ -89,7 +72,9 @@ export default function NouvelleVente() {
   };
 
   // Total de la vente
-  const total = panier.reduce((acc, p) => acc + p.prix * p.quantite, 0);
+  const totalBrut = panier.reduce((acc, p) => acc + p.prix * p.quantite, 0);
+  const escompte = totalBrut > 200 ? totalBrut * 0.1 : 0;
+  const total = totalBrut - escompte;
 
   // Enregistrer la vente
   const enregistrerVente = async () => {
@@ -103,18 +88,17 @@ export default function NouvelleVente() {
       const res = await axios.post(
         API_VENTES,
         {
-          nomClient,
           produits: panier.map((p) => ({ produitId: p.produitId, quantite: p.quantite })),
+          escompte: parseFloat(escompte.toFixed(2)),
         },
         { headers: authHeader() }
       );
 
       setVenteCreee(res.data.vente);
       setPanier([]);
-      setNomClient("");
       setMessage({ texte: "Vente enregistrée avec succès !", type: "succes" });
       // Rafraîchir le stock boutique
-      fetchStockBoutique();
+      fetchProduitsBoutique();
     } catch (err) {
       setMessage({
         texte: err.response?.data?.message || "Erreur lors de l'enregistrement.",
@@ -163,7 +147,7 @@ export default function NouvelleVente() {
         <div className="nv-success-banner">
           <span>✓ Vente #{venteCreee._id.slice(-6).toUpperCase()} enregistrée</span>
           <button className="nv-recu-btn" onClick={() => telechargerRecu(venteCreee._id)}>
-            📄 Télécharger le reçu PDF
+            Télécharger le reçu PDF
           </button>
           <button className="nv-nouvelle-btn" onClick={() => setVenteCreee(null)}>
             + Nouvelle vente
@@ -177,52 +161,39 @@ export default function NouvelleVente() {
           <div className="nv-catalogue">
             <h2 className="nv-section-title">Produits disponibles en boutique</h2>
             <div className="nv-produits-grid">
-              {catalogue.map((produit) => {
-                const dispo = getStockDispo(produit.name);
-                const litresParUnite = produit.volume === "1L" ? 1 : 0.5;
-                const unitsDispo = Math.floor(dispo / litresParUnite);
-
-                return (
-                  <div key={produit._id} className={`nv-produit-card ${unitsDispo === 0 ? "nv-produit-card--epuise" : ""}`}>
+              {produitsBoutique.length === 0 ? (
+                <p style={{ color: "#888", gridColumn: "1/-1", textAlign: "center", padding: "40px 0" }}>
+                  Aucun produit disponible en boutique. Effectuez un transfert depuis l'atelier.
+                </p>
+              ) : (
+                produitsBoutique.map((produit) => (
+                  <div key={produit._id} className="nv-produit-card">
                     {produit.image && (
-                      <img src={produit.image} alt={produit.name} className="nv-produit-img" />
+                      <img src={produit.image} alt={produit.nom} className="nv-produit-img" />
                     )}
                     <div className="nv-produit-info">
-                      <h3 className="nv-produit-nom">{produit.name}</h3>
+                      <h3 className="nv-produit-nom">{produit.nom}</h3>
                       <span className="nv-produit-vol">{produit.volume}</span>
-                      <span className="nv-produit-prix">{produit.price} DT</span>
-                      <span className={`nv-produit-stock ${unitsDispo === 0 ? "nv-stock--rouge" : "nv-stock--vert"}`}>
-                        Stock : {unitsDispo} unité(s)
+                      <span className="nv-produit-prix">{produit.prix} DT</span>
+                      <span className="nv-produit-stock nv-stock--vert">
+                        Stock : {produit.unitsDispo} unité(s)
                       </span>
                     </div>
                     <button
                       className="nv-ajouter-btn"
                       onClick={() => ajouterProduit(produit)}
-                      disabled={unitsDispo === 0}
                     >
-                      {unitsDispo === 0 ? "Épuisé" : "+ Ajouter"}
+                      + Ajouter
                     </button>
                   </div>
-                );
-              })}
+                ))
+              )}
             </div>
           </div>
 
           {/* Récapitulatif de la vente */}
           <div className="nv-recap">
             <h2 className="nv-section-title">Récapitulatif</h2>
-
-            {/* Nom du client (optionnel) */}
-            <div className="nv-field">
-              <label className="nv-label">Nom du client (optionnel)</label>
-              <input
-                className="nv-input"
-                type="text"
-                value={nomClient}
-                onChange={(e) => setNomClient(e.target.value)}
-                placeholder="Ex: Ahmed Ben Ali"
-              />
-            </div>
 
             {/* Articles */}
             {panier.length === 0 ? (
@@ -237,13 +208,44 @@ export default function NouvelleVente() {
                     </div>
                     <div className="nv-recap-qte">
                       <button className="nv-qty-btn" onClick={() => modifierQuantite(p.produitId, -1)}>−</button>
-                      <span>{p.quantite}</span>
+                      <input
+                        className="nv-qty-input"
+                        type="number"
+                        min="1"
+                        value={p.quantite}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (!isNaN(val) && val >= 1) {
+                            setPanier(panier.map((item) =>
+                              item.produitId === p.produitId ? { ...item, quantite: val } : item
+                            ));
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (isNaN(val) || val < 1) {
+                            setPanier(panier.filter((item) => item.produitId !== p.produitId));
+                          }
+                        }}
+                      />
                       <button className="nv-qty-btn" onClick={() => modifierQuantite(p.produitId, +1)}>+</button>
                     </div>
                     <span className="nv-recap-st">{(p.prix * p.quantite).toFixed(2)} DT</span>
                   </div>
                 ))}
 
+                {escompte > 0 && (
+                  <>
+                    <div className="nv-total nv-total--brut">
+                      <span>Sous-total</span>
+                      <span>{totalBrut.toFixed(2)} DT</span>
+                    </div>
+                    <div className="nv-total nv-total--escompte">
+                      <span>Escompte 10%</span>
+                      <span>− {escompte.toFixed(2)} DT</span>
+                    </div>
+                  </>
+                )}
                 <div className="nv-total">
                   <span>Total</span>
                   <span>{total.toFixed(2)} DT</span>

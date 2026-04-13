@@ -1,0 +1,129 @@
+.hv-page { min-height: 100vh; background: #f5f6fa; }
+
+.hv-header {
+  position: sticky; top: 0; z-index: 100;
+  background: #fff; border-bottom: 2px solid #e8e8e8;
+  padding: 0 28px; height: 68px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.hv-back-btn {
+  background: none; border: none; color: #1e3a5f;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 6px 12px; border-radius: 8px; transition: background 0.15s;
+}
+.hv-back-btn:hover { background: #f0f4ff; }
+.hv-title { font-size: 20px; font-weight: 800; color: #1e3a5f; margin: 0; }
+
+/* Message */
+.hv-message {
+  max-width: 900px; margin: 16px auto; padding: 14px 20px;
+  border-radius: 10px; font-weight: 600;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.hv-message--succes { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+.hv-message--erreur { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+.hv-msg-close { background: none; border: none; cursor: pointer; font-size: 16px; }
+
+/* Filtres */
+.hv-filtres {
+  max-width: 960px; margin: 24px auto 0; padding: 0 20px;
+  background: white; border-radius: 14px;
+  padding: 20px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.hv-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+.hv-toggle-btn {
+  padding: 8px 20px; border: 2px solid #1e3a5f; border-radius: 20px;
+  background: white; color: #1e3a5f; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.hv-toggle-btn--active { background: #1e3a5f; color: white; }
+.hv-toggle-btn:hover:not(.hv-toggle-btn--active) { background: #f0f4ff; }
+
+.hv-filtres-row {
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;
+}
+.hv-filtre-group { display: flex; flex-direction: column; gap: 6px; }
+.hv-filtre-label { font-size: 12px; font-weight: 600; color: #555; }
+.hv-input-date, .hv-input-text {
+  padding: 9px 14px; border: 1px solid #ddd; border-radius: 8px;
+  font-size: 14px; font-family: inherit; color: #1e3a5f;
+}
+.hv-input-date:focus, .hv-input-text:focus { outline: none; border-color: #1e3a5f; }
+.hv-input-text { min-width: 180px; }
+
+.hv-search-btn {
+  padding: 10px 28px; background: #1e3a5f; color: white;
+  border: none; border-radius: 8px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: background 0.2s; align-self: flex-end;
+}
+.hv-search-btn:hover { background: #2e5a8f; }
+
+/* Contenu */
+.hv-content { max-width: 960px; margin: 24px auto; padding: 0 20px; }
+
+.hv-loading { text-align: center; color: #888; font-size: 18px; padding: 60px 0; }
+.hv-vide {
+  text-align: center; background: white; border-radius: 16px;
+  padding: 60px 20px; color: #888; font-size: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+/* Résumé */
+.hv-resume {
+  display: flex; gap: 16px; margin-bottom: 20px;
+}
+.hv-resume-item {
+  flex: 1; background: white; border-radius: 12px; padding: 16px 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-left: 4px solid #1e3a5f;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.hv-resume-label { font-size: 13px; color: #888; font-weight: 600; }
+.hv-resume-val { font-size: 26px; font-weight: 800; color: #1e3a5f; }
+.hv-resume-val--ca { color: #2e7d32; }
+
+/* Liste */
+.hv-liste { display: flex; flex-direction: column; gap: 16px; }
+
+.hv-card {
+  background: white; border-radius: 14px; padding: 20px 24px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07); border-left: 4px solid #1e3a5f;
+}
+
+.hv-card-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px; flex-wrap: wrap; gap: 10px;
+}
+.hv-card-meta { display: flex; flex-direction: column; gap: 3px; }
+.hv-vente-id { font-size: 15px; font-weight: 700; color: #1e3a5f; }
+.hv-vente-date { font-size: 12px; color: #888; }
+.hv-vente-vendeur { font-size: 13px; color: #555; }
+
+.hv-btn-pdf {
+  padding: 7px 18px; background: #ede7f6; color: #512da8;
+  border: none; border-radius: 20px; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: background 0.2s; white-space: nowrap;
+}
+.hv-btn-pdf:hover { background: #d1c4e9; }
+
+/* Produits */
+.hv-produits { margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px; }
+.hv-prod-ligne {
+  display: flex; align-items: center; gap: 12px;
+  padding: 6px 0; border-bottom: 1px solid #f5f5f5;
+}
+.hv-prod-nom { font-weight: 600; color: #1e3a5f; flex: 1; }
+.hv-prod-vol { font-size: 12px; color: #888; background: #f0f0f0; padding: 2px 8px; border-radius: 10px; }
+.hv-prod-qte { font-size: 13px; color: #555; }
+.hv-prod-prix { font-weight: 700; color: #1e3a5f; min-width: 80px; text-align: right; }
+
+/* Footer */
+.hv-card-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 12px; border-top: 1px solid #f0f0f0; flex-wrap: wrap; gap: 8px;
+}
+.hv-totaux-detail { display: flex; flex-direction: column; gap: 2px; }
+.hv-sous-total { font-size: 13px; color: #888; }
+.hv-escompte { font-size: 13px; color: #e65100; font-weight: 600; }
+.hv-total { font-size: 17px; font-weight: 800; color: #2e7d32; }

@@ -137,12 +137,28 @@
 }
 .nv-qty-btn:hover { background: #2e7d32; color: white; }
 
+.nv-qty-input {
+  width: 48px; text-align: center; font-size: 15px; font-weight: 700;
+  border: 2px solid #2e7d32; border-radius: 6px; padding: 2px 4px;
+  color: #1e3a5f; outline: none;
+}
+.nv-qty-input::-webkit-inner-spin-button,
+.nv-qty-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
 .nv-recap-st { font-weight: 700; color: #1e3a5f; min-width: 70px; text-align: right; }
 
 .nv-total {
   display: flex; justify-content: space-between;
   font-size: 20px; font-weight: 700; color: #1e3a5f;
   padding: 14px 0; margin-top: 8px;
+}
+.nv-total--brut {
+  font-size: 14px; font-weight: 500; color: #777;
+  margin-top: 0; padding: 6px 0;
+}
+.nv-total--escompte {
+  font-size: 14px; font-weight: 600; color: #c62828;
+  padding: 4px 0; margin-top: 0;
 }
 
 .nv-enregistrer-btn {

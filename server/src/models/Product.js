@@ -23,9 +23,9 @@ const productSchema = new mongoose.Schema(
     },
     volume: {
       type: String,
-      enum: ["0.5L", "1L"],
+      enum: ["1L"],
       required: true,
-      default: "0.5L"
+      default: "1L"
     },
     available: {
       type: Boolean,

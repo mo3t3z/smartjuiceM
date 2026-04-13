@@ -12,10 +12,17 @@ import managerStockRoutes from "./src/routes/managerStockRoutes.js";
 import commandeRoutes from "./src/routes/commandeRoutes.js";
 import venteRoutes from "./src/routes/venteRoutes.js";
 
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const app = express();
 
 app.use(cors());//active CORS pour toutes les routes
 app.use(express.json());//active la lecture de req.body en JSON
+app.use("/uploads", express.static(join(__dirname, "uploads")));
 
 app.get("/", (req, res) => {
   res.send("API Smart Juice fonctionne ");

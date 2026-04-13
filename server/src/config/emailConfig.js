@@ -63,7 +63,7 @@ export const sendResetPasswordEmail = async (email, resetToken) => {
           <div style="background-color: #fff3cd; border-left: 3px solid #ffc107; 
                       padding: 15px; margin: 20px 0; border-radius: 5px;">
             <p style="margin: 0; color: #856404; font-weight: bold;">
-              ⚠️ Important
+              Important
             </p>
             <p style="margin: 10px 0 0 0; color: #856404;">
               Ce lien expirera dans <strong>1 heure</strong> pour des raisons de sécurité.

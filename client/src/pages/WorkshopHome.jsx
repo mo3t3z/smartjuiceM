@@ -165,7 +165,7 @@ export default function WorkshopHome() {
                         className={`wh-notif-item${n.luAtelier ? " wh-notif-item--lu" : ""}`}
                         onClick={() => !n.luAtelier && marquerLue(n._id)}
                       >
-                        <span className="wh-notif-item-icon">⚠️</span>
+                        <span className="wh-notif-item-icon">!</span>
                         <div className="wh-notif-item-body">
                           <p className="wh-notif-item-msg">{n.message}</p>
                           <span className="wh-notif-item-date">

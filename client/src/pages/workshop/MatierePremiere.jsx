@@ -395,18 +395,8 @@ export default function MatierePremiere() {
               />
             </div>
 
-            {/* ── Date ── */}
-            <div className="mp-field">
-              <label className="mp-label">Date d'entrée <span className="mp-required">*</span></label>
-              <input
-                type="date"
-                name="dateEntree"
-                value={form.dateEntree}
-                onChange={handleChange}
-                className="mp-input"
-                required
-              />
-            </div>
+            {/* Date d'entrée automatique = date système */}
+            <input type="hidden" name="dateEntree" value={form.dateEntree} />
 
             <button type="submit" className="mp-submit-btn" disabled={loading}>
               {loading ? "Enregistrement..." : "Enregistrer la matière première"}

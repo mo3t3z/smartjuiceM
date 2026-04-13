@@ -12,9 +12,12 @@ export default function ProtectedRoute({ children, allowedRoles }) {
   // PB23 : Vérification des rôles autorisés
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // Redirection vers son interface selon son rôle
-    if (user.role === "manager") return <Navigate to="/manager" replace />;
-    if (user.role === "seller") return <Navigate to="/seller" replace />;
+    if (user.role === "manager")  return <Navigate to="/manager" replace />;
+    if (user.role === "seller")   return <Navigate to="/seller" replace />;
     if (user.role === "workshop") return <Navigate to="/workshop" replace />;
+    if (user.role === "client")   return <Navigate to="/" replace />;
+    // Rôle inconnu → déconnexion
+    return <Navigate to="/login" replace />;
   }
 
   return children;

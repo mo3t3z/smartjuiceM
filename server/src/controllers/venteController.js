@@ -36,13 +36,36 @@ const verifierAlerteBoutique = async (nomJus) => {
 };
 
 /* ═══════════════════════════════════════════════════════════════
+   HELPER : trouver le nomJus dans StockBoutique correspondant
+   à un nom de produit catalogue (fuzzy match par mots-clés)
+═══════════════════════════════════════════════════════════════ */
+const normalize = (s) =>
+  s.toLowerCase().replace(/[^a-zàâäéèêëîïôùûüç]/gi, " ").replace(/\s+/g, " ").trim();
+
+const trouverNomJus = async (produitName) => {
+  const stocks = await StockBoutique.find({});
+  const nomProdNorm = normalize(produitName);
+  const motsProd = nomProdNorm.split(" ").filter((m) => m.length > 2 && m !== "jus");
+
+  // Chercher l'entrée StockBoutique dont les mots-clés sont tous présents dans le nom produit
+  const match = stocks.find((s) => {
+    const nomStockNorm = normalize(s.nomJus);
+    const motsStock = nomStockNorm.split(" ").filter((m) => m.length > 2 && m !== "jus");
+    return motsStock.every((m) => nomProdNorm.includes(m)) ||
+           motsProd.every((m) => nomStockNorm.includes(m));
+  });
+
+  return match ? match.nomJus : produitName;
+};
+
+/* ═══════════════════════════════════════════════════════════════
    PB24 — ENREGISTRER UNE VENTE EN BOUTIQUE (Vendeur)
    → Vérifie le stock boutique disponible avant d'enregistrer
    → Déclenche les alertes PB26 si le stock passe sous le seuil
 ═══════════════════════════════════════════════════════════════ */
 export const creerVente = async (req, res) => {
   try {
-    const { nomClient, produits } = req.body;
+    const { produits, escompte } = req.body;
 
     if (!produits || produits.length === 0) {
       return res.status(400).json({ message: "La vente doit contenir au moins un produit." });
@@ -57,10 +80,13 @@ export const creerVente = async (req, res) => {
         return res.status(404).json({ message: `Produit introuvable: ${item.produitId}` });
       }
 
+      // Trouver le nomJus correspondant dans StockBoutique (fuzzy match)
+      const nomJus = await trouverNomJus(produit.name);
+
       // Vérifier le stock boutique disponible pour ce produit
       const litresParUnite = produit.volume === "1L" ? 1 : 0.5;
       const litresDemandes = item.quantite * litresParUnite;
-      const stockDispo = await calcStockBoutique(produit.name);
+      const stockDispo = await calcStockBoutique(nomJus);
 
       if (litresDemandes > stockDispo) {
         return res.status(400).json({
@@ -76,25 +102,31 @@ export const creerVente = async (req, res) => {
       produitsDetails.push({
         produit: produit._id,
         nom: produit.name,
+        nomJus,                  // nom dans StockBoutique (pour décrémentation)
         volume: produit.volume,
         quantite: item.quantite,
         prixUnitaire: produit.price,
       });
     }
 
-    // Enregistrer la vente
+    // Appliquer l'escompte si fourni (validé : 10% si total > 200)
+    const escompteApplique = escompte && escompte > 0 ? parseFloat(escompte.toFixed(2)) : 0;
+    const totalFinal = parseFloat((total - escompteApplique).toFixed(2));
+
+    // Enregistrer la vente (sans nomJus dans le schéma)
+    const venteProduits = produitsDetails.map(({ nomJus: _nj, ...rest }) => rest);
     const vente = await Vente.create({
-      produits: produitsDetails,
-      total: parseFloat(total.toFixed(2)),
+      produits: venteProduits,
+      total: totalFinal,
+      escompte: escompteApplique,
       vendeur: req.user._id,
-      nomClient: nomClient || "",
       dateVente: new Date(),
     });
 
-    // Décrémenter le stock boutique pour chaque produit vendu
+    // Décrémenter le stock boutique pour chaque produit vendu (avec le bon nomJus)
     for (const p of produitsDetails) {
       const litres = (p.volume === "1L" ? 1 : 0.5) * p.quantite;
-      await ajouterStockBoutique(p.nom, -litres);
+      await ajouterStockBoutique(p.nomJus, -litres);
     }
 
     // Vérifier les alertes boutique pour chaque produit vendu (PB26)
@@ -115,7 +147,22 @@ export const creerVente = async (req, res) => {
 ═══════════════════════════════════════════════════════════════ */
 export const getVentes = async (req, res) => {
   try {
-    const ventes = await Vente.find()
+    const { debut, fin, mois } = req.query;
+    const filtre = {};
+
+    if (mois) {
+      const [annee, moisNum] = mois.split("-").map(Number);
+      filtre.dateVente = {
+        $gte: new Date(annee, moisNum - 1, 1),
+        $lte: new Date(annee, moisNum, 0, 23, 59, 59, 999),
+      };
+    } else if (debut || fin) {
+      filtre.dateVente = {};
+      if (debut) { const d = new Date(debut); d.setHours(0,0,0,0); filtre.dateVente.$gte = d; }
+      if (fin)   { const d = new Date(fin);   d.setHours(23,59,59,999); filtre.dateVente.$lte = d; }
+    }
+
+    const ventes = await Vente.find(filtre)
       .populate("vendeur", "email nom prenom")
       .sort({ dateVente: -1 });
 
@@ -147,12 +194,43 @@ export const getMesVentes = async (req, res) => {
 export const getStockBoutiqueDisponible = async (req, res) => {
   try {
     const stocks = await StockBoutique.find().sort({ nomJus: 1 });
-    res.json(
-      stocks.map((s) => ({
+    const products = await Product.find({});
+
+    const normalize = (s) => s.toLowerCase().replace(/[^a-zàâäéèêëîïôùûüç]/gi, " ").replace(/\s+/g, " ").trim();
+
+    const result = [];
+    for (const s of stocks) {
+      const dispo = Math.max(0, parseFloat(s.stockActuel.toFixed(2)));
+      if (dispo <= 0) continue;
+
+      const nomStockNorm = normalize(s.nomJus);
+
+      // Cherche un produit catalogue dont le nom contient les mêmes mots
+      const mots = nomStockNorm.split(" ").filter(m => m.length > 2 && m !== "jus");
+      const produit = products.find((p) => {
+        const nomProdNorm = normalize(p.name);
+        return mots.every((m) => nomProdNorm.includes(m));
+      });
+
+      // Volume par défaut 1L si pas de produit trouvé
+      const volume = produit?.volume || "1L";
+      const litresParUnite = volume === "1L" ? 1 : 0.5;
+      const unitsDispo = Math.floor(dispo / litresParUnite);
+      if (unitsDispo <= 0) continue;
+
+      result.push({
+        _id: produit?._id || null,
+        nom: produit?.name || s.nomJus,
         nomJus: s.nomJus,
-        disponible: Math.max(0, parseFloat(s.stockActuel.toFixed(2))),
-      }))
-    );
+        volume,
+        prix: produit?.price || 0,
+        image: produit?.image || "",
+        unitsDispo,
+        litresDispo: dispo,
+      });
+    }
+
+    res.json(result);
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
@@ -225,6 +303,13 @@ export const genererRecuVente = async (req, res) => {
     doc.moveDown(0.3);
     doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
     doc.moveDown(0.5);
+
+    if (vente.escompte > 0) {
+      const totalBrut = vente.total + vente.escompte;
+      doc.fontSize(10).font("Helvetica").text(`Sous-total : ${totalBrut.toFixed(2)} DT`, { align: "right" });
+      doc.fontSize(10).font("Helvetica").fillColor("red").text(`Escompte 10% : − ${vente.escompte.toFixed(2)} DT`, { align: "right" });
+      doc.fillColor("black");
+    }
     doc.fontSize(14).font("Helvetica-Bold").text(`TOTAL : ${vente.total.toFixed(2)} DT`, { align: "right" });
 
     // ── Pied de page ───────────────────────────────────────────────

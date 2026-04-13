@@ -26,14 +26,13 @@ export default function MesCommandes() {
         headers: authHeader(),
       });
       setCommandes(res.data);
-    } catch (err) {
+    } catch {
       setErreur("Impossible de charger vos commandes.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Libellés et couleurs des statuts
   const statutConfig = {
     en_attente:     { label: "En attente",      couleur: "orange" },
     validee:        { label: "Acceptée",         couleur: "blue"   },
@@ -77,7 +76,6 @@ export default function MesCommandes() {
               const cfg = statutConfig[cmd.statut] || { label: cmd.statut, couleur: "gray" };
               return (
                 <div key={cmd._id} className="mc-card">
-                  {/* En-tête de la commande */}
                   <div className="mc-card-header">
                     <div>
                       <span className="mc-cmd-id">#{cmd._id.slice(-8).toUpperCase()}</span>
@@ -88,7 +86,6 @@ export default function MesCommandes() {
                     </span>
                   </div>
 
-                  {/* Produits */}
                   <div className="mc-produits">
                     {cmd.produits.map((p, idx) => (
                       <div key={idx} className="mc-produit-ligne">
@@ -102,22 +99,17 @@ export default function MesCommandes() {
                     ))}
                   </div>
 
-                  {/* Mode de remise */}
                   <div className="mc-remise">
                     {cmd.modeRemise === "livraison" ? (
                       <div className="mc-livraison-info">
-                        <span className="mc-remise-badge mc-remise-badge--livraison">🚚 Livraison</span>
+                        <span className="mc-remise-badge mc-remise-badge--livraison">Livraison</span>
                         <span className="mc-livraison-adresse">{cmd.adresseLivraison}</span>
-                        {cmd.telephoneLivraison && (
-                          <span className="mc-livraison-tel"> — {cmd.telephoneLivraison}</span>
-                        )}
                       </div>
                     ) : (
-                      <span className="mc-remise-badge mc-remise-badge--retrait">🏪 Retrait en boutique</span>
+                      <span className="mc-remise-badge mc-remise-badge--retrait">Retrait en boutique</span>
                     )}
                   </div>
 
-                  {/* Total */}
                   <div className="mc-card-footer">
                     <div className="mc-totaux">
                       {cmd.modeRemise === "livraison" && cmd.fraisLivraison > 0 && (
@@ -132,24 +124,6 @@ export default function MesCommandes() {
                         Motif : {cmd.commentaireRefus}
                       </span>
                     )}
-                  </div>
-
-                  {/* Barre de progression du statut */}
-                  <div className="mc-progression">
-                    {["en_attente", "validee", "en_preparation", "prete", "livree"].map((s, i) => (
-                      <div key={s} className="mc-etape-wrapper">
-                        <div
-                          className={`mc-etape ${
-                            cmd.statut === "refusee" ? "mc-etape--refuse" :
-                            ["en_attente","validee","en_preparation","prete","livree"].indexOf(cmd.statut) >= i
-                              ? "mc-etape--active" : ""
-                          }`}
-                        />
-                        <span className="mc-etape-label">
-                          {statutConfig[s]?.label}
-                        </span>
-                      </div>
-                    ))}
                   </div>
                 </div>
               );

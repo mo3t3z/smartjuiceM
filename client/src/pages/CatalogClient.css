@@ -183,6 +183,109 @@
 }
 
 /* Bouton panier avec badge */
+/* ── Notifications cloche ── */
+.sj-notif-wrapper {
+  position: relative;
+}
+
+.sj-notif-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sj-notif-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: #e53935;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 5px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.sj-notif-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  border: 1px solid #eaeaea;
+  z-index: 200;
+  overflow: hidden;
+}
+
+.sj-notif-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e3a5f;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sj-notif-lire-tout {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.sj-notif-vide {
+  padding: 20px;
+  text-align: center;
+  color: #aaa;
+  font-size: 13px;
+  margin: 0;
+}
+
+.sj-notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.sj-notif-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s;
+  background: #fafcff;
+}
+.sj-notif-item:not(.sj-notif-item--lue):hover { background: #f0f4ff; }
+.sj-notif-item--lue { background: white; cursor: default; opacity: 0.65; }
+
+.sj-notif-msg  { font-size: 13px; font-weight: 600; color: #222; margin: 0; padding-right: 16px; }
+.sj-notif-date { font-size: 11px; color: #aaa; }
+
+.sj-notif-dot {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e53935;
+}
+
 .sj-cart-btn {
   display: flex;
   flex-direction: column;
@@ -483,13 +586,22 @@
 }
 
 .sj-qty-val {
-  min-width: 28px;
+  width: 38px;
   text-align: center;
   font-size: 14px;
   font-weight: 700;
   color: #1a1a1a;
   background: #f9fff9;
+  border: none;
+  outline: none;
   padding: 0 2px;
+  -moz-appearance: textfield;
+}
+
+.sj-qty-val::-webkit-outer-spin-button,
+.sj-qty-val::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 /* ══════════ FOOTER ══════════ */

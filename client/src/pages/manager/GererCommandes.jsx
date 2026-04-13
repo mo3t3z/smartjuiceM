@@ -9,9 +9,15 @@ export default function GererCommandes() {
   const navigate = useNavigate();
   const [commandes, setCommandes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filtreStatut, setFiltreStatut] = useState("en_attente");
+  const [filtreStatut, setFiltreStatut] = useState("");
   const [filtreType, setFiltreType] = useState("");
   const [message, setMessage] = useState({ texte: "", type: "" });
+
+  const afficherMessage = (texte, type) => {
+    setMessage({ texte, type });
+    setTimeout(() => setMessage({ texte: "", type: "" }), 5000);
+  };
+
   // Modal de refus
   const [modalRefus, setModalRefus] = useState(null); // ID de la commande à refuser
   const [commentaireRefus, setCommentaireRefus] = useState("");
@@ -42,10 +48,10 @@ export default function GererCommandes() {
   const valider = async (id) => {
     try {
       await axios.put(`${API_COMMANDES}/${id}/valider`, {}, { headers: authHeader() });
-      setMessage({ texte: "Commande validée avec succès.", type: "succes" });
+      afficherMessage("Commande validée avec succès.", "succes");
       fetchCommandes();
     } catch (err) {
-      setMessage({ texte: err.response?.data?.message || "Erreur.", type: "erreur" });
+      afficherMessage(err.response?.data?.message || "Erreur.", "erreur");
     }
   };
 
@@ -57,28 +63,21 @@ export default function GererCommandes() {
 
   // Confirmer le refus
   const confirmerRefus = async () => {
+    if (!commentaireRefus.trim()) {
+      afficherMessage("La cause du refus est obligatoire.", "erreur");
+      return;
+    }
     try {
       await axios.put(
         `${API_COMMANDES}/${modalRefus}/refuser`,
         { commentaireRefus },
         { headers: authHeader() }
       );
-      setMessage({ texte: "Commande refusée.", type: "succes" });
+      afficherMessage("Commande refusée.", "succes");
       setModalRefus(null);
       fetchCommandes();
     } catch (err) {
-      setMessage({ texte: err.response?.data?.message || "Erreur.", type: "erreur" });
-    }
-  };
-
-  // Marquer comme livrée
-  const marquerLivree = async (id) => {
-    try {
-      await axios.put(`${API_COMMANDES}/${id}/livree`, {}, { headers: authHeader() });
-      setMessage({ texte: "Commande marquée comme livrée.", type: "succes" });
-      fetchCommandes();
-    } catch (err) {
-      setMessage({ texte: err.response?.data?.message || "Erreur.", type: "erreur" });
+      afficherMessage(err.response?.data?.message || "Erreur.", "erreur");
     }
   };
 
@@ -96,7 +95,7 @@ export default function GererCommandes() {
       link.click();
       window.URL.revokeObjectURL(url);
     } catch {
-      setMessage({ texte: "Erreur lors du téléchargement du reçu.", type: "erreur" });
+      afficherMessage("Erreur lors du téléchargement du reçu.", "erreur");
     }
   };
 
@@ -141,22 +140,10 @@ export default function GererCommandes() {
           <option value="en_attente">En attente</option>
           <option value="validee">Validée</option>
           <option value="refusee">Refusée</option>
-          <option value="en_preparation">En préparation</option>
           <option value="prete">Prête</option>
-          <option value="livree">Livrée</option>
         </select>
 
-        <select
-          className="gc-select"
-          value={filtreType}
-          onChange={(e) => setFiltreType(e.target.value)}
-        >
-          <option value="">Tous les types</option>
-          <option value="en_ligne">En ligne</option>
-          <option value="physique">Boutique</option>
-        </select>
-
-        <button className="gc-refresh-btn" onClick={fetchCommandes}>↻ Actualiser</button>
+<button className="gc-refresh-btn" onClick={fetchCommandes}>↻ Actualiser</button>
       </div>
 
       {/* Liste */}
@@ -195,14 +182,24 @@ export default function GererCommandes() {
                     )}
                     {cmd.modeRemise === "livraison" ? (
                       <div className="gc-livraison-info">
-                        <span className="gc-remise-badge gc-remise-badge--livraison">🚚 Livraison</span>
+                        <span className="gc-remise-badge gc-remise-badge--livraison">Livraison</span>
                         <span className="gc-livraison-adresse"> {cmd.adresseLivraison}</span>
                         {cmd.telephoneLivraison && (
                           <span className="gc-livraison-tel"> — {cmd.telephoneLivraison}</span>
                         )}
                       </div>
                     ) : (
-                      <span className="gc-remise-badge gc-remise-badge--retrait"> 🏪 Retrait boutique</span>
+                      <span className="gc-remise-badge gc-remise-badge--retrait">Retrait boutique</span>
+                    )}
+                    {cmd.dateRetrait && (
+                      <div className="gc-date-retrait">
+                        Date de récupération : <strong>
+                          {new Date(cmd.dateRetrait).toLocaleDateString("fr-TN", { day: "2-digit", month: "long", year: "numeric" })}
+                        </strong>
+                        {cmd.heureRetrait && (
+                          <> à <strong>{cmd.heureRetrait}</strong></>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -228,7 +225,7 @@ export default function GererCommandes() {
 
                     {/* Actions selon statut */}
                     <div className="gc-actions">
-                      {cmd.statut === "en_attente" && (
+                      {cmd.statut === "en_attente" && cmd.type !== "physique" && (
                         <>
                           <button className="gc-btn gc-btn--valider" onClick={() => valider(cmd._id)}>
                             ✓ Valider
@@ -238,17 +235,14 @@ export default function GererCommandes() {
                           </button>
                         </>
                       )}
-                      {cmd.statut === "prete" && (
-                        <button className="gc-btn gc-btn--livree" onClick={() => marquerLivree(cmd._id)}>
-                          ✓ Marquer livrée
-                        </button>
-                      )}
                       {cmd.statut === "refusee" && cmd.commentaireRefus && (
                         <span className="gc-refus-raison">Motif : {cmd.commentaireRefus}</span>
                       )}
-                      <button className="gc-btn gc-btn--pdf" onClick={() => telechargerRecu(cmd._id)}>
-                        📄 Reçu PDF
-                      </button>
+                      {["validee", "refusee", "prete", "livree"].includes(cmd.statut) && (
+                        <button className="gc-btn gc-btn--pdf" onClick={() => telechargerRecu(cmd._id)}>
+                          Reçu PDF
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -263,13 +257,14 @@ export default function GererCommandes() {
         <div className="gc-modal-overlay">
           <div className="gc-modal">
             <h3 className="gc-modal-title">Refuser la commande</h3>
-            <p className="gc-modal-desc">Veuillez préciser le motif du refus (optionnel) :</p>
+            <p className="gc-modal-desc">Veuillez préciser la cause du refus <strong>(obligatoire)</strong> :</p>
             <textarea
               className="gc-modal-textarea"
               value={commentaireRefus}
               onChange={(e) => setCommentaireRefus(e.target.value)}
               placeholder="Ex: Stock insuffisant, produit indisponible..."
               rows={3}
+              required
             />
             <div className="gc-modal-actions">
               <button className="gc-btn gc-btn--refuser" onClick={confirmerRefus}>

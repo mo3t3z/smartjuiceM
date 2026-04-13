@@ -103,6 +103,92 @@
 }
 
 /* ══════════ LISTE ══════════ */
+/* ── Notifications ── */
+.mc-notifs-section {
+  background: white;
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  border: 1px solid #eaeaea;
+}
+
+.mc-notifs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.mc-notifs-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e3a5f;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mc-notifs-badge {
+  background: #c62828;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 2px 7px;
+}
+
+.mc-notifs-lire-tout {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+}
+.mc-notifs-lire-tout:hover { background: #f5f5f5; }
+
+.mc-notifs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mc-notif-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border-left: 4px solid #ddd;
+  background: #f9f9f9;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.mc-notif-item--lue { opacity: 0.6; cursor: default; }
+.mc-notif-item:not(.mc-notif-item--lue):hover { background: #f0f4ff; }
+
+.mc-notif-item--blue   { border-left-color: #1e3a5f; background: #f0f4ff; }
+.mc-notif-item--red    { border-left-color: #c62828; background: #fff5f5; }
+.mc-notif-item--purple { border-left-color: #7b1fa2; background: #f9f0ff; }
+.mc-notif-item--teal   { border-left-color: #00695c; background: #f0faf8; }
+.mc-notif-item--green  { border-left-color: #2e7d32; background: #f0faf0; }
+
+.mc-notif-body { flex: 1; }
+.mc-notif-msg  { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: #222; }
+.mc-notif-date { font-size: 11px; color: #999; }
+
+.mc-notif-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #c62828;
+  flex-shrink: 0;
+}
+
+/* ── Liste commandes ── */
 .mc-liste {
   display: flex;
   flex-direction: column;

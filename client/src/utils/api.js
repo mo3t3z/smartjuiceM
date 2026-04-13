@@ -6,8 +6,11 @@ export const API_PRODUCTS  = "http://localhost:5000/api/products";
 export const API_COMMANDES = "http://localhost:5000/api/commandes";
 export const API_VENTES    = "http://localhost:5000/api/ventes";
 
-export const getToken   = () => localStorage.getItem("token");
-export const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
+export const getToken = () => localStorage.getItem("token") || "";
+export const authHeader = () => {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 // ── Helpers panier (localStorage) ────────────────────────────────────────────
 
