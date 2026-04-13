@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Login from "./pages/Login.jsx";
 import LoginClient from "./pages/LoginClient.jsx";
 import RegisterClient from "./pages/RegisterClient.jsx";
@@ -37,9 +37,18 @@ import HistoriqueVentes from "./pages/manager/HistoriqueVentes.jsx";
 import NouvelleVente from "./pages/seller/NouvelleVente.jsx";
 import NouvelleCommandePhysique from "./pages/seller/NouvelleCommandePhysique.jsx";
 import CommandesConfirmees from "./pages/workshop/CommandesConfirmees.jsx";
+import Chatbot from "./components/Chatbot.jsx";
+
+// Pages réservées au staff — le chatbot ne s'affiche pas sur ces routes
+const STAFF_PREFIXES = ["/manager", "/seller", "/workshop", "/login"];
 
 export default function App() {
+  const { pathname } = useLocation();
+  const showChatbot = !STAFF_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+
   return (
+    <>
+    {showChatbot && <Chatbot />}
     <Routes>
       {/* ── Catalogue public (page d'accueil) ── */}
       <Route path="/" element={<CatalogClient />} />
@@ -94,5 +103,6 @@ export default function App() {
       {/* PB23 — Commandes confirmées */}
       <Route path="/workshop/commandes-confirmees" element={<ProtectedRoute allowedRoles={["workshop"]}><CommandesConfirmees /></ProtectedRoute>} />
     </Routes>
+    </>
   );
 }

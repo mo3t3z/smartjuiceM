@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "seed:manager": "node src/seeds/seedManager.js",
     "reset": "node src/seeds/resetAll.js",
-    "update:manager": "node src/seeds/updateManager.js"
+    "update:manager": "node src/seeds/updateManager.js",
+    "seed:intents": "node src/seeds/seedIntents.js"
   },
   "keywords": [],
   "author": "",
