@@ -2,10 +2,10 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./MonCompte.css";
+import { API_AUTH, authHeader } from "../utils/api";
 
 export default function MonCompteClient() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const [showForm, setShowForm] = useState(false);
@@ -30,9 +30,9 @@ export default function MonCompteClient() {
 
     try {
       const res = await axios.put(
-        "http://localhost:5000/api/auth/change-password",
+        `${API_AUTH}/change-password`,
         { oldPassword, newPassword },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: authHeader() }
       );
       setMessage(res.data.message);
       setOldPassword("");

@@ -1,15 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./MatierePremiere.css";
-
-const API = "http://localhost:5000/api/workshop";
+import { API_WORKSHOP as API, authHeader } from "../../utils/api";
 
 const today = new Date().toISOString().split("T")[0];
 
 export default function MatierePremiere() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-
   const [customTypes, setCustomTypes] = useState([]);
   const [loadingTypes, setLoadingTypes] = useState(true);
 
@@ -38,7 +35,7 @@ export default function MatierePremiere() {
     try {
       setLoadingTypes(true);
       const res = await fetch(`${API}/types-mp`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeader(),
       });
       const data = await res.json();
       if (res.ok) setCustomTypes(data);
@@ -70,7 +67,7 @@ export default function MatierePremiere() {
     try {
       const res = await fetch(`${API}/types-mp`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json", ...authHeader() },
         body: JSON.stringify({ nom, seuilMin: Number(newType.seuilMin), unite: newType.unite }),
       });
       const data = await res.json();
@@ -91,7 +88,7 @@ export default function MatierePremiere() {
     try {
       await fetch(`${API}/types-mp/${_id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeader(),
       });
       setCustomTypes((prev) => prev.filter((t) => t._id !== _id));
       if (form.type === nom) setForm((f) => ({ ...f, type: "" }));
@@ -128,7 +125,7 @@ export default function MatierePremiere() {
     try {
       const res = await fetch(`${API}/matieres-premieres`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json", ...authHeader() },
         body: JSON.stringify({
           type: form.type,
           quantite: Number(form.quantite),

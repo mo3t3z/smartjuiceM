@@ -1,0 +1,136 @@
+/* ═══════════════════════════════════════════
+   FAQ Widget — SmartJuice
+   ═══════════════════════════════════════════ */
+
+.faq-widget {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 999;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Bouton flottant */
+.faq-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2e7d32;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(46,125,50,0.35);
+  transition: background 0.2s, transform 0.15s;
+}
+
+.faq-trigger:hover {
+  background: #1b5e20;
+  transform: translateY(-2px);
+}
+
+.faq-trigger-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Panel */
+.faq-panel {
+  position: absolute;
+  bottom: 64px;
+  right: 0;
+  width: 360px;
+  max-height: 480px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.faq-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  background: #2e7d32;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.faq-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.faq-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px 0;
+}
+
+/* Item */
+.faq-item {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.faq-item:last-child {
+  border-bottom: none;
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  transition: background 0.15s;
+}
+
+.faq-question:hover {
+  background: #f5f5f5;
+}
+
+.faq-item--open .faq-question {
+  color: #2e7d32;
+  background: #f1f8f1;
+}
+
+.faq-chevron {
+  font-size: 10px;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.faq-answer {
+  padding: 0 18px 14px 18px;
+  font-size: 13.5px;
+  color: #444;
+  line-height: 1.6;
+  background: #f9fdf9;
+}

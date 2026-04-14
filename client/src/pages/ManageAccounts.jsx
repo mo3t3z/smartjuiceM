@@ -3,13 +3,10 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./ManageAccounts.css";
 import "./ManageProducts.css";
-
-const API = "http://localhost:5000/api/auth";
+import { API_AUTH as API, authHeader } from "../utils/api";
 
 export default function ManageAccounts() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-
   // mode: "list" | "create" | "view" | "edit"
   const [mode, setMode] = useState("list");
   const [accounts, setAccounts] = useState([]);
@@ -23,8 +20,6 @@ export default function ManageAccounts() {
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const headers = { Authorization: `Bearer ${token}` };
-
   useEffect(() => {
     fetchAccounts();
   }, []);
@@ -32,7 +27,7 @@ export default function ManageAccounts() {
   const fetchAccounts = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/staff`, { headers });
+      const res = await axios.get(`${API}/staff`, { headers: authHeader() });
       setAccounts(res.data);
     } catch {
       setError("Erreur lors du chargement des comptes");
@@ -54,7 +49,7 @@ export default function ManageAccounts() {
     try {
       await axios.post(`${API}/staff`, {
         nom: form.nom, prenom: form.prenom, email: form.email, password: form.password, role: form.role
-      }, { headers });
+      }, { headers: authHeader() });
       showMsg("Compte créé avec succès !");
       resetForm();
       setMode("list");
@@ -73,7 +68,7 @@ export default function ManageAccounts() {
       await axios.put(`${API}/staff/${selected._id}`, {
         nom: form.nom, prenom: form.prenom, email: form.email,
         ...(form.password ? { password: form.password } : {})
-      }, { headers });
+      }, { headers: authHeader() });
       showMsg("Compte modifié avec succès !");
       setMode("list");
       fetchAccounts();
@@ -86,7 +81,7 @@ export default function ManageAccounts() {
   const handleDelete = async (account) => {
     if (!window.confirm(`Supprimer le compte de ${account.prenom} ${account.nom} (${account.email}) ?`)) return;
     try {
-      await axios.delete(`${API}/staff/${account._id}`, { headers });
+      await axios.delete(`${API}/staff/${account._id}`, { headers: authHeader() });
       showMsg("Compte supprimé avec succès !");
       fetchAccounts();
     } catch (err) {

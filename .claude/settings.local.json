@@ -8,6 +8,9 @@
       "Bash(find /c/Users/lenovo/Desktop/PFE0/smartjuice1/server/src -type f \\\\\\(-name *.js -o -name *.json \\\\\\))",
       "Bash(find /c/Users/lenovo/Desktop/PFE0/smartjuice1/client/src -type f \\\\\\(-name *.js -o -name *.jsx \\\\\\))",
       "Bash(npm install jspdf)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\lenovo\\Desktop\\PFE0\\smartjuice1\\server\\src\\seeds"
     ]
   }
 }

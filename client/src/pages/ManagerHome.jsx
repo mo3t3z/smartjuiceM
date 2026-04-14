@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ManagerHome.css";
-
-const API = "http://localhost:5000/api/manager";
+import { API_MANAGER as API, authHeader } from "../utils/api";
 
 export default function ManagerHome() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
   const [notifications, setNotifications] = useState([]);
@@ -16,7 +14,7 @@ export default function ManagerHome() {
   const fetchNotifications = async () => {
     try {
       const res = await fetch(`${API}/notifications`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeader(),
       });
       if (res.ok) setNotifications(await res.json());
     } catch { /* silencieux */ }
@@ -37,7 +35,7 @@ export default function ManagerHome() {
     try {
       await fetch(`${API}/notifications/lues`, {
         method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeader(),
       });
       setNotifications((prev) => prev.map((n) => ({ ...n, luManager: true })));
     } catch { /* silencieux */ }
@@ -47,7 +45,7 @@ export default function ManagerHome() {
     try {
       await fetch(`${API}/notifications/${id}/lire`, {
         method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeader(),
       });
       setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, luManager: true } : n));
     } catch { /* silencieux */ }

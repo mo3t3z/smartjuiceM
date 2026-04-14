@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./QuantiteProduire.css";
 
-const API = "http://localhost:5000/api/workshop";
-const token = () => localStorage.getItem("token");
+import { API_WORKSHOP as API, authHeader } from "../../utils/api";
 
 export default function QuantiteProduire() {
   const navigate = useNavigate();
@@ -18,7 +17,7 @@ export default function QuantiteProduire() {
 
   /* ── charger les recettes disponibles ── */
   useEffect(() => {
-    fetch(`${API}/recettes`, { headers: { Authorization: `Bearer ${token()}` } })
+    fetch(`${API}/recettes`, { headers: authHeader() })
       .then((r) => r.json())
       .then((data) => setRecettes(Array.isArray(data) ? data : []))
       .catch(() => {});
@@ -35,7 +34,7 @@ export default function QuantiteProduire() {
       try {
         const res = await fetch(
           `${API}/recettes/preview?nomJus=${encodeURIComponent(nomJus)}&quantite=${quantite}`,
-          { headers: { Authorization: `Bearer ${token()}` } }
+          { headers: authHeader() }
         );
         const data = await res.json();
         if (!res.ok) {

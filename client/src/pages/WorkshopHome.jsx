@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./WorkshopHome.css";
-
-const API = "http://localhost:5000/api/workshop";
+import { API_WORKSHOP as API, authHeader } from "../utils/api";
 
 export default function WorkshopHome() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
   const [notifications, setNotifications] = useState([]);
@@ -22,7 +20,7 @@ export default function WorkshopHome() {
   const fetchNotifications = async () => {
     try {
       const res = await fetch(`${API}/notifications`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeader(),
       });
       if (res.ok) {
         const data = await res.json();
@@ -52,7 +50,7 @@ export default function WorkshopHome() {
     try {
       await fetch(`${API}/notifications/lues`, {
         method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeader(),
       });
       setNotifications((prev) => prev.map((n) => ({ ...n, luAtelier: true })));
     } catch {
@@ -64,7 +62,7 @@ export default function WorkshopHome() {
     try {
       await fetch(`${API}/notifications/${id}/lire`, {
         method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeader(),
       });
       setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, luAtelier: true } : n));
     } catch {

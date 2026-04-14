@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../seller/StockPFBoutique.css";
 
-const API = "http://localhost:5000/api/manager";
-const token = () => localStorage.getItem("token");
+import { API_MANAGER as API, authHeader } from "../../utils/api";
 
 const fmtDate = (d) =>
   new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -19,7 +18,7 @@ export default function ManagerStockBoutique() {
   const [histLoading, setHistLoading] = useState(false);
 
   useEffect(() => {
-    fetch(`${API}/stock/boutique`, { headers: { Authorization: `Bearer ${token()}` } })
+    fetch(`${API}/stock/boutique`, { headers: authHeader() })
       .then((r) => r.json())
       .then((d) => setJusList(Array.isArray(d) ? d : []))
       .catch((e) => setError(e.message))
@@ -32,7 +31,7 @@ export default function ManagerStockBoutique() {
     setHistLoading(true);
     try {
       const res = await fetch(`${API}/historique/boutique/${encodeURIComponent(nomJus)}`, {
-        headers: { Authorization: `Bearer ${token()}` },
+        headers: authHeader(),
       });
       if (!res.ok) throw new Error("Erreur chargement historique.");
       setHistData(await res.json());

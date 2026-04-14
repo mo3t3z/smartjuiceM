@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./TransfertBoutique.css";
 
-const API = "http://localhost:5000/api/workshop";
-const token = () => localStorage.getItem("token");
+import { API_WORKSHOP as API, authHeader } from "../../utils/api";
 
 export default function TransfertBoutique() {
   const navigate = useNavigate();
@@ -18,7 +17,7 @@ export default function TransfertBoutique() {
 
   /* ── charger les jus disponibles en stock PF atelier ── */
   useEffect(() => {
-    fetch(`${API}/stock/pf/resume`, { headers: { Authorization: `Bearer ${token()}` } })
+    fetch(`${API}/stock/pf/resume`, { headers: authHeader() })
       .then((r) => r.json())
       .then((data) => setJusList(Array.isArray(data) ? data.filter((j) => j.disponible > 0) : []))
       .catch(() => {});
@@ -32,7 +31,7 @@ export default function TransfertBoutique() {
     if (!nomJus) return;
     setDispoLoading(true);
     fetch(`${API}/transferts/disponible?nomJus=${encodeURIComponent(nomJus)}`, {
-      headers: { Authorization: `Bearer ${token()}` },
+      headers: authHeader(),
     })
       .then((r) => r.json())
       .then((d) => setDisponible(d.disponible))
@@ -62,7 +61,7 @@ export default function TransfertBoutique() {
       setSuccess(data.message);
       setNomJus(""); setQuantite(""); setDisponible(null);
       // rafraîchir la liste
-      fetch(`${API}/stock/pf/resume`, { headers: { Authorization: `Bearer ${token()}` } })
+      fetch(`${API}/stock/pf/resume`, { headers: authHeader() })
         .then((r) => r.json())
         .then((d) => setJusList(Array.isArray(d) ? d.filter((j) => j.disponible > 0) : []));
       setTimeout(() => setSuccess(""), 4000);

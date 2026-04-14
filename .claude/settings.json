@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm run:*)",
-      "Bash(find /c/Users/lenovo/Desktop/PFE0/smartjuice1 -not -path */node_modules/* -type d -o -not -path */node_modules/* -type f)"
+      "Bash(find /c/Users/lenovo/Desktop/PFE0/smartjuice1 -not -path */node_modules/* -type d -o -not -path */node_modules/* -type f)",
+      "Bash(node reset.js)"
     ],
     "additionalDirectories": [
       "c:\\Users\\lenovo\\Desktop\\PFE0\\smartjuice1\\server\\src\\seeds"

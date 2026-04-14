@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./ManageProducts.css";
+import { API_PRODUCTS, authHeader } from "../utils/api";
 
 export default function ManageProducts() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,8 +32,8 @@ export default function ManageProducts() {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/products", {
-        headers: { Authorization: `Bearer ${token}` }
+      const res = await axios.get(API_PRODUCTS, {
+        headers: authHeader()
       });
       setProducts(res.data);
       setLoading(false);
@@ -60,14 +60,14 @@ export default function ManageProducts() {
     try {
       if (editingId) {
         await axios.put(
-          `http://localhost:5000/api/products/${editingId}`,
+          `${API_PRODUCTS}/${editingId}`,
           data,
-          { headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } }
+          { headers: { ...authHeader(), "Content-Type": "multipart/form-data" } }
         );
         setMessage("Produit modifié avec succès !");
       } else {
-        await axios.post("http://localhost:5000/api/products", data, {
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" }
+        await axios.post(API_PRODUCTS, data, {
+          headers: { ...authHeader(), "Content-Type": "multipart/form-data" }
         });
         setMessage("Produit créé avec succès !");
       }
@@ -99,8 +99,8 @@ export default function ManageProducts() {
     }
 
     try {
-      await axios.delete(`http://localhost:5000/api/products/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      await axios.delete(`${API_PRODUCTS}/${id}`, {
+        headers: authHeader()
       });
       setMessage("Produit supprimé avec succès !");
       fetchProducts();

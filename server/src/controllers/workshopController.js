@@ -4,12 +4,8 @@ import ProductionPF from "../models/ProductionPF.js";
 import TransfertBoutique from "../models/TransfertBoutique.js";
 import TypeMP from "../models/TypeMP.js";
 import Notification from "../models/Notification.js";
-import Vente from "../models/Vente.js";
-import Commande from "../models/Commande.js";
 import StockBoutique from "../models/StockBoutique.js";
-import { ajouterStockBoutique } from "./commandeController.js";
-//HELPER --> calcDisponible()  ,MATIÈRES PREMIÈRES,TYPES MP ,RECETTES,
-// PRODUCTION (Produits Finis),TRANSFERTS BOUTIQUE,NOTIFICATIONS
+import { ajouterStockBoutique } from "../services/stockBoutiqueService.js";
 
 //f1:HELPER --> calcDisponible() 
 const calcDisponible = async () => {
@@ -364,6 +360,10 @@ export const enregistrerTransfert = async (req, res) => {
         disponible,
       });
 
+    // Initialiser le doc StockBoutique AVANT de créer le transfert
+    // (évite le double comptage : recalculerStockDepuisDB + $inc)
+    await ajouterStockBoutique(nomJus, 0);
+
     const transfert = await TransfertBoutique.create({
       nomJus, quantite,
       enregistrePar: req.user._id,
@@ -387,7 +387,7 @@ export const enregistrerTransfert = async (req, res) => {
       }
     }
 
-    // Incrémenter le stock boutique
+    // Incrémenter le stock boutique (doc déjà initialisé → pas de double comptage)
     await ajouterStockBoutique(nomJus, quantite);
 
     const populated = await transfert.populate("enregistrePar", "email nom prenom");
@@ -540,7 +540,7 @@ export const deleteTypeMP = async (req, res) => {
 // GET /api/workshop/notifications
 export const getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find().sort({ createdAt: -1 }).limit(50);
+    const notifications = await Notification.find({ categorie: { $ne: "COMMANDE" } }).sort({ createdAt: -1 }).limit(50);
     res.json(notifications);
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });

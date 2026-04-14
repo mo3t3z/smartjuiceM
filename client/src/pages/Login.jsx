@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
+import { API_AUTH } from "../utils/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -24,7 +25,7 @@ export default function Login() {
       setLoading(true);
       setError("");
 
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post(`${API_AUTH}/login`, {
         email,
         password,
       });
@@ -37,6 +38,11 @@ export default function Login() {
       if (role === "manager") navigate("/manager");
       else if (role === "seller") navigate("/seller");
       else if (role === "workshop") navigate("/workshop");
+      else {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setError("Accès refusé. Ce portail est réservé au staff.");
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Erreur de connexion");
     } finally {

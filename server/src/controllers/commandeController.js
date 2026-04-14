@@ -3,125 +3,10 @@ import Commande from "../models/Commande.js";
 import NotificationClient from "../models/NotificationClient.js";
 import Vente from "../models/Vente.js";
 import Product from "../models/Product.js";
-import TransfertBoutique from "../models/TransfertBoutique.js";
 import Recette from "../models/Recette.js";
 import Notification from "../models/Notification.js";
 import StockBoutique from "../models/StockBoutique.js";
-
-/* ═══════════════════════════════════════════════════════════════
-   HELPER PRIVÉ : recalcule le stock depuis les collections brutes
-   Utilisé uniquement pour initialiser un nouveau jus (lazy init)
-═══════════════════════════════════════════════════════════════ */
-const recalculerStockDepuisDB = async (nomJus) => {
-  const transAgg = await TransfertBoutique.aggregate([
-    { $match: { nomJus } },
-    { $group: { _id: null, total: { $sum: "$quantite" } } },
-  ]);
-  const totalRecu = transAgg[0]?.total || 0;
-
-  const ventesAgg = await Vente.aggregate([
-    { $unwind: "$produits" },
-    { $match: { "produits.nom": nomJus } },
-    {
-      $group: {
-        _id: null,
-        total: {
-          $sum: {
-            $multiply: [
-              "$produits.quantite",
-              { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
-            ],
-          },
-        },
-      },
-    },
-  ]);
-  const totalVendu = ventesAgg[0]?.total || 0;
-
-  const commandesAgg = await Commande.aggregate([
-    { $match: { statut: "livree" } },
-    { $unwind: "$produits" },
-    { $match: { "produits.nom": nomJus } },
-    {
-      $group: {
-        _id: null,
-        total: {
-          $sum: {
-            $multiply: [
-              "$produits.quantite",
-              { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
-            ],
-          },
-        },
-      },
-    },
-  ]);
-  const totalLivre = commandesAgg[0]?.total || 0;
-
-  return parseFloat((totalRecu - totalVendu - totalLivre).toFixed(2));
-};
-
-/* ═══════════════════════════════════════════════════════════════
-   HELPER PUBLIC : lire le stock boutique depuis la collection
-   Lazy init : si le document n'existe pas encore, recalcule et crée
-═══════════════════════════════════════════════════════════════ */
-export const calcStockBoutique = async (nomJus) => {
-  const doc = await StockBoutique.findOne({ nomJus });
-  if (doc) return doc.stockActuel;
-
-  // Premier appel pour ce jus : initialise depuis les données existantes
-  const stock = await recalculerStockDepuisDB(nomJus);
-  await StockBoutique.findOneAndUpdate(
-    { nomJus },
-    { $setOnInsert: { stockActuel: stock } },
-    { upsert: true }
-  );
-  return stock;
-};
-
-/* ═══════════════════════════════════════════════════════════════
-   HELPER PUBLIC : incrémenter/décrémenter le stock boutique
-   delta > 0 → entrée (transfert), delta < 0 → sortie (vente/livraison)
-═══════════════════════════════════════════════════════════════ */
-export const ajouterStockBoutique = async (nomJus, delta) => {
-  await calcStockBoutique(nomJus); // garantit que le doc existe
-  return StockBoutique.findOneAndUpdate(
-    { nomJus },
-    { $inc: { stockActuel: parseFloat(delta.toFixed(4)) } },
-    { new: true }
-  );
-};
-
-/* ═══════════════════════════════════════════════════════════════
-   HELPER : vérifier les alertes stock boutique après une opération
-═══════════════════════════════════════════════════════════════ */
-const verifierAlerteBoutique = async (nomJus) => {
-  const stockActuel = await calcStockBoutique(nomJus);
-  const recette = await Recette.findOne({ nomJus });
-
-  const seuil = recette?.seuilMinBoutique > 0 ? recette.seuilMinBoutique : 0;
-  if (!seuil || stockActuel > seuil) return;
-
-  // Vérifier si une notification boutique non-lue existe déjà (atelier ou gérant)
-  const existingNotif = await Notification.findOne({
-    typeMP: nomJus,
-    categorie: "BOUTIQUE",
-    $or: [{ luAtelier: false }, { luManager: false }],
-  });
-
-  if (!existingNotif) {
-    await Notification.create({
-      categorie: "BOUTIQUE",
-      typeMP: nomJus,
-      message: `Stock boutique de "${nomJus}" en dessous du seuil minimum. Stock actuel : ${stockActuel.toFixed(2)} L, Seuil : ${seuil} L. Un transfert est nécessaire.`,
-      niveauActuel: parseFloat(stockActuel.toFixed(2)),
-      seuilMin: seuil,
-      unite: "L",
-      luAtelier: false,
-      luManager: false,
-    });
-  }
-};
+import { calcStockBoutique, ajouterStockBoutique, verifierAlerteBoutique } from "../services/stockBoutiqueService.js";
 
 /* ═══════════════════════════════════════════════════════════════
    PB19 — CRÉER UNE COMMANDE EN LIGNE (Client)
@@ -140,6 +25,13 @@ export const creerCommandeEnLigne = async (req, res) => {
     }
     if (!heureRetrait) {
       return res.status(400).json({ message: "L'heure de retrait est obligatoire." });
+    }
+    // Vérifier que la date+heure ne sont pas dans le passé
+    const [h, min] = heureRetrait.split(":").map(Number);
+    const dateHeureDemande = new Date(dateRetrait);
+    dateHeureDemande.setHours(h, min, 0, 0);
+    if (dateHeureDemande <= new Date()) {
+      return res.status(400).json({ message: "La date et l'heure choisies sont déjà passées." });
     }
 
     // Validation livraison
@@ -269,7 +161,7 @@ export const validerCommande = async (req, res) => {
         client: commande.client,
         commande: commande._id,
         statut: "validee",
-        message: `Votre commande #${commande._id.toString().slice(-6).toUpperCase()} a été acceptée et est en cours de traitement.`,
+        message: `Votre commande #${commande._id.toString().slice(-6).toUpperCase()} a été acceptée.`,
       });
     }
 

@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./GererRecette.css";
 
-const API = "http://localhost:5000/api/workshop";
-const API_PRODUCTS = "http://localhost:5000/api/products";
+import { API_WORKSHOP as API, API_PRODUCTS, authHeader } from "../../utils/api";
 const emptyIngredient = () => ({ matiere: "", quantite: "", unite: "" });
 const token = () => localStorage.getItem("token");
 
@@ -33,7 +32,7 @@ export default function GererRecette() {
   const fetchRecettes = async () => {
     try {
       const res = await fetch(`${API}/recettes`, {
-        headers: { Authorization: `Bearer ${token()}` },
+        headers: authHeader(),
       });
       if (!res.ok) throw new Error("Erreur de chargement.");
       setRecettes(await res.json());
@@ -47,7 +46,7 @@ export default function GererRecette() {
   const fetchTypesMP = async () => {
     try {
       const res = await fetch(`${API}/types-mp`, {
-        headers: { Authorization: `Bearer ${token()}` },
+        headers: authHeader(),
       });
       if (res.ok) {
         const data = await res.json();
@@ -131,7 +130,7 @@ export default function GererRecette() {
       const method = modal === "edit" ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` },
+        headers: { "Content-Type": "application/json", ...authHeader() },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -151,7 +150,7 @@ export default function GererRecette() {
     try {
       const res = await fetch(`${API}/recettes/${confirmDel._id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token()}` },
+        headers: authHeader(),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);

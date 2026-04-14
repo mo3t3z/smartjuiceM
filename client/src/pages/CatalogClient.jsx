@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { getPanier, savePanier, getNbArticlesPanier } from "../utils/api";
+import { getPanier, savePanier, getNbArticlesPanier, API_COMMANDES, API_PRODUCTS, authHeader } from "../utils/api";
 import "./CatalogClient.css";
 
 export default function CatalogClient() {
@@ -33,9 +33,8 @@ export default function CatalogClient() {
 
   const fetchNotifications = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/commandes/mes-notifications", {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await axios.get(`${API_COMMANDES}/mes-notifications`, {
+        headers: authHeader(),
       });
       setNotifications(res.data);
     } catch { /* silencieux */ }
@@ -43,9 +42,8 @@ export default function CatalogClient() {
 
   const marquerLue = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.put(`http://localhost:5000/api/commandes/mes-notifications/${id}/lue`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
+      await axios.put(`${API_COMMANDES}/mes-notifications/${id}/lue`, {}, {
+        headers: authHeader(),
       });
       setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, lue: true } : n));
     } catch { /* silencieux */ }
@@ -53,9 +51,8 @@ export default function CatalogClient() {
 
   const marquerToutesLues = async () => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.put("http://localhost:5000/api/commandes/mes-notifications/lues", {}, {
-        headers: { Authorization: `Bearer ${token}` },
+      await axios.put(`${API_COMMANDES}/mes-notifications/lues`, {}, {
+        headers: authHeader(),
       });
       setNotifications((prev) => prev.map((n) => ({ ...n, lue: true })));
     } catch { /* silencieux */ }
@@ -79,7 +76,7 @@ export default function CatalogClient() {
 
   const fetchCatalog = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/products/catalog");
+      const res = await axios.get(`${API_PRODUCTS}/catalog`);
       setProducts(res.data);
     } catch {
       setError("Impossible de charger le catalogue");

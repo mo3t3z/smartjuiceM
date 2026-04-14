@@ -5,10 +5,16 @@ import axios from "axios";
 import App from "./App.jsx";
 
 // Intercepteur global axios : redirige vers login si token expiré ou invalide
+// Exclure les routes d'authentification pour ne pas interférer avec les messages d'erreur du login
+const AUTH_ROUTES = ["/api/auth/login", "/api/auth/register-client", "/api/auth/request-password-reset", "/api/auth/reset-password"];
+
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const requestUrl = error.config?.url || "";
+    const isAuthRoute = AUTH_ROUTES.some((route) => requestUrl.includes(route));
+
+    if (error.response?.status === 401 && !isAuthRoute) {
       const user = JSON.parse(localStorage.getItem("user") || "null");
       localStorage.removeItem("token");
       localStorage.removeItem("user");

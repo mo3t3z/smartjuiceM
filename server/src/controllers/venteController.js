@@ -1,39 +1,8 @@
 import PDFDocument from "pdfkit";
 import Vente from "../models/Vente.js";
 import Product from "../models/Product.js";
-import { calcStockBoutique, ajouterStockBoutique } from "./commandeController.js";
-import Recette from "../models/Recette.js";
-import Notification from "../models/Notification.js";
+import { calcStockBoutique, ajouterStockBoutique, verifierAlerteBoutique } from "../services/stockBoutiqueService.js";
 import StockBoutique from "../models/StockBoutique.js";
-
-/* ═══════════════════════════════════════════════════════════════
-   HELPER : vérifier et créer une alerte de stock boutique (PB26)
-═══════════════════════════════════════════════════════════════ */
-const verifierAlerteBoutique = async (nomJus) => {
-  const stockActuel = await calcStockBoutique(nomJus);
-  const recette = await Recette.findOne({ nomJus });
-
-  if (recette && recette.seuilMinPF > 0 && stockActuel <= recette.seuilMinPF) {
-    const existingNotif = await Notification.findOne({
-      typeMP: nomJus,
-      categorie: "BOUTIQUE",
-      luManager: false,
-    });
-
-    if (!existingNotif) {
-      await Notification.create({
-        categorie: "BOUTIQUE",
-        typeMP: nomJus,
-        message: `Stock boutique de "${nomJus}" en dessous du seuil minimum. Stock actuel : ${stockActuel.toFixed(2)} L, Seuil : ${recette.seuilMinPF} L.`,
-        niveauActuel: parseFloat(stockActuel.toFixed(2)),
-        seuilMin: recette.seuilMinPF,
-        unite: "L",
-        luAtelier: false,
-        luManager: false,
-      });
-    }
-  }
-};
 
 /* ═══════════════════════════════════════════════════════════════
    HELPER : trouver le nomJus dans StockBoutique correspondant
@@ -195,8 +164,6 @@ export const getStockBoutiqueDisponible = async (req, res) => {
   try {
     const stocks = await StockBoutique.find().sort({ nomJus: 1 });
     const products = await Product.find({});
-
-    const normalize = (s) => s.toLowerCase().replace(/[^a-zàâäéèêëîïôùûüç]/gi, " ").replace(/\s+/g, " ").trim();
 
     const result = [];
     for (const s of stocks) {

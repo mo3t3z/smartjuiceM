@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./LoginClient.css";
+import { API_AUTH } from "../utils/api";
 
 export default function RegisterClient() {
   const [formData, setFormData] = useState({
@@ -62,7 +63,7 @@ export default function RegisterClient() {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register-client", {
+      const res = await axios.post(`${API_AUTH}/register-client`, {
         email: formData.email,
         password: formData.password,
         nom: formData.nom,

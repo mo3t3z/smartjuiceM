@@ -11,7 +11,6 @@ import sellerRoutes from "./src/routes/sellerRoutes.js";
 import managerStockRoutes from "./src/routes/managerStockRoutes.js";
 import commandeRoutes from "./src/routes/commandeRoutes.js";
 import venteRoutes from "./src/routes/venteRoutes.js";
-import chatbotRoutes from "./src/routes/chatbotRoutes.js";
 
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
@@ -36,7 +35,6 @@ app.use("/api/seller", sellerRoutes);
 app.use("/api/manager", managerStockRoutes);
 app.use("/api/commandes", commandeRoutes);
 app.use("/api/ventes", venteRoutes);
-app.use("/api/chatbot", chatbotRoutes);
 
 const PORT = process.env.PORT || 5000;
 

@@ -59,6 +59,14 @@ export default function CommandeCheckout() {
       setMessage({ texte: "Veuillez choisir une heure.", type: "erreur" });
       return;
     }
+    // Vérifier que la date+heure ne sont pas dans le passé
+    const [h, min] = heure.split(":").map(Number);
+    const dateHeure = new Date(date);
+    dateHeure.setHours(h, min, 0, 0);
+    if (dateHeure <= new Date()) {
+      setMessage({ texte: "La date et l'heure choisies sont déjà passées.", type: "erreur" });
+      return;
+    }
     if (mode === "livraison" && !adresse.trim()) {
       setMessage({ texte: "Veuillez saisir votre adresse de livraison.", type: "erreur" });
       return;

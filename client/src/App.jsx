@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login.jsx";
 import LoginClient from "./pages/LoginClient.jsx";
 import RegisterClient from "./pages/RegisterClient.jsx";
@@ -37,18 +37,18 @@ import HistoriqueVentes from "./pages/manager/HistoriqueVentes.jsx";
 import NouvelleVente from "./pages/seller/NouvelleVente.jsx";
 import NouvelleCommandePhysique from "./pages/seller/NouvelleCommandePhysique.jsx";
 import CommandesConfirmees from "./pages/workshop/CommandesConfirmees.jsx";
-import Chatbot from "./components/Chatbot.jsx";
+import FaqWidget from "./components/FaqWidget.jsx";
+import { useLocation } from "react-router-dom";
 
-// Pages réservées au staff — le chatbot ne s'affiche pas sur ces routes
-const STAFF_PREFIXES = ["/manager", "/seller", "/workshop", "/login"];
+const STAFF_PREFIXES = ["/manager", "/seller", "/workshop", "/login", "/forgot-password", "/reset-password", "/register-client"];
 
 export default function App() {
   const { pathname } = useLocation();
-  const showChatbot = !STAFF_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const showFaq = !STAFF_PREFIXES.some((p) => pathname.startsWith(p));
 
   return (
     <>
-    {showChatbot && <Chatbot />}
+    {showFaq && <FaqWidget />}
     <Routes>
       {/* ── Catalogue public (page d'accueil) ── */}
       <Route path="/" element={<CatalogClient />} />
