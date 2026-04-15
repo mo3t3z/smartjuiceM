@@ -3,7 +3,6 @@ import "./ManagerStocks.css";
 
 export default function ManagerStocks() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const cards = [
     {
@@ -31,25 +30,6 @@ export default function ManagerStocks() {
 
   return (
     <div className="ms-page">
-      {/* Header */}
-      <header className="ms-header">
-        <div className="ms-brand">
-          <span className="ms-logo-icon">SJ</span>
-          <div>
-            <h1 className="ms-brand-name">SmartJuice</h1>
-            <p className="ms-brand-sub">Interface Gérant</p>
-          </div>
-        </div>
-        <div className="ms-header-right">
-          <div className="ms-user-info">
-            <span className="ms-user-avatar">{user?.email?.[0]?.toUpperCase() || "G"}</span>
-            <span className="ms-user-email">{user?.email}</span>
-          </div>
-          <button className="ms-back-btn" onClick={() => navigate("/manager")}>
-            ← Retour
-          </button>
-        </div>
-      </header>
 
       {/* Welcome banner */}
       <div className="ms-welcome">

@@ -1,12 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./MonCompte.css";
-import { API_AUTH, authHeader } from "../utils/api";
+import { API_AUTH, API_COMMANDES, authHeader, getNbArticlesPanier } from "../utils/api";
 
 export default function MonCompteClient() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "null");
+  const [nbPanier, setNbPanier] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifs, setShowNotifs] = useState(false);
+
+  useEffect(() => {
+    setNbPanier(getNbArticlesPanier());
+    if (user?.role === "client") fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await axios.get(`${API_COMMANDES}/mes-notifications`, { headers: authHeader() });
+      setNotifications(res.data);
+    } catch { /* silencieux */ }
+  };
+
+  const marquerLue = async (id) => {
+    try {
+      await axios.put(`${API_COMMANDES}/mes-notifications/${id}/lue`, {}, { headers: authHeader() });
+      setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, lue: true } : n));
+    } catch { /* silencieux */ }
+  };
+
+  const marquerToutesLues = async () => {
+    try {
+      await axios.put(`${API_COMMANDES}/mes-notifications/lues`, {}, { headers: authHeader() });
+      setNotifications((prev) => prev.map((n) => ({ ...n, lue: true })));
+    } catch { /* silencieux */ }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login-client");
+  };
+
+  const nonLues = notifications.filter((n) => !n.lue).length;
 
   const [showForm, setShowForm] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
@@ -67,14 +104,112 @@ export default function MonCompteClient() {
   );
 
   return (
-    <div className="manage-products-container">
-      <div className="products-header">
-        <button className="back-button" onClick={() => navigate("/")}>
-          ← Retour
+    <div className="mcc-page">
+
+      {/* ══════════════ HEADER ══════════════ */}
+      <header className="mcc-header">
+        <div className="mcc-logo" onClick={() => navigate("/")}>
+          <span className="mcc-logo-name">SmartJuice</span>
+          <span className="mcc-logo-sub">Jus naturels frais</span>
+        </div>
+
+        <button className="mcc-back-btn" onClick={() => navigate("/")}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/>
+          </svg>
+          Retour au catalogue
         </button>
-        <h2>Mon Compte</h2>
-        <div />
-      </div>
+
+        <div className="mcc-header-right">
+          {user ? (
+            <div className="mcc-user-menu">
+              <button className="mcc-icon-btn" title={user.email}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span className="mcc-icon-label">Mon compte</span>
+              </button>
+              <div className="mcc-dropdown">
+                <button onClick={() => navigate("/client/account")}>Mes informations</button>
+                <button onClick={() => navigate("/client/mes-commandes")}>Mes commandes</button>
+                <button className="mcc-dropdown-logout" onClick={handleLogout}>Déconnexion</button>
+              </div>
+            </div>
+          ) : (
+            <button className="mcc-icon-btn" onClick={() => navigate("/login-client")}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span className="mcc-icon-label">Connexion</span>
+            </button>
+          )}
+
+          {user?.role === "client" && (
+            <div className="mcc-notif-wrapper">
+              <button className="mcc-icon-btn" onClick={() => setShowNotifs((v) => !v)} title="Notifications">
+                <div className="mcc-notif-icon-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                  {nonLues > 0 && <span className="mcc-notif-badge">{nonLues}</span>}
+                </div>
+                <span className="mcc-icon-label">Alertes</span>
+              </button>
+
+              {showNotifs && (
+                <div className="mcc-notif-dropdown">
+                  <div className="mcc-notif-dropdown-header">
+                    <span>Notifications</span>
+                    {nonLues > 0 && (
+                      <button className="mcc-notif-lire-tout" onClick={marquerToutesLues}>Tout lire</button>
+                    )}
+                  </div>
+                  {notifications.length === 0 ? (
+                    <p className="mcc-notif-vide">Aucune notification.</p>
+                  ) : (
+                    <ul className="mcc-notif-list">
+                      {notifications.map((n) => (
+                        <li
+                          key={n._id}
+                          className={`mcc-notif-item ${n.lue ? "mcc-notif-item--lue" : ""}`}
+                          onClick={() => !n.lue && marquerLue(n._id)}
+                        >
+                          <p className="mcc-notif-msg">{n.message}</p>
+                          <span className="mcc-notif-date">
+                            {new Date(n.createdAt).toLocaleString("fr-FR", {
+                              day: "2-digit", month: "2-digit", year: "numeric",
+                              hour: "2-digit", minute: "2-digit",
+                            })}
+                          </span>
+                          {!n.lue && <span className="mcc-notif-dot" />}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <button className="mcc-cart-btn" onClick={() => navigate("/client/panier")} title="Mon panier">
+            <div className="mcc-cart-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+              {nbPanier > 0 && <span className="mcc-cart-badge">{nbPanier}</span>}
+            </div>
+            <span className="mcc-icon-label">Panier</span>
+          </button>
+        </div>
+      </header>
+
+      {/* ══════════════ CONTENU ══════════════ */}
+      <div className="mcc-content">
+        <h1 className="mcc-title">Mon Compte</h1>
 
       {message && <div className="message mc-message-success">{message}</div>}
       {error && <div className="message mc-message-error">{error}</div>}
@@ -189,6 +324,7 @@ export default function MonCompteClient() {
           </form>
         </div>
       )}
+      </div>{/* fin mcc-content */}
     </div>
   );
 }

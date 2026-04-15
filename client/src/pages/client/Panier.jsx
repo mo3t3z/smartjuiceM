@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
-import { getPanier, savePanier } from "../../utils/api";
+import { getPanier, savePanier, authHeader, API_COMMANDES } from "../../utils/api";
 import "./Panier.css";
 
 const SEUIL_REMISE = 200;
@@ -12,6 +13,10 @@ export default function Panier() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const [welcome, setWelcome] = useState(location.state?.welcome || "");
+  const [user, setUser] = useState(null);
+  const [nbPanier, setNbPanier] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifs, setShowNotifs] = useState(false);
 
   useEffect(() => {
     if (location.state?.welcome) {
@@ -23,8 +28,57 @@ export default function Panier() {
   const [message, setMessage] = useState({ texte: "", type: "" });
 
   useEffect(() => {
-    setPanier(getPanier());
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed.role === "client") {
+        setUser(parsed);
+        fetchNotifications();
+      }
+    }
+    const p = getPanier();
+    setPanier(p);
+    setNbPanier(p.reduce((a, i) => a + i.quantite, 0));
   }, []);
+
+  useEffect(() => {
+    setNbPanier(panier.reduce((a, i) => a + i.quantite, 0));
+  }, [panier]);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await axios.get(`${API_COMMANDES}/mes-notifications`, {
+        headers: authHeader(),
+      });
+      setNotifications(res.data);
+    } catch { /* silencieux */ }
+  };
+
+  const marquerLue = async (id) => {
+    try {
+      await axios.put(`${API_COMMANDES}/mes-notifications/${id}/lue`, {}, {
+        headers: authHeader(),
+      });
+      setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, lue: true } : n));
+    } catch { /* silencieux */ }
+  };
+
+  const marquerToutesLues = async () => {
+    try {
+      await axios.put(`${API_COMMANDES}/mes-notifications/lues`, {}, {
+        headers: authHeader(),
+      });
+      setNotifications((prev) => prev.map((n) => ({ ...n, lue: true })));
+    } catch { /* silencieux */ }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login-client");
+  };
+
+  const nonLues = notifications.filter((n) => !n.lue).length;
 
   // Prix total brut
   const prixTotal = () =>
@@ -81,11 +135,110 @@ export default function Panier() {
   return (
     <div className="panier-page">
       <header className="panier-header">
+        <div className="panier-logo" onClick={() => navigate("/")}>
+          <span className="panier-logo-name">SmartJuice</span>
+          <span className="panier-logo-sub">Jus naturels frais</span>
+        </div>
+
         <button className="panier-back-btn" onClick={() => navigate("/")}>
-          ← Retour au catalogue
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/>
+          </svg>
+          Retour au catalogue
         </button>
-        <h1 className="panier-title">Mon Panier</h1>
-        <div />
+
+        <div className="panier-header-right">
+          {user ? (
+            <div className="panier-user-menu">
+              <button className="panier-icon-btn" title={user.email}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span className="panier-icon-label">Mon compte</span>
+              </button>
+              <div className="panier-dropdown">
+                <button onClick={() => navigate("/client/account")}>Mes informations</button>
+                <button onClick={() => navigate("/client/mes-commandes")}>Mes commandes</button>
+                <button className="panier-dropdown-logout" onClick={handleLogout}>Déconnexion</button>
+              </div>
+            </div>
+          ) : (
+            <button className="panier-icon-btn" onClick={() => navigate("/login-client")}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span className="panier-icon-label">Connexion</span>
+            </button>
+          )}
+
+          {/* Cloche notifications */}
+          {user && (
+            <div className="panier-notif-wrapper">
+              <button
+                className="panier-icon-btn"
+                onClick={() => setShowNotifs((v) => !v)}
+                title="Notifications"
+              >
+                <div className="panier-notif-icon-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                  {nonLues > 0 && <span className="panier-notif-badge">{nonLues}</span>}
+                </div>
+                <span className="panier-icon-label">Alertes</span>
+              </button>
+
+              {showNotifs && (
+                <div className="panier-notif-dropdown">
+                  <div className="panier-notif-dropdown-header">
+                    <span>Notifications</span>
+                    {nonLues > 0 && (
+                      <button className="panier-notif-lire-tout" onClick={marquerToutesLues}>
+                        Tout lire
+                      </button>
+                    )}
+                  </div>
+                  {notifications.length === 0 ? (
+                    <p className="panier-notif-vide">Aucune notification.</p>
+                  ) : (
+                    <ul className="panier-notif-list">
+                      {notifications.map((n) => (
+                        <li
+                          key={n._id}
+                          className={`panier-notif-item ${n.lue ? "panier-notif-item--lue" : ""}`}
+                          onClick={() => !n.lue && marquerLue(n._id)}
+                        >
+                          <p className="panier-notif-msg">{n.message}</p>
+                          <span className="panier-notif-date">
+                            {new Date(n.createdAt).toLocaleString("fr-FR", {
+                              day: "2-digit", month: "2-digit", year: "numeric",
+                              hour: "2-digit", minute: "2-digit",
+                            })}
+                          </span>
+                          {!n.lue && <span className="panier-notif-dot" />}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <button className="panier-cart-btn" onClick={() => navigate("/client/panier")} title="Mon panier">
+            <div className="panier-cart-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+              {nbPanier > 0 && <span className="panier-cart-badge">{nbPanier}</span>}
+            </div>
+            <span className="panier-icon-label">Panier</span>
+          </button>
+        </div>
       </header>
 
       {/* Message de bienvenue après connexion */}

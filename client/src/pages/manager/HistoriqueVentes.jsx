@@ -1,11 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import { authHeader, API_VENTES } from "../../utils/api";
 import "./HistoriqueVentes.css";
 
 export default function HistoriqueVentes() {
-  const navigate = useNavigate();
   const [ventes, setVentes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -71,11 +69,6 @@ export default function HistoriqueVentes() {
 
   return (
     <div className="hv-page">
-      <header className="hv-header">
-        <button className="hv-back-btn" onClick={() => navigate("/manager")}>← Accueil</button>
-        <h1 className="hv-title">Historique des Ventes</h1>
-        <div />
-      </header>
 
       {message.texte && (
         <div className={`hv-message hv-message--${message.type}`}>

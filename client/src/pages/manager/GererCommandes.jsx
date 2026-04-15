@@ -116,11 +116,6 @@ export default function GererCommandes() {
 
   return (
     <div className="gc-page">
-      <header className="gc-header">
-        <button className="gc-back-btn" onClick={() => navigate("/manager")}>← Accueil</button>
-        <h1 className="gc-title">Gestion des Commandes</h1>
-        <div />
-      </header>
 
       {message.texte && (
         <div className={`gc-message gc-message--${message.type}`}>

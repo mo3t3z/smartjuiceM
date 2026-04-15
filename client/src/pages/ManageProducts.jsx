@@ -1,12 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import "./ManageProducts.css";
 import { API_PRODUCTS, authHeader } from "../utils/api";
 
 export default function ManageProducts() {
-  const navigate = useNavigate();
-
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -150,18 +147,14 @@ export default function ManageProducts() {
 
   return (
     <div className="manage-products-container">
-      {/* Header */}
-      <div className="products-header">
-        <button className="back-button" onClick={() => navigate("/manager")}>
-          ← Retour
-        </button>
-        <h2>Gestion des Produits</h2>
-        {!showForm && (
+      {/* Add button */}
+      {!showForm && (
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px 24px 0" }}>
           <button className="add-button" onClick={() => setShowForm(true)}>
             + Ajouter un produit
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Message de succès/erreur */}
       {message && <div className="message">{message}</div>}

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "../workshop/StockMP.css";
 import { API_MANAGER, authHeader } from "../../utils/api";
 import { fmtDate } from "../../utils/date";
@@ -8,7 +7,6 @@ import { useHistoriqueMP, buildTimelineMP } from "../../hooks/useHistoriqueMP";
 const API = API_MANAGER;
 
 export default function ManagerStockMP() {
-  const navigate = useNavigate();
   const [stockList, setStockList] = useState([]);   // [{ type, unite, disponible }]
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState("");
@@ -96,17 +94,6 @@ export default function ManagerStockMP() {
         </div>
       )}
 
-      {/* ── Header ── */}
-      <header className="smp-header">
-        <div className="smp-brand">
-          <span className="smp-logo-icon">SJ</span>
-          <div>
-            <h1 className="smp-brand-name">SmartJuice</h1>
-            <p className="smp-brand-sub">Interface Gérant</p>
-          </div>
-        </div>
-        <button className="smp-back-btn" onClick={() => navigate("/manager/stocks")}>← Retour</button>
-      </header>
 
       {/* ── Content ── */}
       <div className="smp-content">

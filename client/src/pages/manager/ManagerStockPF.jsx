@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "../workshop/StockPF.css";
 import { API_MANAGER, authHeader } from "../../utils/api";
 import { fmtDate } from "../../utils/date";
@@ -8,7 +7,6 @@ import { useHistoriquePF, buildTimelinePF } from "../../hooks/useHistoriquePF";
 const API = API_MANAGER;
 
 export default function ManagerStockPF() {
-  const navigate = useNavigate();
   const [jusList, setJusList]   = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState("");
@@ -88,17 +86,6 @@ export default function ManagerStockPF() {
         </div>
       )}
 
-      {/* ── Header ── */}
-      <header className="spf-header">
-        <div className="spf-brand">
-          <span className="spf-logo-icon">SJ</span>
-          <div>
-            <h1 className="spf-brand-name">SmartJuice</h1>
-            <p className="spf-brand-sub">Interface Gérant</p>
-          </div>
-        </div>
-        <button className="spf-back-btn" onClick={() => navigate("/manager/stocks")}>← Retour</button>
-      </header>
 
       {/* ── Content ── */}
       <div className="spf-content">

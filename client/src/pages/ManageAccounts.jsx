@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import "./ManageAccounts.css";
 import "./ManageProducts.css";
 import { API_AUTH as API, authHeader } from "../utils/api";
 
 export default function ManageAccounts() {
-  const navigate = useNavigate();
   // mode: "list" | "create" | "view" | "edit"
   const [mode, setMode] = useState("list");
   const [accounts, setAccounts] = useState([]);
@@ -104,24 +102,12 @@ export default function ManageAccounts() {
 
   return (
     <div className="accounts-container">
-      {/* Header */}
-      <div className="accounts-header">
-        {mode === "list" ? (
-          <button className="back-button" onClick={() => navigate("/manager")}>← Retour</button>
-        ) : (
-          <button className="back-button" onClick={backToList}>← Retour</button>
-        )}
-        <h2>
-          {mode === "list" && "Gestion des Comptes"}
-          {mode === "create" && "Créer un compte"}
-          {mode === "view" && "Consulter un compte"}
-          {mode === "edit" && "Modifier un compte"}
-        </h2>
-        {mode === "list" && (
+      {/* Action button for list mode */}
+      {mode === "list" && (
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px 24px 0" }}>
           <button className="add-button" onClick={openCreate}>+ Créer un compte</button>
-        )}
-        {mode !== "list" && <div />}
-      </div>
+        </div>
+      )}
 
       {message && <div className="message ac-message-success">{message}</div>}
       {error && <div className="message ac-message-error">{error}</div>}

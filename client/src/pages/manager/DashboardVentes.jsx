@@ -56,11 +56,6 @@ export default function DashboardVentes() {
 
   return (
     <div className="dv-page">
-      <header className="dv-header">
-        <button className="dv-back-btn" onClick={() => navigate("/manager")}>← Accueil</button>
-        <h1 className="dv-title">Dashboard Ventes & Commandes</h1>
-        <div />
-      </header>
 
       {loading ? (
         <div className="dv-loading">Chargement des statistiques...</div>

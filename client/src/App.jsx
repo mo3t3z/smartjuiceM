@@ -6,6 +6,7 @@ import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ForgotPasswordStaff from "./pages/ForgotPasswordStaff.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import ManagerHome from "./pages/ManagerHome.jsx";
+import ManagerLayout from "./components/ManagerLayout.jsx";
 import SellerHome from "./pages/SellerHome.jsx";
 import WorkshopHome from "./pages/WorkshopHome.jsx";
 import ManageAccounts from "./pages/ManageAccounts.jsx";
@@ -67,21 +68,20 @@ export default function App() {
       <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/login" element={<RedirectIfLoggedIn redirectRoles={["manager", "seller", "workshop"]}><Login /></RedirectIfLoggedIn>} />
 
-      {/* ── Manager ── */}
-      <Route path="/manager" element={<ProtectedRoute allowedRoles={["manager"]}><ManagerHome /></ProtectedRoute>} />
-      <Route path="/manager/accounts" element={<ProtectedRoute allowedRoles={["manager"]}><ManageAccounts /></ProtectedRoute>} />
-      <Route path="/manager/products" element={<ProtectedRoute allowedRoles={["manager"]}><ManageProducts /></ProtectedRoute>} />
-      <Route path="/manager/account" element={<ProtectedRoute allowedRoles={["manager"]}><MonCompte /></ProtectedRoute>} />
-      <Route path="/manager/stocks" element={<ProtectedRoute allowedRoles={["manager"]}><ManagerStocks /></ProtectedRoute>} />
-      <Route path="/manager/stocks/mp" element={<ProtectedRoute allowedRoles={["manager"]}><ManagerStockMP /></ProtectedRoute>} />
-      <Route path="/manager/stocks/pf" element={<ProtectedRoute allowedRoles={["manager"]}><ManagerStockPF /></ProtectedRoute>} />
-      <Route path="/manager/stocks/boutique" element={<ProtectedRoute allowedRoles={["manager"]}><ManagerStockBoutique /></ProtectedRoute>} />
-      {/* PB20 — Gestion des commandes */}
-      <Route path="/manager/commandes" element={<ProtectedRoute allowedRoles={["manager"]}><GererCommandes /></ProtectedRoute>} />
-      {/* PB25 — Dashboard ventes */}
-      <Route path="/manager/dashboard-ventes" element={<ProtectedRoute allowedRoles={["manager"]}><DashboardVentes /></ProtectedRoute>} />
-      {/* Historique des ventes */}
-      <Route path="/manager/ventes" element={<ProtectedRoute allowedRoles={["manager"]}><HistoriqueVentes /></ProtectedRoute>} />
+      {/* ── Manager (layout avec sidebar persistante) ── */}
+      <Route path="/manager" element={<ProtectedRoute allowedRoles={["manager"]}><ManagerLayout /></ProtectedRoute>}>
+        <Route index element={<ManagerHome />} />
+        <Route path="accounts" element={<ManageAccounts />} />
+        <Route path="products" element={<ManageProducts />} />
+        <Route path="account" element={<MonCompte />} />
+        <Route path="stocks" element={<ManagerStocks />} />
+        <Route path="stocks/mp" element={<ManagerStockMP />} />
+        <Route path="stocks/pf" element={<ManagerStockPF />} />
+        <Route path="stocks/boutique" element={<ManagerStockBoutique />} />
+        <Route path="commandes" element={<GererCommandes />} />
+        <Route path="dashboard-ventes" element={<DashboardVentes />} />
+        <Route path="ventes" element={<HistoriqueVentes />} />
+      </Route>
 
       {/* ── Vendeur ── */}
       <Route path="/seller" element={<ProtectedRoute allowedRoles={["seller"]}><SellerHome /></ProtectedRoute>} />
