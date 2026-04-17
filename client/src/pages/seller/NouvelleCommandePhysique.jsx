@@ -169,12 +169,6 @@ export default function NouvelleCommandePhysique() {
 
   return (
     <div className="ncp-page">
-      <header className="ncp-header">
-        <button className="ncp-back-btn" onClick={() => navigate("/seller")}>← Accueil</button>
-        <h1 className="ncp-title">Nouvelle Commande Physique</h1>
-        <div />
-      </header>
-
       {message.texte && (
         <div className={`ncp-message ncp-message--${message.type}`}>
           {message.texte}

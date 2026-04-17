@@ -325,18 +325,6 @@ export default function GererRecette() {
         </div>
       )}
 
-      {/* ── Header ── */}
-      <header className="gr-header">
-        <div className="gr-brand">
-          <span className="gr-logo-icon">SJ</span>
-          <div>
-            <h1 className="gr-brand-name">SmartJuice</h1>
-            <p className="gr-brand-sub">Interface Atelier</p>
-          </div>
-        </div>
-        <button className="gr-back-btn" onClick={() => navigate("/workshop")}>← Retour</button>
-      </header>
-
       {/* ── Content ── */}
       <div className="gr-content">
         <div className="gr-top">

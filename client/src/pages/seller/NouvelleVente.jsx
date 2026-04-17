@@ -129,12 +129,6 @@ export default function NouvelleVente() {
 
   return (
     <div className="nv-page">
-      <header className="nv-header">
-        <button className="nv-back-btn" onClick={() => navigate("/seller")}>← Accueil</button>
-        <h1 className="nv-title">Nouvelle Vente</h1>
-        <div />
-      </header>
-
       {message.texte && (
         <div className={`nv-message nv-message--${message.type}`}>
           {message.texte}

@@ -5,7 +5,7 @@ import {
   getRecettes, createRecette, updateRecette, deleteRecette,
   enregistrerProduction, getStockPF, getStockPFResume, getHistoriquePF, previewProduction,
   enregistrerTransfert, getDisponiblePF,
-  getTypesMP, createTypeMP, deleteTypeMP,
+  getTypesMP, createTypeMP, updateTypeMP, deleteTypeMP,
   getNotifications, marquerNotificationLue, marquerToutesLues,
 } from "../controllers/workshopController.js";
 
@@ -14,6 +14,7 @@ const router = express.Router();
 // Types MP
 router.get("/types-mp",          authenticate, isWorkshop, getTypesMP);
 router.post("/types-mp",         authenticate, isWorkshop, createTypeMP);
+router.put("/types-mp/:id",      authenticate, isWorkshop, updateTypeMP);
 router.delete("/types-mp/:id",   authenticate, isWorkshop, deleteTypeMP);
 
 // Notifications

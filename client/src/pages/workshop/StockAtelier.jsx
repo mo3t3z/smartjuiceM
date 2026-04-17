@@ -3,7 +3,6 @@ import "./StockAtelier.css";
 
 export default function StockAtelier() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const cards = [
     {
@@ -24,26 +23,6 @@ export default function StockAtelier() {
 
   return (
     <div className="sa-page">
-      {/* Header */}
-      <header className="sa-header">
-        <div className="sa-brand">
-          <span className="sa-logo-icon">SJ</span>
-          <div>
-            <h1 className="sa-brand-name">SmartJuice</h1>
-            <p className="sa-brand-sub">Interface Atelier</p>
-          </div>
-        </div>
-        <div className="sa-header-right">
-          <div className="sa-user-info">
-            <span className="sa-user-avatar">{user?.email?.[0]?.toUpperCase() || "A"}</span>
-            <span className="sa-user-email">{user?.email}</span>
-          </div>
-          <button className="sa-back-btn" onClick={() => navigate("/workshop")}>
-            ← Retour
-          </button>
-        </div>
-      </header>
-
       {/* Welcome banner */}
       <div className="sa-welcome">
         <div className="sa-welcome-icon">Stock</div>

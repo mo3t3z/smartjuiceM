@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "./StockPFBoutique.css";
 import { API_SELLER, authHeader } from "../../utils/api";
 import { fmtDate } from "../../utils/date";
@@ -8,7 +7,6 @@ import { useHistoriquePF } from "../../hooks/useHistoriquePF";
 const API = API_SELLER;
 
 export default function StockPFBoutique() {
-  const navigate = useNavigate();
   const [jusList, setJusList]       = useState([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState("");
@@ -66,18 +64,6 @@ export default function StockPFBoutique() {
           </div>
         </div>
       )}
-
-      {/* ── Header ── */}
-      <header className="spfb-header">
-        <div className="spfb-brand">
-          <span className="spfb-logo-icon">SJ</span>
-          <div>
-            <h1 className="spfb-brand-name">SmartJuice</h1>
-            <p className="spfb-brand-sub">Interface Vendeur</p>
-          </div>
-        </div>
-        <button className="spfb-back-btn" onClick={() => navigate("/seller")}>← Retour</button>
-      </header>
 
       {/* ── Content ── */}
       <div className="spfb-content">

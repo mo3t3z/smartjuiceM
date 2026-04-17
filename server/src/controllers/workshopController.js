@@ -522,6 +522,29 @@ export const createTypeMP = async (req, res) => {
   }
 };
 
+// PUT /api/workshop/types-mp/:id
+export const updateTypeMP = async (req, res) => {
+  try {
+    const { nom, seuilMin, unite } = req.body;
+    if (!nom || seuilMin === undefined || !unite)
+      return res.status(400).json({ message: "Nom, seuil minimum et unité sont obligatoires." });
+
+    const exists = await TypeMP.findOne({ nom: nom.trim(), _id: { $ne: req.params.id } });
+    if (exists)
+      return res.status(409).json({ message: `Le type "${nom}" existe déjà.` });
+
+    const type = await TypeMP.findByIdAndUpdate(
+      req.params.id,
+      { nom: nom.trim(), seuilMin: Number(seuilMin), unite },
+      { new: true }
+    );
+    if (!type) return res.status(404).json({ message: "Type non trouvé." });
+    res.json({ message: "Type modifié avec succès.", type });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
 // DELETE /api/workshop/types-mp/:id
 export const deleteTypeMP = async (req, res) => {
   try {

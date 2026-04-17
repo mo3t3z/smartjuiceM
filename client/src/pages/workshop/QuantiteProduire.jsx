@@ -86,17 +86,6 @@ export default function QuantiteProduire() {
 
   return (
     <div className="qp-page">
-      <header className="qp-header">
-        <div className="qp-brand">
-          <span className="qp-logo-icon">SJ</span>
-          <div>
-            <h1 className="qp-brand-name">SmartJuice</h1>
-            <p className="qp-brand-sub">Interface Atelier</p>
-          </div>
-        </div>
-        <button className="qp-back-btn" onClick={() => navigate("/workshop")}>← Retour</button>
-      </header>
-
       <div className="qp-content">
         <div className="qp-card">
           <div className="qp-card-head">

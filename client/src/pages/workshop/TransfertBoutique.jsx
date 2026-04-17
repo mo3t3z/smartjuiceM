@@ -74,17 +74,6 @@ export default function TransfertBoutique() {
 
   return (
     <div className="tb-page">
-      <header className="tb-header">
-        <div className="tb-brand">
-          <span className="tb-logo-icon">SJ</span>
-          <div>
-            <h1 className="tb-brand-name">SmartJuice</h1>
-            <p className="tb-brand-sub">Interface Atelier</p>
-          </div>
-        </div>
-        <button className="tb-back-btn" onClick={() => navigate("/workshop")}>← Retour</button>
-      </header>
-
       <div className="tb-content">
         <div className="tb-card">
           <div className="tb-card-head">

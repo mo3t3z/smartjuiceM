@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import { authHeader, API_COMMANDES } from "../../utils/api";
 import "./CommandesConfirmees.css";
 
+const todayStr = new Date().toISOString().split("T")[0];
+
 export default function CommandesConfirmees() {
-  const navigate = useNavigate();
   const [commandes, setCommandes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [modeFiltre, setModeFiltre] = useState("date"); // "date" | "mois"
-  const [dateRecherche, setDateRecherche] = useState("");
+  const [dateRecherche, setDateRecherche] = useState(todayStr);
   const [moisRecherche, setMoisRecherche] = useState("");
   const [message, setMessage] = useState({ texte: "", type: "" });
 
@@ -34,6 +34,10 @@ export default function CommandesConfirmees() {
     }
   };
 
+  useEffect(() => {
+    fetchCommandes(`date=${todayStr}`);
+  }, []);
+
   const handleRecherche = () => {
     if (modeFiltre === "date") {
       if (!dateRecherche) { afficherMessage("Veuillez choisir une date.", "erreur"); return; }
@@ -48,7 +52,7 @@ export default function CommandesConfirmees() {
     try {
       await axios.put(`${API_COMMANDES}/${id}/prete`, {}, { headers: authHeader() });
       afficherMessage("Commande marquée comme prête.", "succes");
-      fetchCommandes(dateRecherche);
+      fetchCommandes(modeFiltre === "date" ? `date=${dateRecherche}` : `mois=${moisRecherche}`);
     } catch (err) {
       afficherMessage(err.response?.data?.message || "Erreur.", "erreur");
     }
@@ -67,12 +71,6 @@ export default function CommandesConfirmees() {
 
   return (
     <div className="cc-page">
-      <header className="cc-header">
-        <button className="cc-back-btn" onClick={() => navigate("/workshop")}>← Accueil</button>
-        <h1 className="cc-title">Commandes à préparer</h1>
-        <div />
-      </header>
-
       {message.texte && (
         <div className={`cc-message cc-message--${message.type}`}>
           {message.texte}

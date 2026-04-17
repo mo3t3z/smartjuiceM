@@ -16,6 +16,9 @@ export default function MatierePremiere() {
   const [typeError, setTypeError] = useState("");
   const [typeLoading, setTypeLoading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null); // { _id, nom }
+  const [editingType, setEditingType] = useState(null); // { _id, nom, seuilMin, unite }
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState("");
   const addInputRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -80,6 +83,31 @@ export default function MatierePremiere() {
       setTypeError("Erreur réseau.");
     } finally {
       setTypeLoading(false);
+    }
+  };
+
+  const handleEditType = async () => {
+    const nom = editingType.nom.trim();
+    if (!nom) return setEditError("Entrez un nom de type.");
+    if (!editingType.seuilMin || Number(editingType.seuilMin) < 0)
+      return setEditError("Entrez un seuil minimum valide (≥ 0).");
+
+    setEditLoading(true);
+    try {
+      const res = await fetch(`${API}/types-mp/${editingType._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...authHeader() },
+        body: JSON.stringify({ nom, seuilMin: Number(editingType.seuilMin), unite: editingType.unite }),
+      });
+      const data = await res.json();
+      if (!res.ok) return setEditError(data.message || "Erreur lors de la modification.");
+      setCustomTypes((prev) => prev.map((t) => t._id === editingType._id ? data.type : t));
+      setEditingType(null);
+      setEditError("");
+    } catch {
+      setEditError("Erreur réseau.");
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -150,6 +178,60 @@ export default function MatierePremiere() {
 
   return (
     <div className="mp-page">
+      {/* ── Modal modification type ── */}
+      {editingType && (
+        <div className="mp-modal-overlay">
+          <div className="mp-modal">
+            <h3 className="mp-modal-title">Modifier le type</h3>
+            <div className="mp-field" style={{ marginBottom: "12px" }}>
+              <label className="mp-label">Nom</label>
+              <input
+                type="text"
+                className="mp-input"
+                value={editingType.nom}
+                onChange={(e) => { setEditingType((p) => ({ ...p, nom: e.target.value })); setEditError(""); }}
+              />
+            </div>
+            <div className="mp-row" style={{ marginBottom: "12px" }}>
+              <div className="mp-field">
+                <label className="mp-label">Seuil minimum</label>
+                <input
+                  type="number"
+                  className="mp-input"
+                  value={editingType.seuilMin}
+                  onChange={(e) => { setEditingType((p) => ({ ...p, seuilMin: e.target.value })); setEditError(""); }}
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div className="mp-field">
+                <label className="mp-label">Unité</label>
+                <select
+                  className="mp-select"
+                  value={editingType.unite}
+                  onChange={(e) => setEditingType((p) => ({ ...p, unite: e.target.value }))}
+                >
+                  <option value="kg">kg</option>
+                  <option value="g">g</option>
+                  <option value="L">L</option>
+                  <option value="mL">mL</option>
+                  <option value="unité">unité</option>
+                </select>
+              </div>
+            </div>
+            {editError && <p className="mp-type-error">{editError}</p>}
+            <div className="mp-modal-actions">
+              <button className="mp-modal-cancel" onClick={() => { setEditingType(null); setEditError(""); }}>
+                Annuler
+              </button>
+              <button className="mp-modal-confirm" onClick={handleEditType} disabled={editLoading}>
+                {editLoading ? "..." : "Enregistrer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Modal confirmation suppression ── */}
       {confirmDelete && (
         <div className="mp-modal-overlay">
@@ -170,20 +252,6 @@ export default function MatierePremiere() {
           </div>
         </div>
       )}
-
-      {/* Header */}
-      <header className="mp-header">
-        <div className="mp-brand">
-          <span className="mp-logo-icon">SJ</span>
-          <div>
-            <h1 className="mp-brand-name">SmartJuice</h1>
-            <p className="mp-brand-sub">Interface Atelier</p>
-          </div>
-        </div>
-        <button className="mp-back-btn" onClick={() => navigate("/workshop")}>
-          ← Retour
-        </button>
-      </header>
 
       <div className="mp-content">
         <div className="mp-form-card">
@@ -325,6 +393,14 @@ export default function MatierePremiere() {
                         <span key={t._id} className="mp-type-tag" title={`Seuil : ${t.seuilMin} ${t.unite}`}>
                           {t.nom}
                           <span className="mp-type-tag-seuil">{t.seuilMin} {t.unite}</span>
+                          <button
+                            type="button"
+                            className="mp-type-tag-edit"
+                            onClick={() => { setEditingType({ _id: t._id, nom: t.nom, seuilMin: t.seuilMin, unite: t.unite }); setEditError(""); }}
+                            title="Modifier ce type"
+                          >
+                            ✏
+                          </button>
                           <button
                             type="button"
                             className="mp-type-tag-del"

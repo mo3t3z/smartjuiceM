@@ -24,6 +24,13 @@ body {
   min-height: 100vh;
 }
 
+/* Prevent double scrollbar when sidebar layout is active */
+html:has(.ml-layout),
+body:has(.ml-layout) {
+  overflow: hidden;
+  height: 100%;
+}
+
 button {
   font-family: inherit;
   cursor: pointer;

@@ -7,6 +7,8 @@ import ForgotPasswordStaff from "./pages/ForgotPasswordStaff.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import ManagerHome from "./pages/ManagerHome.jsx";
 import ManagerLayout from "./components/ManagerLayout.jsx";
+import WorkshopLayout from "./components/WorkshopLayout.jsx";
+import SellerLayout from "./components/SellerLayout.jsx";
 import SellerHome from "./pages/SellerHome.jsx";
 import WorkshopHome from "./pages/WorkshopHome.jsx";
 import ManageAccounts from "./pages/ManageAccounts.jsx";
@@ -83,25 +85,26 @@ export default function App() {
         <Route path="ventes" element={<HistoriqueVentes />} />
       </Route>
 
-      {/* ── Vendeur ── */}
-      <Route path="/seller" element={<ProtectedRoute allowedRoles={["seller"]}><SellerHome /></ProtectedRoute>} />
-      <Route path="/seller/stock-pf" element={<ProtectedRoute allowedRoles={["seller"]}><StockPFBoutique /></ProtectedRoute>} />
-      {/* PB24 — Nouvelle vente directe */}
-      <Route path="/seller/nouvelle-vente" element={<ProtectedRoute allowedRoles={["seller"]}><NouvelleVente /></ProtectedRoute>} />
-      {/* PB22 — Nouvelle commande physique */}
-      <Route path="/seller/nouvelle-commande" element={<ProtectedRoute allowedRoles={["seller"]}><NouvelleCommandePhysique /></ProtectedRoute>} />
+      {/* ── Vendeur (layout avec sidebar persistante) ── */}
+      <Route path="/seller" element={<ProtectedRoute allowedRoles={["seller"]}><SellerLayout /></ProtectedRoute>}>
+        <Route index element={<SellerHome />} />
+        <Route path="stock-pf" element={<StockPFBoutique />} />
+        <Route path="nouvelle-vente" element={<NouvelleVente />} />
+        <Route path="nouvelle-commande" element={<NouvelleCommandePhysique />} />
+      </Route>
 
-      {/* ── Atelier ── */}
-      <Route path="/workshop" element={<ProtectedRoute allowedRoles={["workshop"]}><WorkshopHome /></ProtectedRoute>} />
-      <Route path="/workshop/matieres-premieres" element={<ProtectedRoute allowedRoles={["workshop"]}><MatierePremiere /></ProtectedRoute>} />
-      <Route path="/workshop/recettes" element={<ProtectedRoute allowedRoles={["workshop"]}><GererRecette /></ProtectedRoute>} />
-      <Route path="/workshop/quantite-produire" element={<ProtectedRoute allowedRoles={["workshop"]}><QuantiteProduire /></ProtectedRoute>} />
-      <Route path="/workshop/transfert-boutique" element={<ProtectedRoute allowedRoles={["workshop"]}><TransfertBoutique /></ProtectedRoute>} />
-      <Route path="/workshop/stock" element={<ProtectedRoute allowedRoles={["workshop"]}><StockAtelier /></ProtectedRoute>} />
-      <Route path="/workshop/stock/mp" element={<ProtectedRoute allowedRoles={["workshop"]}><StockMP /></ProtectedRoute>} />
-      <Route path="/workshop/stock/pf" element={<ProtectedRoute allowedRoles={["workshop"]}><StockPF /></ProtectedRoute>} />
-      {/* PB23 — Commandes confirmées */}
-      <Route path="/workshop/commandes-confirmees" element={<ProtectedRoute allowedRoles={["workshop"]}><CommandesConfirmees /></ProtectedRoute>} />
+      {/* ── Atelier (layout avec sidebar persistante) ── */}
+      <Route path="/workshop" element={<ProtectedRoute allowedRoles={["workshop"]}><WorkshopLayout /></ProtectedRoute>}>
+        <Route index element={<WorkshopHome />} />
+        <Route path="matieres-premieres" element={<MatierePremiere />} />
+        <Route path="recettes" element={<GererRecette />} />
+        <Route path="quantite-produire" element={<QuantiteProduire />} />
+        <Route path="transfert-boutique" element={<TransfertBoutique />} />
+        <Route path="stock" element={<StockAtelier />} />
+        <Route path="stock/mp" element={<StockMP />} />
+        <Route path="stock/pf" element={<StockPF />} />
+        <Route path="commandes-confirmees" element={<CommandesConfirmees />} />
+      </Route>
     </Routes>
     </>
   );

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "./StockMP.css";
 import { API_WORKSHOP, authHeader } from "../../utils/api";
 import { fmtDate } from "../../utils/date";
@@ -8,7 +7,6 @@ import { useHistoriqueMP, buildTimelineMP } from "../../hooks/useHistoriqueMP";
 const API = API_WORKSHOP;
 
 export default function StockMP() {
-  const navigate = useNavigate();
   const [types, setTypes]         = useState([]);
   const [stockMap, setStockMap]   = useState({});   // { "Oranges||kg": { disponible, unite } }
   const [loading, setLoading]     = useState(true);
@@ -112,18 +110,6 @@ export default function StockMP() {
           </div>
         </div>
       )}
-
-      {/* ── Header ── */}
-      <header className="smp-header">
-        <div className="smp-brand">
-          <span className="smp-logo-icon">SJ</span>
-          <div>
-            <h1 className="smp-brand-name">SmartJuice</h1>
-            <p className="smp-brand-sub">Interface Atelier</p>
-          </div>
-        </div>
-        <button className="smp-back-btn" onClick={() => navigate("/workshop/stock")}>← Retour</button>
-      </header>
 
       {/* ── Content ── */}
       <div className="smp-content">

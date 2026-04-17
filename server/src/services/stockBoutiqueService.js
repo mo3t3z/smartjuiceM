@@ -9,6 +9,7 @@ import Notification from "../models/Notification.js";
    HELPER PRIVÉ : recalcule le stock depuis les collections brutes
    Utilisé uniquement pour initialiser un nouveau jus (lazy init)
 ═══════════════════════════════════════════════════════════════ */
+/* recalculerstockdepuisdb hia  */
 const recalculerStockDepuisDB = async (nomJus) => {
   const transAgg = await TransfertBoutique.aggregate([
     { $match: { nomJus } },

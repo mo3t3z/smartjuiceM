@@ -358,6 +358,21 @@
 
 .mp-type-tag-del:hover { color: #c62828; }
 
+.mp-type-tag-edit {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.mp-type-tag-edit:hover { color: #1e3a5f; }
+
 .mp-type-tag-seuil {
   font-size: 0.75rem;
   color: #555;
