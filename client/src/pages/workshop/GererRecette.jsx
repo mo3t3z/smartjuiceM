@@ -112,6 +112,8 @@ export default function GererRecette() {
     setFormError("");
 
     if (!formNom.trim()) return setFormError("Le nom du jus est obligatoire.");
+    if (formSeuilMin === "" || Number(formSeuilMin) < 0) return setFormError("Le seuil minimum atelier est obligatoire.");
+    if (formSeuilBoutique === "" || Number(formSeuilBoutique) < 0) return setFormError("Le seuil minimum boutique est obligatoire.");
     for (const ing of formIngs) {
       if (!ing.matiere.trim()) return setFormError("Chaque ingrédient doit avoir un nom.");
       if (!ing.quantite || Number(ing.quantite) <= 0) return setFormError("Chaque quantité doit être > 0.");
@@ -120,8 +122,8 @@ export default function GererRecette() {
     const payload = {
       nomJus: formNom.trim(),
       ingredients: formIngs.map((i) => ({ matiere: i.matiere.trim(), quantite: Number(i.quantite), unite: i.unite })),
-      seuilMinPF:       formSeuilMin     !== "" ? Number(formSeuilMin)     : 0,
-      seuilMinBoutique: formSeuilBoutique !== "" ? Number(formSeuilBoutique) : 0,
+      seuilMinPF:       Number(formSeuilMin),
+      seuilMinBoutique: Number(formSeuilBoutique),
     };
 
     setFormLoading(true);
@@ -216,7 +218,7 @@ export default function GererRecette() {
               </div>
 
               <div className="gr-field">
-                <label className="gr-label">Seuil minimum stock PF — Atelier (L)</label>
+                <label className="gr-label">Seuil minimum stock PF — Atelier (L) <span className="gr-req">*</span></label>
                 <input
                   className="gr-input"
                   type="number"
@@ -225,6 +227,7 @@ export default function GererRecette() {
                   value={formSeuilMin}
                   onChange={(e) => setFormSeuilMin(e.target.value)}
                   placeholder="Ex: 10"
+                  required
                 />
                 <small style={{ color: "#888", fontSize: "0.78rem" }}>
                   Alerte atelier quand le stock PF atelier descend à ce seuil après un transfert.
@@ -232,7 +235,7 @@ export default function GererRecette() {
               </div>
 
               <div className="gr-field">
-                <label className="gr-label">Seuil minimum stock PF — Boutique (L)</label>
+                <label className="gr-label">Seuil minimum stock PF — Boutique (L) <span className="gr-req">*</span></label>
                 <input
                   className="gr-input"
                   type="number"
@@ -241,6 +244,7 @@ export default function GererRecette() {
                   value={formSeuilBoutique}
                   onChange={(e) => setFormSeuilBoutique(e.target.value)}
                   placeholder="Ex: 5"
+                  required
                 />
                 <small style={{ color: "#888", fontSize: "0.78rem" }}>
                   Alerte atelier + gérant quand le stock boutique descend à ce seuil (ventes).

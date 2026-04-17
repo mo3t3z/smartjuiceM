@@ -5,7 +5,9 @@ import TransfertBoutique from "../models/TransfertBoutique.js";
 import TypeMP from "../models/TypeMP.js";
 import Notification from "../models/Notification.js";
 import StockBoutique from "../models/StockBoutique.js";
+import Commande from "../models/Commande.js";
 import { ajouterStockBoutique } from "../services/stockBoutiqueService.js";
+import { calcStockPFAtelier } from "../services/stockPFService.js";
 
 //f1:HELPER --> calcDisponible() 
 const calcDisponible = async () => {
@@ -293,15 +295,37 @@ export const getStockPFResume = async (req, res) => {
     const recettes = await Recette.find({}, "nomJus");
 
     const map = {};
-    const transferts = await TransfertBoutique.aggregate([
-      { $group: { _id: "$nomJus", totalTransfere: { $sum: "$quantite" } } },
+    const [transferts, commandesReservees] = await Promise.all([
+      TransfertBoutique.aggregate([
+        { $group: { _id: "$nomJus", totalTransfere: { $sum: "$quantite" } } },
+      ]),
+      Commande.aggregate([
+        { $match: { statut: { $in: ["livree", "prete"] } } },
+        { $unwind: "$produits" },
+        {
+          $group: {
+            _id: "$produits.nom",
+            totalReserve: {
+              $sum: {
+                $multiply: [
+                  "$produits.quantite",
+                  { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
+                ],
+              },
+            },
+          },
+        },
+      ]),
     ]);
 
+    const reserveMap = {};
+    commandesReservees.forEach((c) => { reserveMap[c._id] = c.totalReserve; });
+
     recettes.forEach((r) => {
-      map[r.nomJus] = { nomJus: r.nomJus, totalProduit: 0, nbProductions: 0, totalTransfere: 0, disponible: 0 };
+      map[r.nomJus] = { nomJus: r.nomJus, totalProduit: 0, nbProductions: 0, totalTransfere: 0, totalLivreeCommandes: 0, disponible: 0 };
     });
     prods.forEach((p) => {
-      if (!map[p._id]) map[p._id] = { nomJus: p._id, totalProduit: 0, nbProductions: 0, totalTransfere: 0, disponible: 0 };
+      if (!map[p._id]) map[p._id] = { nomJus: p._id, totalProduit: 0, nbProductions: 0, totalTransfere: 0, totalLivreeCommandes: 0, disponible: 0 };
       map[p._id].totalProduit  = p.totalProduit;
       map[p._id].nbProductions = p.nbProductions;
       map[p._id].disponible    = p.totalProduit;
@@ -311,6 +335,11 @@ export const getStockPFResume = async (req, res) => {
         map[t._id].totalTransfere = t.totalTransfere;
         map[t._id].disponible     = map[t._id].totalProduit - t.totalTransfere;
       }
+    });
+    Object.keys(map).forEach((nomJus) => {
+      const reserve = reserveMap[nomJus] || 0;
+      map[nomJus].totalLivreeCommandes = reserve;
+      map[nomJus].disponible           = map[nomJus].totalProduit - map[nomJus].totalTransfere - reserve;
     });
 
     res.json(Object.values(map));
@@ -345,14 +374,8 @@ export const enregistrerTransfert = async (req, res) => {
     if (!nomJus || !quantite || quantite <= 0)
       return res.status(400).json({ message: "Nom du jus et quantité (> 0) requis." });
 
-    // Calculer le stock PF disponible en atelier
-    const prodAgg = await ProductionPF.aggregate([
-      { $match: { nomJus } }, { $group: { _id: null, total: { $sum: "$quantiteProduite" } } },
-    ]);
-    const transAgg = await TransfertBoutique.aggregate([
-      { $match: { nomJus } }, { $group: { _id: null, total: { $sum: "$quantite" } } },
-    ]);
-    const disponible = (prodAgg[0]?.total || 0) - (transAgg[0]?.total || 0);
+    // Calculer le stock PF disponible en atelier (production - transferts - commandes livrées)
+    const disponible = await calcStockPFAtelier(nomJus);
 
     if (quantite > disponible)
       return res.status(400).json({
@@ -370,8 +393,8 @@ export const enregistrerTransfert = async (req, res) => {
       dateTransfert: new Date(),
     });
 
-    // Vérifier le seuil PF après le transfert
-    const stockApres = disponible - quantite;
+    // Vérifier le seuil PF après le transfert (disponible déjà calculé avec les commandes livrées)
+    const stockApres = parseFloat((disponible - quantite).toFixed(2));
     const recette = await Recette.findOne({ nomJus });
     if (recette && recette.seuilMinPF > 0 && stockApres <= recette.seuilMinPF) {
       const existingNotif = await Notification.findOne({ typeMP: nomJus, categorie: "PF", luAtelier: false });
@@ -403,13 +426,7 @@ export const getDisponiblePF = async (req, res) => {
     const { nomJus } = req.query;
     if (!nomJus) return res.status(400).json({ message: "nomJus requis." });
 
-    const prodAgg = await ProductionPF.aggregate([
-      { $match: { nomJus } }, { $group: { _id: null, total: { $sum: "$quantiteProduite" } } },
-    ]);
-    const transAgg = await TransfertBoutique.aggregate([
-      { $match: { nomJus } }, { $group: { _id: null, total: { $sum: "$quantite" } } },
-    ]);
-    const disponible = (prodAgg[0]?.total || 0) - (transAgg[0]?.total || 0);
+    const disponible = await calcStockPFAtelier(nomJus);
     res.json({ nomJus, disponible });
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });

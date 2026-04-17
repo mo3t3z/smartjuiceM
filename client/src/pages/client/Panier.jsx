@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
-import { getPanier, savePanier, authHeader, API_COMMANDES } from "../../utils/api";
+import { getPanier, savePanier, authHeader, API_COMMANDES, SEUIL_REMISE, TAUX_REMISE } from "../../utils/api";
 import "./Panier.css";
-
-const SEUIL_REMISE = 200;
-const TAUX_REMISE  = 0.10;
 
 // PB18 — Gestion du panier (Client)
 // PB19 — Passer une commande en ligne (Client)

@@ -36,27 +36,7 @@ const recalculerStockDepuisDB = async (nomJus) => {
   ]);
   const totalVendu = ventesAgg[0]?.total || 0;
 
-  const commandesAgg = await Commande.aggregate([
-    { $match: { statut: "livree" } },
-    { $unwind: "$produits" },
-    { $match: { "produits.nom": nomJus } },
-    {
-      $group: {
-        _id: null,
-        total: {
-          $sum: {
-            $multiply: [
-              "$produits.quantite",
-              { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
-            ],
-          },
-        },
-      },
-    },
-  ]);
-  const totalLivre = commandesAgg[0]?.total || 0;
-
-  return parseFloat((totalRecu - totalVendu - totalLivre).toFixed(2));
+  return parseFloat((totalRecu - totalVendu).toFixed(2));
 };
 
 /* ═══════════════════════════════════════════════════════════════

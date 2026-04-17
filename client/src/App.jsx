@@ -35,7 +35,6 @@ import Panier from "./pages/client/Panier.jsx";
 import CommandeCheckout from "./pages/client/CommandeCheckout.jsx";
 import MesCommandes from "./pages/client/MesCommandes.jsx";
 import GererCommandes from "./pages/manager/GererCommandes.jsx";
-import DashboardVentes from "./pages/manager/DashboardVentes.jsx";
 import HistoriqueVentes from "./pages/manager/HistoriqueVentes.jsx";
 import NouvelleVente from "./pages/seller/NouvelleVente.jsx";
 import NouvelleCommandePhysique from "./pages/seller/NouvelleCommandePhysique.jsx";
@@ -81,7 +80,6 @@ export default function App() {
         <Route path="stocks/pf" element={<ManagerStockPF />} />
         <Route path="stocks/boutique" element={<ManagerStockBoutique />} />
         <Route path="commandes" element={<GererCommandes />} />
-        <Route path="dashboard-ventes" element={<DashboardVentes />} />
         <Route path="ventes" element={<HistoriqueVentes />} />
       </Route>
 

@@ -5,8 +5,18 @@ import Vente from "../models/Vente.js";
 import Product from "../models/Product.js";
 import Recette from "../models/Recette.js";
 import Notification from "../models/Notification.js";
-import StockBoutique from "../models/StockBoutique.js";
-import { calcStockBoutique, ajouterStockBoutique, verifierAlerteBoutique } from "../services/stockBoutiqueService.js";
+import { calcStockPFAtelier, verifierAlertePF } from "../services/stockPFService.js";
+
+const SEUIL_REMISE    = 200;
+const TAUX_REMISE     = 0.10;
+const FRAIS_LIVRAISON = 3;
+
+const isPastDateTime = (dateStr, heureStr) => {
+  const [h, min] = heureStr.split(":").map(Number);
+  const dt = new Date(dateStr);
+  dt.setHours(h, min, 0, 0);
+  return dt <= new Date();
+};
 
 /* ═══════════════════════════════════════════════════════════════
    PB19 — CRÉER UNE COMMANDE EN LIGNE (Client)
@@ -26,11 +36,7 @@ export const creerCommandeEnLigne = async (req, res) => {
     if (!heureRetrait) {
       return res.status(400).json({ message: "L'heure de retrait est obligatoire." });
     }
-    // Vérifier que la date+heure ne sont pas dans le passé
-    const [h, min] = heureRetrait.split(":").map(Number);
-    const dateHeureDemande = new Date(dateRetrait);
-    dateHeureDemande.setHours(h, min, 0, 0);
-    if (dateHeureDemande <= new Date()) {
+    if (isPastDateTime(dateRetrait, heureRetrait)) {
       return res.status(400).json({ message: "La date et l'heure choisies sont déjà passées." });
     }
 
@@ -66,13 +72,15 @@ export const creerCommandeEnLigne = async (req, res) => {
     }
 
     const frais = mode === "livraison" ? parseFloat(fraisLivraison) || 0 : 0;
+    const remiseEnLigne = total > SEUIL_REMISE ? parseFloat((total * TAUX_REMISE).toFixed(3)) : 0;
 
     const commande = await Commande.create({
       client: req.user._id,
       nomClient: `${req.user.prenom || ""} ${req.user.nom || ""}`.trim() || req.user.email,
       telephone: req.user.telephone || "",
       produits: produitsDetails,
-      total: parseFloat((total + frais).toFixed(2)),
+      remise: remiseEnLigne,
+      total: parseFloat((total - remiseEnLigne + frais).toFixed(3)),
       statut: "en_attente",
       type: "en_ligne",
       modeRemise: mode,
@@ -134,6 +142,7 @@ export const getToutesCommandes = async (req, res) => {
     const commandes = await Commande.find(filtre)
       .populate("client", "email nom prenom telephone")
       .populate("enregistrePar", "email nom prenom")
+      .populate("livreePar", "email nom prenom role")
       .sort({ createdAt: -1 });
 
     res.json(commandes);
@@ -210,7 +219,7 @@ export const refuserCommande = async (req, res) => {
 export const getCommandesConfirmees = async (req, res) => {
   try {
     const { date, mois } = req.query; // date="YYYY-MM-DD" | mois="YYYY-MM"
-    const filtre = { statut: { $in: ["validee", "prete"] } };
+    const filtre = { statut: { $in: ["validee", "prete", "livree"] } };
 
     if (date) {
       const debut = new Date(date);
@@ -236,45 +245,38 @@ export const getCommandesConfirmees = async (req, res) => {
   }
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   METTRE EN PRÉPARATION (Atelier)
-═══════════════════════════════════════════════════════════════ */
-export const mettreEnPreparation = async (req, res) => {
-  try {
-    const commande = await Commande.findById(req.params.id);
-    if (!commande) return res.status(404).json({ message: "Commande introuvable." });
-    if (commande.statut !== "validee") {
-      return res.status(400).json({ message: "La commande doit être validée pour passer en préparation." });
-    }
-
-    commande.statut = "en_preparation";
-    await commande.save();
-
-    if (commande.client) {
-      await NotificationClient.create({
-        client: commande.client,
-        commande: commande._id,
-        statut: "en_preparation",
-        message: `Votre commande #${commande._id.toString().slice(-6).toUpperCase()} est en cours de préparation.`,
-      });
-    }
-
-    res.json({ message: "Commande mise en préparation.", commande });
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
 
 /* ═══════════════════════════════════════════════════════════════
    MARQUER COMME PRÊTE (Atelier)
-   → L'atelier signale que la commande est prête à être remise
+   → Vérifie le stock PF atelier puis signale que la commande est prête
 ═══════════════════════════════════════════════════════════════ */
 export const marquerPrete = async (req, res) => {
   try {
     const commande = await Commande.findById(req.params.id);
     if (!commande) return res.status(404).json({ message: "Commande introuvable." });
-    if (!["validee", "en_preparation"].includes(commande.statut)) {
+    if (commande.statut !== "validee") {
       return res.status(400).json({ message: "La commande doit être validée pour être marquée prête." });
+    }
+
+    // Vérifier que le stock PF atelier est suffisant pour chaque produit
+    const stockInsuffisant = [];
+    for (const p of commande.produits) {
+      const litresRequis = (p.volume === "1L" ? 1 : 0.5) * p.quantite;
+      const stockActuel = await calcStockPFAtelier(p.nom);
+      if (stockActuel < litresRequis) {
+        stockInsuffisant.push({
+          nom: p.nom,
+          volume: p.volume,
+          requis: litresRequis,
+          disponible: parseFloat(stockActuel.toFixed(2)),
+        });
+      }
+    }
+    if (stockInsuffisant.length > 0) {
+      return res.status(400).json({
+        message: "Stock PF atelier insuffisant pour marquer cette commande prête.",
+        stockInsuffisant,
+      });
     }
 
     commande.statut = "prete";
@@ -283,7 +285,7 @@ export const marquerPrete = async (req, res) => {
     if (commande.client) {
       const modeMsg = commande.modeRemise === "livraison"
         ? "Votre commande est prête et sera livrée bientôt."
-        : "Votre commande est prête. Vous pouvez la récupérer en boutique.";
+        : "Votre commande est prête. Vous pouvez venir la récupérer.";
       await NotificationClient.create({
         client: commande.client,
         commande: commande._id,
@@ -320,6 +322,7 @@ export const marquerLivree = async (req, res) => {
     }
 
     commande.statut = "livree";
+    commande.livreePar = req.user._id;
     await commande.save();
 
     if (commande.client) {
@@ -331,16 +334,20 @@ export const marquerLivree = async (req, res) => {
       });
     }
 
-    // Décrémenter le stock boutique pour chaque produit livré
-    for (const p of commande.produits) {
-      const litres = (p.volume === "1L" ? 1 : 0.5) * p.quantite;
-      await ajouterStockBoutique(p.nom, -litres);
-    }
+    // Notification pour le gérant
+    const typeCommande = commande.type === "en_ligne" ? "En ligne" : "Physique";
+    const livrePar = `${req.user.prenom || ""} ${req.user.nom || ""}`.trim() || req.user.email;
+    await Notification.create({
+      categorie: "COMMANDE",
+      commandeRef: commande._id,
+      message: `Commande #${commande._id.toString().slice(-6).toUpperCase()} (${typeCommande}) a été livrée par ${livrePar}.`,
+      luManager: false,
+    });
 
-    // Vérifier les alertes boutique pour chaque produit de la commande (PB26)
+    // Vérifier les alertes PF atelier après la livraison (le StockPF est calculé dynamiquement)
     const nomsJus = [...new Set(commande.produits.map((p) => p.nom))];
     for (const nomJus of nomsJus) {
-      await verifierAlerteBoutique(nomJus);
+      await verifierAlertePF(nomJus);
     }
 
     res.json({ message: "Commande marquée comme livrée.", commande });
@@ -377,11 +384,7 @@ export const creerCommandePhysique = async (req, res) => {
     if (!heureRetrait) {
       return res.status(400).json({ message: "L'heure est obligatoire." });
     }
-    // Vérifier que la date+heure n'est pas dans le passé
-    const [h, min] = heureRetrait.split(":").map(Number);
-    const dateHeureDemande = new Date(dateRetrait);
-    dateHeureDemande.setHours(h, min, 0, 0);
-    if (dateHeureDemande <= new Date()) {
+    if (isPastDateTime(dateRetrait, heureRetrait)) {
       return res.status(400).json({ message: "La date et l'heure choisies sont déjà passées." });
     }
     const mode = modeRemise === "livraison" ? "livraison" : "retrait";
@@ -410,9 +413,9 @@ export const creerCommandePhysique = async (req, res) => {
       });
     }
 
-    const remise = sousTotal > 200 ? sousTotal * 0.10 : 0;
-    const frais  = mode === "livraison" ? (fraisLivraison || 3) : 0;
-    const total  = parseFloat((sousTotal - remise + frais).toFixed(2));
+    const remise = sousTotal > SEUIL_REMISE ? parseFloat((sousTotal * TAUX_REMISE).toFixed(3)) : 0;
+    const frais  = mode === "livraison" ? (fraisLivraison || FRAIS_LIVRAISON) : 0;
+    const total  = parseFloat((sousTotal - remise + frais).toFixed(3));
 
     const commande = await Commande.create({
       nomClient: nomClient.trim(),
@@ -423,6 +426,7 @@ export const creerCommandePhysique = async (req, res) => {
       dateRetrait: new Date(dateRetrait),
       heureRetrait: heureRetrait || "",
       produits: produitsDetails,
+      remise,
       total,
       statut: "validee",   // commande physique = validée automatiquement
       type: "physique",
@@ -503,7 +507,7 @@ export const genererRecuCommande = async (req, res) => {
       doc.text(`Adresse : ${commande.adresseLivraison}`);
       if (commande.telephoneLivraison) doc.text(`Tél livraison : ${commande.telephoneLivraison}`);
     } else {
-      doc.text("Retrait en boutique");
+      doc.text("Récupération");
     }
 
     // ── Tableau des produits ─────────────────────────────────────
@@ -541,10 +545,23 @@ export const genererRecuCommande = async (req, res) => {
     doc.moveDown(0.3);
     doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
     doc.moveDown(0.5);
-    if (commande.modeRemise === "livraison" && commande.fraisLivraison > 0) {
-      const sousTotal = commande.total - commande.fraisLivraison;
-      doc.fontSize(11).font("Helvetica").text(`Sous-total : ${sousTotal.toFixed(2)} DT`, { align: "right" });
-      doc.fontSize(11).font("Helvetica").text(`Frais de livraison : ${commande.fraisLivraison.toFixed(2)} DT`, { align: "right" });
+
+    // Recalculer le sous-total brut (avant remise et frais)
+    const sousTotalBrut = commande.produits.reduce((s, p) => s + p.quantite * p.prixUnitaire, 0);
+    const remiseMontant = commande.remise || 0;
+    const fraisMontant  = commande.fraisLivraison || 0;
+
+    const afficherDetails = remiseMontant > 0 || fraisMontant > 0;
+    if (afficherDetails) {
+      doc.fontSize(11).font("Helvetica").text(`Sous-total : ${sousTotalBrut.toFixed(2)} DT`, { align: "right" });
+      if (remiseMontant > 0) {
+        doc.fontSize(11).font("Helvetica").fillColor("green")
+          .text(`Remise (10%) : − ${remiseMontant.toFixed(2)} DT`, { align: "right" });
+        doc.fillColor("black");
+      }
+      if (fraisMontant > 0) {
+        doc.fontSize(11).font("Helvetica").text(`Frais de livraison : + ${fraisMontant.toFixed(2)} DT`, { align: "right" });
+      }
       doc.moveDown(0.2);
     }
     doc.fontSize(14).font("Helvetica-Bold").text(`TOTAL : ${commande.total.toFixed(2)} DT`, { align: "right" });

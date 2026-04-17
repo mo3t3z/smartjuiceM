@@ -1,3 +1,16 @@
+// ── Business constants ────────────────────────────────────────────────────────
+export const SEUIL_REMISE   = 200;
+export const TAUX_REMISE    = 0.10;
+export const FRAIS_LIVRAISON = 3;
+
+// Returns true if the date+time combo is already in the past
+export const isPastDateTime = (dateStr, heureStr) => {
+  const [h, min] = heureStr.split(":").map(Number);
+  const dt = new Date(dateStr);
+  dt.setHours(h, min, 0, 0);
+  return dt <= new Date();
+};
+
 export const API_WORKSHOP  = "http://localhost:5000/api/workshop";
 export const API_MANAGER   = "http://localhost:5000/api/manager";
 export const API_SELLER    = "http://localhost:5000/api/seller";

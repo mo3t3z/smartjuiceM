@@ -88,11 +88,9 @@ export default function MesCommandes() {
   const statutConfig = {
     en_attente:     { label: "En attente",     couleur: "gray"   },
     validee:        { label: "En cours",        couleur: "blue"   },
-    en_preparation: { label: "En cours",        couleur: "blue"   },
     prete:          { label: "Prête",           couleur: "teal"   },
     livree:         { label: "Livrée",          couleur: "green"  },
     refusee:        { label: "Refusée",         couleur: "red"    },
-    annulee:        { label: "Annulée",         couleur: "red"    },
   };
 
   const formatDate = (dateStr) =>
@@ -303,8 +301,13 @@ export default function MesCommandes() {
                                 <span className="mc-detail-mode">
                                   {cmd.modeRemise === "livraison"
                                     ? `Livraison — ${cmd.adresseLivraison}`
-                                    : "Retrait en boutique"}
+                                    : "Récupération"}
                                 </span>
+                                {cmd.remise > 0 && (
+                                  <span className="mc-detail-remise">
+                                    Remise (10%) : − {cmd.remise.toFixed(3)} DT
+                                  </span>
+                                )}
                                 {cmd.modeRemise === "livraison" && cmd.fraisLivraison > 0 && (
                                   <span className="mc-detail-frais">
                                     Frais : {cmd.fraisLivraison.toFixed(3)} DT

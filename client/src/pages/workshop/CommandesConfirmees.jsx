@@ -54,6 +54,24 @@ export default function CommandesConfirmees() {
       afficherMessage("Commande marquée comme prête.", "succes");
       fetchCommandes(modeFiltre === "date" ? `date=${dateRecherche}` : `mois=${moisRecherche}`);
     } catch (err) {
+      const data = err.response?.data;
+      if (data?.stockInsuffisant?.length > 0) {
+        const details = data.stockInsuffisant
+          .map((s) => `${s.nom} (${s.volume}) : requis ${s.requis}L, disponible ${s.disponible}L`)
+          .join(" | ");
+        afficherMessage(`Stock insuffisant — ${details}`, "erreur");
+      } else {
+        afficherMessage(data?.message || "Erreur.", "erreur");
+      }
+    }
+  };
+
+  const marquerLivree = async (id) => {
+    try {
+      await axios.put(`${API_COMMANDES}/${id}/livree`, {}, { headers: authHeader() });
+      afficherMessage("Commande marquée comme livrée. Stock déduit.", "succes");
+      fetchCommandes(modeFiltre === "date" ? `date=${dateRecherche}` : `mois=${moisRecherche}`);
+    } catch (err) {
       afficherMessage(err.response?.data?.message || "Erreur.", "erreur");
     }
   };
@@ -143,18 +161,19 @@ export default function CommandesConfirmees() {
                   cmd.client
                     ? `${cmd.client.prenom || ""} ${cmd.client.nom || ""}`.trim() || cmd.client.email
                     : cmd.nomClient || "Client boutique";
-                const isPrete = cmd.statut === "prete";
+                const isPrete  = cmd.statut === "prete";
+                const isLivree = cmd.statut === "livree";
 
                 return (
-                  <div key={cmd._id} className={`cc-card ${isPrete ? "cc-card--green" : "cc-card--blue"}`}>
+                  <div key={cmd._id} className={`cc-card ${isLivree ? "cc-card--grey" : isPrete ? "cc-card--green" : "cc-card--blue"}`}>
                     <div className="cc-card-header">
                       <div className="cc-card-ids">
                         <span className="cc-cmd-id">#{cmd._id.slice(-8).toUpperCase()}</span>
                         <span className={`cc-type cc-type--${cmd.type}`}>
                           {cmd.type === "en_ligne" ? "En ligne" : "Boutique"}
                         </span>
-                        <span className={`cc-statut ${isPrete ? "cc-statut--green" : "cc-statut--blue"}`}>
-                          {isPrete ? "Prête" : "À préparer"}
+                        <span className={`cc-statut ${isLivree ? "cc-statut--grey" : isPrete ? "cc-statut--green" : "cc-statut--blue"}`}>
+                          {isLivree ? "Livrée" : isPrete ? "Prête" : "À préparer"}
                         </span>
                       </div>
                       <span className="cc-cmd-date">{formatDate(cmd.createdAt)}</span>
@@ -170,7 +189,7 @@ export default function CommandesConfirmees() {
                     {cmd.dateRetrait && (
                       <div className="cc-date-retrait-row">
                         <span className={`cc-remise-badge cc-remise-badge--${cmd.modeRemise}`}>
-                          {cmd.modeRemise === "livraison" ? "Livraison" : "Retrait boutique"}
+                          {cmd.modeRemise === "livraison" ? "Livraison" : "Récupération"}
                         </span>
                         <span className="cc-date-retrait-val">
                           {formatDateRetrait(cmd.dateRetrait)}
@@ -193,13 +212,18 @@ export default function CommandesConfirmees() {
                     </div>
 
                     <div className="cc-card-footer">
+                      {cmd.remise > 0 && (
+                        <span className="cc-remise">Remise (10%) : − {cmd.remise.toFixed(2)} DT</span>
+                      )}
                       <span className="cc-total">Total : {cmd.total.toFixed(2)} DT</span>
-                      {!isPrete ? (
+                      {isLivree ? null : !isPrete ? (
                         <button className="cc-btn-prete" onClick={() => marquerPrete(cmd._id)}>
                           Marquer prête
                         </button>
                       ) : (
-                        <span className="cc-prete-label">Prête — en attente de remise</span>
+                        <button className="cc-btn-livree" onClick={() => marquerLivree(cmd._id)}>
+                          Marquer livrée
+                        </button>
                       )}
                     </div>
                   </div>

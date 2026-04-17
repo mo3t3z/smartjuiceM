@@ -7,7 +7,6 @@ import {
   validerCommande,
   refuserCommande,
   getCommandesConfirmees,
-  mettreEnPreparation,
   marquerPrete,
   marquerLivree,
   creerCommandePhysique,
@@ -25,6 +24,7 @@ import {
   isWorkshop,
   isSellerOrManager,
   isWorkshopOrManager,
+  isWorkshopOrSellerOrManager,
 } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -44,16 +44,14 @@ router.get("/toutes", authenticate, isManager, getToutesCommandes);
 router.put("/:id/valider", authenticate, isManager, validerCommande);
 // PB20 : Refuser une commande
 router.put("/:id/refuser", authenticate, isManager, refuserCommande);
-// Marquer comme livrée (gérant ou vendeur)
-router.put("/:id/livree", authenticate, isSellerOrManager, marquerLivree);
+// Marquer comme livrée (atelier, vendeur ou gérant)
+router.put("/:id/livree", authenticate, isWorkshopOrSellerOrManager, marquerLivree);
 // PB25 : Dashboard ventes
 router.get("/dashboard", authenticate, isManager, getDashboardVentes);
 
 // ── Routes Atelier (PB23) ────────────────────────────────────────────────────
 // PB23 : Commandes confirmées à préparer
 router.get("/confirmees", authenticate, isWorkshopOrManager, getCommandesConfirmees);
-// Mettre en préparation
-router.put("/:id/en-preparation", authenticate, isWorkshop, mettreEnPreparation);
 // Marquer comme prête (atelier)
 router.put("/:id/prete", authenticate, isWorkshop, marquerPrete);
 

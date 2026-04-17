@@ -65,7 +65,7 @@ export default function QuantiteProduire() {
     try {
       const res = await fetch(`${API}/productions`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` },
+        headers: { "Content-Type": "application/json", ...authHeader() },
         body: JSON.stringify({ nomJus, quantiteLitres: Number(quantite) }),
       });
       const data = await res.json();

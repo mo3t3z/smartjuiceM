@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { authHeader, API_VENTES } from "../../utils/api";
+import { authHeader, API_VENTES, SEUIL_REMISE, TAUX_REMISE } from "../../utils/api";
 import "./NouvelleVente.css";
 
 // PB24 — Enregistrer une vente en boutique + reçu PDF (Vendeur)
@@ -73,7 +73,7 @@ export default function NouvelleVente() {
 
   // Total de la vente
   const totalBrut = panier.reduce((acc, p) => acc + p.prix * p.quantite, 0);
-  const escompte = totalBrut > 200 ? totalBrut * 0.1 : 0;
+  const escompte = totalBrut > SEUIL_REMISE ? totalBrut * TAUX_REMISE : 0;
   const total = totalBrut - escompte;
 
   // Enregistrer la vente

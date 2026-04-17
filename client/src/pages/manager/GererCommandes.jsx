@@ -10,7 +10,6 @@ export default function GererCommandes() {
   const [commandes, setCommandes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtreStatut, setFiltreStatut] = useState("");
-  const [filtreType, setFiltreType] = useState("");
   const [message, setMessage] = useState({ texte: "", type: "" });
 
   const afficherMessage = (texte, type) => {
@@ -24,14 +23,13 @@ export default function GererCommandes() {
 
   useEffect(() => {
     fetchCommandes();
-  }, [filtreStatut, filtreType]);
+  }, [filtreStatut]);
 
   const fetchCommandes = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (filtreStatut) params.append("statut", filtreStatut);
-      if (filtreType) params.append("type", filtreType);
 
       const res = await axios.get(`${API_COMMANDES}/toutes?${params}`, {
         headers: authHeader(),
@@ -103,7 +101,6 @@ export default function GererCommandes() {
     en_attente:     { label: "En attente",     couleur: "orange" },
     validee:        { label: "Validée",         couleur: "blue"   },
     refusee:        { label: "Refusée",         couleur: "red"    },
-    en_preparation: { label: "En préparation",  couleur: "purple" },
     prete:          { label: "Prête",           couleur: "teal"   },
     livree:         { label: "Livrée",          couleur: "green"  },
   };
@@ -136,6 +133,7 @@ export default function GererCommandes() {
           <option value="validee">Validée</option>
           <option value="refusee">Refusée</option>
           <option value="prete">Prête</option>
+          <option value="livree">Livrée</option>
         </select>
 
 <button className="gc-refresh-btn" onClick={fetchCommandes}>↻ Actualiser</button>
@@ -184,7 +182,7 @@ export default function GererCommandes() {
                         )}
                       </div>
                     ) : (
-                      <span className="gc-remise-badge gc-remise-badge--retrait">Retrait boutique</span>
+                      <span className="gc-remise-badge gc-remise-badge--retrait">Récupération</span>
                     )}
                     {cmd.dateRetrait && (
                       <div className="gc-date-retrait">
@@ -205,17 +203,20 @@ export default function GererCommandes() {
                         <span className="gc-prod-nom">{p.nom}</span>
                         <span className="gc-prod-vol">{p.volume}</span>
                         <span className="gc-prod-qte">× {p.quantite}</span>
-                        <span className="gc-prod-prix">{(p.prixUnitaire * p.quantite).toFixed(2)} DT</span>
+                        <span className="gc-prod-prix">{(p.prixUnitaire * p.quantite).toFixed(3)} DT</span>
                       </div>
                     ))}
                   </div>
 
                   <div className="gc-card-footer">
                     <div className="gc-totaux">
-                      {cmd.modeRemise === "livraison" && cmd.fraisLivraison > 0 && (
-                        <span className="gc-frais">Frais livraison : {cmd.fraisLivraison.toFixed(2)} DT</span>
+                      {cmd.remise > 0 && (
+                        <span className="gc-remise">Remise (10%) : − {cmd.remise.toFixed(3)} DT</span>
                       )}
-                      <span className="gc-total">Total : {cmd.total.toFixed(2)} DT</span>
+                      {cmd.modeRemise === "livraison" && cmd.fraisLivraison > 0 && (
+                        <span className="gc-frais">Frais livraison : {cmd.fraisLivraison.toFixed(3)} DT</span>
+                      )}
+                      <span className="gc-total">Total : {cmd.total.toFixed(3)} DT</span>
                     </div>
 
                     {/* Actions selon statut */}
@@ -232,6 +233,17 @@ export default function GererCommandes() {
                       )}
                       {cmd.statut === "refusee" && cmd.commentaireRefus && (
                         <span className="gc-refus-raison">Motif : {cmd.commentaireRefus}</span>
+                      )}
+                      {cmd.statut === "livree" && cmd.livreePar && (
+                        <span className="gc-livree-par">
+                          Livré par : <strong>
+                            {cmd.livreePar.prenom || cmd.livreePar.nom
+                              ? `${cmd.livreePar.prenom || ""} ${cmd.livreePar.nom || ""}`.trim()
+                              : cmd.livreePar.email}
+                          </strong>
+                          {" "}({cmd.livreePar.email})
+                          {" — "}{cmd.livreePar.role === "workshop" ? "Atelier" : cmd.livreePar.role === "seller" ? "Vendeur" : "Gérant"}
+                        </span>
                       )}
                       {["validee", "refusee", "prete", "livree"].includes(cmd.statut) && (
                         <button className="gc-btn gc-btn--pdf" onClick={() => telechargerRecu(cmd._id)}>

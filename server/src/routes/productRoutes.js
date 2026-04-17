@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import {
   getAllProducts,
   getCatalog,
@@ -19,5 +20,16 @@ router.get("/", authenticate, getAllProducts);
 router.post("/", authenticate, isManager, upload.single("image"), createProduct);
 router.put("/:id", authenticate, isManager, upload.single("image"), updateProduct);
 router.delete("/:id", authenticate, isManager, deleteProduct);
+
+// Gestionnaire d'erreurs multer (retourne JSON au lieu de HTML)
+router.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ message: `Erreur d'upload: ${err.message}` });
+  }
+  if (err) {
+    return res.status(400).json({ message: err.message || "Erreur lors de l'upload du fichier" });
+  }
+  next();
+});
 
 export default router;

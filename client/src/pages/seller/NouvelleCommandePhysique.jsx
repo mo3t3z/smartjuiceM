@@ -1,12 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { authHeader, API_COMMANDES, API_PRODUCTS } from "../../utils/api";
+import { authHeader, API_COMMANDES, API_PRODUCTS, SEUIL_REMISE, TAUX_REMISE, FRAIS_LIVRAISON, isPastDateTime } from "../../utils/api";
 import "./NouvelleCommandePhysique.css";
-
-const FRAIS_LIVRAISON = 3;
-const SEUIL_REMISE = 200;
-const TAUX_REMISE = 0.10;
 
 export default function NouvelleCommandePhysique() {
   const navigate = useNavigate();
@@ -49,14 +45,7 @@ export default function NouvelleCommandePhysique() {
   })();
 
   // Vérifie si date + heure est dans le futur (si c'est aujourd'hui)
-  const heureErreurPassee = (() => {
-    if (!date || !heure || dateErreur) return false;
-    const maintenant = new Date();
-    const [h, min] = heure.split(":").map(Number);
-    const dateHeure = new Date(date);
-    dateHeure.setHours(h, min, 0, 0);
-    return dateHeure <= maintenant;
-  })();
+  const heureErreurPassee = !date || !heure || dateErreur ? false : isPastDateTime(date, heure);
 
   useEffect(() => { fetchCatalogue(); }, []);
 
@@ -344,7 +333,7 @@ export default function NouvelleCommandePhysique() {
                   <label className={`ncp-mode-option ${mode === "retrait" ? "ncp-mode-option--active" : ""}`}>
                     <input type="radio" name="mode" value="retrait" checked={mode === "retrait"} onChange={() => setMode("retrait")} />
                     <div className="ncp-mode-content">
-                      <span className="ncp-mode-label">Retrait en boutique</span>
+                      <span className="ncp-mode-label">Récupération</span>
                       <span className="ncp-mode-sub">Le client récupère sa commande lui-même</span>
                     </div>
                   </label>

@@ -89,3 +89,11 @@ export const isWorkshopOrManager = (req, res, next) => {
   }
   next();
 };
+
+// Vérifier que l'utilisateur est atelier, vendeur ou manager
+export const isWorkshopOrSellerOrManager = (req, res, next) => {
+  if (!req.user || !["workshop", "seller", "manager"].includes(req.user.role)) {
+    return res.status(403).json({ message: "Accès interdit: réservé à l'atelier, au vendeur ou au gérant" });
+  }
+  next();
+};

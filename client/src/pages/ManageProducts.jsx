@@ -59,12 +59,12 @@ export default function ManageProducts() {
         await axios.put(
           `${API_PRODUCTS}/${editingId}`,
           data,
-          { headers: { ...authHeader(), "Content-Type": "multipart/form-data" } }
+          { headers: authHeader() }
         );
         setMessage("Produit modifié avec succès !");
       } else {
         await axios.post(API_PRODUCTS, data, {
-          headers: { ...authHeader(), "Content-Type": "multipart/form-data" }
+          headers: authHeader()
         });
         setMessage("Produit créé avec succès !");
       }

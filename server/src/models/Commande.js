@@ -37,7 +37,14 @@ const commandeSchema = new mongoose.Schema(
       },
     ],
 
-    // Montant total de la commande
+    // Remise appliquée (10% si sousTotal > 200 DT)
+    remise: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // Montant total de la commande (après remise et frais)
     total: {
       type: Number,
       required: true,
@@ -47,7 +54,7 @@ const commandeSchema = new mongoose.Schema(
     // Statut de la commande
     statut: {
       type: String,
-      enum: ["en_attente", "validee", "refusee", "en_preparation", "prete", "livree"],
+      enum: ["en_attente", "validee", "refusee", "prete", "livree"],
       default: "en_attente",
     },
 
@@ -97,6 +104,13 @@ const commandeSchema = new mongoose.Schema(
 
     // Vendeur qui a enregistré la commande physique
     enregistrePar: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    // Atelier/vendeur/gérant qui a marqué la commande comme livrée
+    livreePar: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,

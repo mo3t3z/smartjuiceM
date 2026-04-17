@@ -1,12 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
-import { getPanier, savePanier, authHeader, API_COMMANDES } from "../../utils/api";
+import { getPanier, savePanier, authHeader, API_COMMANDES, SEUIL_REMISE, TAUX_REMISE, FRAIS_LIVRAISON, isPastDateTime } from "../../utils/api";
 import "./CommandeCheckout.css";
-
-const SEUIL_REMISE  = 200;
-const TAUX_REMISE   = 0.10;
-const FRAIS_LIVRAISON = 3;
 
 export default function CommandeCheckout() {
   const navigate  = useNavigate();
@@ -42,7 +38,7 @@ export default function CommandeCheckout() {
   const prixTotal = () => panier.reduce((a, i) => a + i.prix * i.quantite, 0);
   const remise    = () => prixTotal() > SEUIL_REMISE ? prixTotal() * TAUX_REMISE : 0;
   const frais     = () => mode === "livraison" ? FRAIS_LIVRAISON : 0;
-  const netAPayer = () => (prixTotal() - remise() + frais()).toFixed(2);
+  const netAPayer = () => (prixTotal() - remise() + frais()).toFixed(3);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,10 +56,7 @@ export default function CommandeCheckout() {
       return;
     }
     // Vérifier que la date+heure ne sont pas dans le passé
-    const [h, min] = heure.split(":").map(Number);
-    const dateHeure = new Date(date);
-    dateHeure.setHours(h, min, 0, 0);
-    if (dateHeure <= new Date()) {
+    if (isPastDateTime(date, heure)) {
       setMessage({ texte: "La date et l'heure choisies sont déjà passées.", type: "erreur" });
       return;
     }
@@ -173,7 +166,7 @@ export default function CommandeCheckout() {
                   onChange={() => setMode("retrait")}
                 />
                 <div className="checkout-mode-content">
-                  <span className="checkout-mode-label">Retrait en boutique</span>
+                  <span className="checkout-mode-label">Récupération</span>
                   <span className="checkout-mode-sub">Je récupère ma commande moi-même</span>
                 </div>
               </label>
@@ -237,18 +230,18 @@ export default function CommandeCheckout() {
           <div className="checkout-recap-table">
             <div className="checkout-recap-row">
               <span>Prix Total</span>
-              <span>{prixTotal().toFixed(2)} DT</span>
+              <span>{prixTotal().toFixed(3)} DT</span>
             </div>
             {remise() > 0 && (
               <div className="checkout-recap-row checkout-recap-row--remise">
                 <span>Remise (10%)</span>
-                <span>− {remise().toFixed(2)} DT</span>
+                <span>− {remise().toFixed(3)} DT</span>
               </div>
             )}
             {mode === "livraison" && (
               <div className="checkout-recap-row">
                 <span>Frais de livraison</span>
-                <span>+ {FRAIS_LIVRAISON.toFixed(2)} DT</span>
+                <span>+ {FRAIS_LIVRAISON.toFixed(3)} DT</span>
               </div>
             )}
             <div className="checkout-recap-row checkout-recap-row--net">
