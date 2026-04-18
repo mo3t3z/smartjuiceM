@@ -22,7 +22,7 @@ export default function MatierePremiere() {
   const addInputRef = useRef(null);
 
   const [form, setForm] = useState({
-    type: "",
+    typeMPId: "",
     quantite: "",
     unite: "kg",
     prixUnitaire: "",
@@ -119,7 +119,7 @@ export default function MatierePremiere() {
         headers: authHeader(),
       });
       setCustomTypes((prev) => prev.filter((t) => t._id !== _id));
-      if (form.type === nom) setForm((f) => ({ ...f, type: "" }));
+      if (form.typeMPId === _id) setForm((f) => ({ ...f, typeMPId: "", unite: "kg" }));
     } catch {
       // silencieux
     } finally {
@@ -131,8 +131,8 @@ export default function MatierePremiere() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "type") {
-      const selected = customTypes.find((t) => t.nom === value);
-      setForm({ ...form, type: value, unite: selected ? selected.unite : form.unite });
+      const selected = customTypes.find((t) => t._id === value);
+      setForm({ ...form, typeMPId: value, unite: selected ? selected.unite : form.unite });
     } else {
       setForm({ ...form, [name]: value });
     }
@@ -143,7 +143,7 @@ export default function MatierePremiere() {
     e.preventDefault();
     setError("");
 
-    if (!form.type) return setError("Veuillez sélectionner un type de matière première.");
+    if (!form.typeMPId) return setError("Veuillez sélectionner un type de matière première.");
     if (!form.quantite || Number(form.quantite) <= 0)
       return setError("La quantité doit être supérieure à 0.");
     if (form.prixUnitaire === "" || Number(form.prixUnitaire) < 0)
@@ -155,9 +155,8 @@ export default function MatierePremiere() {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeader() },
         body: JSON.stringify({
-          type: form.type,
+          typeMP: form.typeMPId,
           quantite: Number(form.quantite),
-          unite: form.unite,
           prixUnitaire: Number(form.prixUnitaire),
           fournisseur: form.fournisseur,
           dateEntree: form.dateEntree,
@@ -167,7 +166,7 @@ export default function MatierePremiere() {
       if (!res.ok) throw new Error(data.message || "Erreur lors de l'enregistrement.");
 
       setSuccess(true);
-      setForm({ type: "", quantite: "", unite: "kg", prixUnitaire: "", fournisseur: "", dateEntree: today });
+      setForm({ typeMPId: "", quantite: "", unite: "kg", prixUnitaire: "", fournisseur: "", dateEntree: today });
       setTimeout(() => setSuccess(false), 3500);
     } catch (err) {
       setError(err.message);
@@ -293,14 +292,14 @@ export default function MatierePremiere() {
 
               <select
                 name="type"
-                value={form.type}
+                value={form.typeMPId}
                 onChange={handleChange}
                 className="mp-select"
                 required
               >
                 <option value="">-- Sélectionner --</option>
                 {customTypes.map((t) => (
-                  <option key={t._id} value={t.nom}>{t.nom}</option>
+                  <option key={t._id} value={t._id}>{t.nom}</option>
                 ))}
               </select>
 

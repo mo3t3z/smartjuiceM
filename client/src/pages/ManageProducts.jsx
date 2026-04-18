@@ -3,8 +3,10 @@ import axios from "axios";
 import "./ManageProducts.css";
 import { API_PRODUCTS, authHeader } from "../utils/api";
 
+
 export default function ManageProducts() {
   const [products, setProducts] = useState([]);
+  const [recettes, setRecettes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -16,27 +18,36 @@ export default function ManageProducts() {
     description: "",
     price: "",
     volume: "1L",
-    available: true
+    available: true,
+    recette: "",
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const fileInputRef = useRef(null);
 
-  // Charger les produits
+  // Charger les produits et les recettes
   useEffect(() => {
     fetchProducts();
+    fetchRecettes();
   }, []);
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get(API_PRODUCTS, {
-        headers: authHeader()
-      });
+      const res = await axios.get(API_PRODUCTS, { headers: authHeader() });
       setProducts(res.data);
       setLoading(false);
     } catch (err) {
       setMessage("Erreur lors du chargement des produits");
       setLoading(false);
+    }
+  };
+
+  const fetchRecettes = async () => {
+    try {
+      const res = await axios.get(`${API_PRODUCTS}/recettes-disponibles`, { headers: authHeader() });
+      setRecettes(res.data);
+    } catch {
+      // silencieux
     }
   };
 
@@ -50,6 +61,7 @@ export default function ManageProducts() {
     data.append("price", formData.price);
     data.append("volume", formData.volume);
     data.append("available", formData.available);
+    if (formData.recette) data.append("recette", formData.recette);
     if (imageFile) {
       data.append("image", imageFile);
     }
@@ -75,7 +87,8 @@ export default function ManageProducts() {
         description: "",
         price: "",
         volume: "1L",
-        available: true
+        available: true,
+        recette: "",
       });
       setImageFile(null);
       setImagePreview("");
@@ -114,7 +127,8 @@ export default function ManageProducts() {
       description: product.description || "",
       price: product.price,
       volume: product.volume || "1L",
-      available: product.available
+      available: product.available,
+      recette: product.recette?._id || "",
     });
     setImageFile(null);
     setImagePreview(product.image || "");
@@ -129,7 +143,8 @@ export default function ManageProducts() {
       description: "",
       price: "",
       volume: "1L",
-      available: true
+      available: true,
+      recette: "",
     });
     setImageFile(null);
     setImagePreview("");
@@ -248,6 +263,23 @@ export default function ManageProducts() {
               <input className="gr-input" value="1L" disabled style={{ background: "#f5f5f5", color: "#888", cursor: "not-allowed" }} />
             </div>
 
+            <div className="form-group">
+              <label>Recette liée (stock boutique)</label>
+              <select
+                value={formData.recette}
+                onChange={(e) => setFormData({ ...formData, recette: e.target.value })}
+                style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}
+              >
+                <option value="">-- Aucune recette liée --</option>
+                {recettes.map((r) => (
+                  <option key={r._id} value={r._id}>{r.nomJus}</option>
+                ))}
+              </select>
+              <small style={{ color: "#888", fontSize: "0.78rem" }}>
+                Lier ce produit à sa recette permet de déduire le stock boutique correctement lors des ventes.
+              </small>
+            </div>
+
             <div className="form-group checkbox-group">
               <label>
                 <input
@@ -312,6 +344,12 @@ export default function ManageProducts() {
                 <div className="product-info">
                   <div className="product-price">{product.price} DT</div>
                   <div className="product-volume">{product.volume}</div>
+                </div>
+
+                <div style={{ fontSize: "12px", color: product.recette ? "#2e7d32" : "#999", marginBottom: "8px" }}>
+                  {product.recette
+                    ? `Recette : ${product.recette.nomJus}`
+                    : "Aucune recette liée"}
                 </div>
                 
 

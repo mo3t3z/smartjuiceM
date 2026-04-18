@@ -1,12 +1,25 @@
 import Product from "../models/Product.js";
+import Recette from "../models/Recette.js";
 //f1: récupérer tous les produits (pour manager),f2: récupérer le catalogue public (pour clients),
 // f3: créer un nouveau produit, f4: modifier un produit, f5: supprimer un produit
 
 // Récupérer tous les produits (pour manager)
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Product.find()
+      .populate("recette", "nomJus")
+      .sort({ createdAt: -1 });
     res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+// Récupérer les recettes disponibles pour le dropdown du manager
+export const getRecettesDisponibles = async (req, res) => {
+  try {
+    const recettes = await Recette.find({}, "_id nomJus").sort({ nomJus: 1 });
+    res.json(recettes);
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
@@ -26,7 +39,7 @@ export const getCatalog = async (req, res) => {
 // Créer un nouveau produit
 export const createProduct = async (req, res) => {
   try {
-    const { name, description, price, volume, available } = req.body;
+    const { name, description, price, volume, available, recette } = req.body;
 
     if (!name || !price) {
       return res.status(400).json({ message: "Nom et prix sont obligatoires" });
@@ -42,10 +55,12 @@ export const createProduct = async (req, res) => {
       price,
       image: imageUrl,
       volume: volume || "1L",
-      available: available !== undefined ? available : true
+      available: available !== undefined ? available : true,
+      recette: recette || null,
     });
 
-    res.status(201).json({ message: "Produit créé avec succès", product });
+    const populated = await product.populate("recette", "nomJus");
+    res.status(201).json({ message: "Produit créé avec succès", product: populated });
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
@@ -55,9 +70,9 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, price, volume, available } = req.body;
+    const { name, description, price, volume, available, recette } = req.body;
 
-    const updateData = { name, description, price, volume, available };
+    const updateData = { name, description, price, volume, available, recette: recette || null };
 
     if (req.file) {
       updateData.image = `http://localhost:5000/uploads/products/${req.file.filename}`;
@@ -67,7 +82,7 @@ export const updateProduct = async (req, res) => {
       id,
       updateData,
       { returnDocument: 'after', runValidators: true }
-    );
+    ).populate("recette", "nomJus");
 
     if (!product) {
       return res.status(404).json({ message: "Produit introuvable" });

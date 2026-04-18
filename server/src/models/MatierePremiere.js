@@ -2,10 +2,10 @@ import mongoose from "mongoose";
 
 const matierePremiereSchema = new mongoose.Schema(
   {
-    type: {
-      type: String,
+    typeMP: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TypeMP",
       required: true,
-      trim: true,
     },
     quantite: {
       type: Number,

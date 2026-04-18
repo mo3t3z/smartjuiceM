@@ -18,7 +18,7 @@ function getTransporter() {
 
 // Fonction pour envoyer l'email de réinitialisation de mot de passe
 export const sendResetPasswordEmail = async (email, resetToken) => {
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+  const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
   
   const mailOptions = {
     from: `SmartJuice <${process.env.EMAIL_USER}>`,

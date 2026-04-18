@@ -12,7 +12,21 @@ import { calcStockPFAtelier } from "../services/stockPFService.js";
 //f1:HELPER --> calcDisponible() 
 const calcDisponible = async () => {
   const regs = await MatierePremiere.aggregate([
-    { $group: { _id: { type: "$type", unite: "$unite" }, total: { $sum: "$quantite" } } },
+    {
+      $lookup: {
+        from: "typemps",
+        localField: "typeMP",
+        foreignField: "_id",
+        as: "typeMPDoc",
+      },
+    },
+    { $unwind: "$typeMPDoc" },
+    {
+      $group: {
+        _id: { type: "$typeMPDoc.nom", unite: "$unite" },
+        total: { $sum: "$quantite" },
+      },
+    },
   ]);
 
   const deds = await ProductionPF.aggregate([
@@ -45,17 +59,25 @@ const calcDisponible = async () => {
 // POST /api/workshop/matieres-premieres
 export const enregistrerMP = async (req, res) => {
   try {
-    const { type, quantite, unite, prixUnitaire, fournisseur, dateEntree } = req.body;
-    if (!type || quantite === undefined || !unite || prixUnitaire === undefined)
-      return res.status(400).json({ message: "Les champs type, quantité, unité et prix unitaire sont obligatoires." });
+    const { typeMP, quantite, prixUnitaire, fournisseur, dateEntree } = req.body;
+    if (!typeMP || quantite === undefined || prixUnitaire === undefined)
+      return res.status(400).json({ message: "Les champs type, quantité et prix unitaire sont obligatoires." });
+
+    const typeDoc = await TypeMP.findById(typeMP);
+    if (!typeDoc)
+      return res.status(400).json({ message: "Type de matière première introuvable." });
 
     const mp = await MatierePremiere.create({
-      type, quantite, unite, prixUnitaire,
+      typeMP,
+      quantite,
+      unite: typeDoc.unite,
+      prixUnitaire,
       fournisseur: fournisseur || "",
       dateEntree: dateEntree ? new Date(dateEntree) : new Date(),
       enregistrePar: req.user._id,
     });
-    res.status(201).json({ message: "Matière première enregistrée avec succès.", mp });
+    const populated = await mp.populate("typeMP", "nom seuilMin unite");
+    res.status(201).json({ message: "Matière première enregistrée avec succès.", mp: populated });
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
@@ -65,6 +87,7 @@ export const enregistrerMP = async (req, res) => {
 export const getStockMP = async (req, res) => {
   try {
     const stock = await MatierePremiere.find()
+      .populate("typeMP", "nom seuilMin unite")
       .populate("enregistrePar", "email nom prenom")
       .sort({ dateEntree: -1 });
     res.json(stock);
@@ -478,8 +501,14 @@ export const getHistoriqueMP = async (req, res) => {
   try {
     const { type } = req.params;
 
+    // Résoudre le nom en ObjectId
+    const typeDoc = await TypeMP.findOne({ nom: type });
+    if (!typeDoc)
+      return res.status(404).json({ message: `Type "${type}" introuvable.` });
+
     // Toutes les entrées en stock pour ce type
-    const additions = await MatierePremiere.find({ type })
+    const additions = await MatierePremiere.find({ typeMP: typeDoc._id })
+      .populate("typeMP", "nom seuilMin unite")
       .populate("enregistrePar", "email nom prenom")
       .sort({ dateEntree: -1 });
 
@@ -565,6 +594,10 @@ export const updateTypeMP = async (req, res) => {
 // DELETE /api/workshop/types-mp/:id
 export const deleteTypeMP = async (req, res) => {
   try {
+    const utilise = await MatierePremiere.exists({ typeMP: req.params.id });
+    if (utilise)
+      return res.status(400).json({ message: "Ce type est utilisé par des matières premières existantes. Impossible de le supprimer." });
+
     const type = await TypeMP.findByIdAndDelete(req.params.id);
     if (!type) return res.status(404).json({ message: "Type non trouvé." });
     res.json({ message: "Type supprimé avec succès." });

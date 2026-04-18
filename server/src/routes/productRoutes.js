@@ -5,7 +5,8 @@ import {
   getCatalog,
   createProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  getRecettesDisponibles,
 } from "../controllers/productController.js";
 import { authenticate, isManager } from "../middleware/authMiddleware.js";
 import upload from "../middleware/uploadMiddleware.js";
@@ -16,6 +17,7 @@ const router = express.Router();
 router.get("/catalog", getCatalog);
 
 // Routes protégées pour le manager
+router.get("/recettes-disponibles", authenticate, isManager, getRecettesDisponibles);
 router.get("/", authenticate, getAllProducts);
 router.post("/", authenticate, isManager, upload.single("image"), createProduct);
 router.put("/:id", authenticate, isManager, upload.single("image"), updateProduct);

@@ -11,12 +11,16 @@ const FAQ_DATA = [
     answer: "Oui, une réduction de 10% est appliquée automatiquement sur toute commande supérieure à 200 DT.",
   },
   {
-    question: "Comment se fait la livraison ?",
-    answer: "La livraison est disponible avec des frais de 3 DT. Vous pouvez aussi choisir de récupérer votre commande directement en boutique sans frais supplémentaires.",
+    question: "Comment passer une commande ?",
+    answer: "Vous pouvez passer une commande de deux façons : via notre site web ou directement en boutique. Notre boutique est située Rue Haj Ali Soua, Ksar Hellal, en face de Tijari Bank.",
   },
   {
-    question: "Où se trouve la boutique ?",
-    answer: "Nous sommes situés Rue Haj Ali Soua, Ksar Hellal, en face de Tijari Bank.",
+    question: "Comment se fait la livraison ou la récupération ?",
+    answer: "La livraison est disponible avec des frais de 3 DT. Si vous choisissez de récupérer votre commande vous-même (sans livraison), vous devez la récupérer à l'atelier.",
+  },
+  {
+    question: "Où se trouve l'atelier de récupération ?",
+    answer: "L'atelier est situé Rue Habib Bourguiba, Ksar Hellal, à côté de l'hôpital de Ksar Hellal. C'est le point de récupération pour toutes les commandes sans livraison.",
   },
   {
     question: "Les jus contiennent-ils des conservateurs ?",
@@ -37,6 +41,10 @@ const FAQ_DATA = [
   {
     question: "Jusqu'à quand puis-je planifier une commande ?",
     answer: "Vous pouvez passer une commande pour une date allant jusqu'à 3 mois à l'avance. Au-delà de cette période, la commande ne peut pas être acceptée.",
+  },
+  {
+    question: "Vous avez d'autres questions ?",
+    answer: "Vous pouvez nous appeler directement sur le numéro 29 221 334.",
   },
 ];
 

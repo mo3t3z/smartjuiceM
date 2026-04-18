@@ -30,6 +30,11 @@ const productSchema = new mongoose.Schema(
     available: {
       type: Boolean,
       default: true
+    },
+    recette: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Recette",
+      default: null
     }
   },
   { timestamps: true }

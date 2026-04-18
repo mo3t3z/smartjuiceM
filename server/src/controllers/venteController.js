@@ -5,26 +5,25 @@ import { calcStockBoutique, ajouterStockBoutique, verifierAlerteBoutique } from 
 import StockBoutique from "../models/StockBoutique.js";
 
 /* ═══════════════════════════════════════════════════════════════
-   HELPER : trouver le nomJus dans StockBoutique correspondant
-   à un nom de produit catalogue (fuzzy match par mots-clés)
+   HELPER : résoudre le nomJus d'un produit via sa recette liée
+   Fallback sur le nom du produit si pas de recette liée
 ═══════════════════════════════════════════════════════════════ */
 const normalize = (s) =>
   s.toLowerCase().replace(/[^a-zàâäéèêëîïôùûüç]/gi, " ").replace(/\s+/g, " ").trim();
 
-const trouverNomJus = async (produitName) => {
+const trouverNomJus = async (produit) => {
+  if (produit.recette?.nomJus) return produit.recette.nomJus;
+  // Fallback : fuzzy match pour les produits sans recette liée
   const stocks = await StockBoutique.find({});
-  const nomProdNorm = normalize(produitName);
+  const nomProdNorm = normalize(produit.name);
   const motsProd = nomProdNorm.split(" ").filter((m) => m.length > 2 && m !== "jus");
-
-  // Chercher l'entrée StockBoutique dont les mots-clés sont tous présents dans le nom produit
   const match = stocks.find((s) => {
     const nomStockNorm = normalize(s.nomJus);
     const motsStock = nomStockNorm.split(" ").filter((m) => m.length > 2 && m !== "jus");
     return motsStock.every((m) => nomProdNorm.includes(m)) ||
            motsProd.every((m) => nomStockNorm.includes(m));
   });
-
-  return match ? match.nomJus : produitName;
+  return match ? match.nomJus : produit.name;
 };
 
 /* ═══════════════════════════════════════════════════════════════
@@ -44,13 +43,13 @@ export const creerVente = async (req, res) => {
     let total = 0;
 
     for (const item of produits) {
-      const produit = await Product.findById(item.produitId);
+      const produit = await Product.findById(item.produitId).populate("recette", "nomJus");
       if (!produit) {
         return res.status(404).json({ message: `Produit introuvable: ${item.produitId}` });
       }
 
-      // Trouver le nomJus correspondant dans StockBoutique (fuzzy match)
-      const nomJus = await trouverNomJus(produit.name);
+      // Trouver le nomJus via la recette liée (exact) ou fuzzy match en fallback
+      const nomJus = await trouverNomJus(produit);
 
       // Vérifier le stock boutique disponible pour ce produit
       const litresParUnite = produit.volume === "1L" ? 1 : 0.5;
@@ -163,23 +162,26 @@ export const getMesVentes = async (req, res) => {
 export const getStockBoutiqueDisponible = async (req, res) => {
   try {
     const stocks = await StockBoutique.find().sort({ nomJus: 1 });
-    const products = await Product.find({});
+    const products = await Product.find({}).populate("recette", "nomJus");
 
     const result = [];
     for (const s of stocks) {
       const dispo = Math.max(0, parseFloat(s.stockActuel.toFixed(2)));
       if (dispo <= 0) continue;
 
-      const nomStockNorm = normalize(s.nomJus);
+      // 1. Cherche d'abord un produit lié via recette.nomJus (exact)
+      let produit = products.find((p) => p.recette?.nomJus === s.nomJus);
 
-      // Cherche un produit catalogue dont le nom contient les mêmes mots
-      const mots = nomStockNorm.split(" ").filter(m => m.length > 2 && m !== "jus");
-      const produit = products.find((p) => {
-        const nomProdNorm = normalize(p.name);
-        return mots.every((m) => nomProdNorm.includes(m));
-      });
+      // 2. Fallback fuzzy si aucun produit lié par recette
+      if (!produit) {
+        const nomStockNorm = normalize(s.nomJus);
+        const mots = nomStockNorm.split(" ").filter(m => m.length > 2 && m !== "jus");
+        produit = products.find((p) => {
+          const nomProdNorm = normalize(p.name);
+          return mots.every((m) => nomProdNorm.includes(m));
+        });
+      }
 
-      // Volume par défaut 1L si pas de produit trouvé
       const volume = produit?.volume || "1L";
       const litresParUnite = volume === "1L" ? 1 : 0.5;
       const unitsDispo = Math.floor(dispo / litresParUnite);
