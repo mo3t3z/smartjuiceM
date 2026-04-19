@@ -77,7 +77,6 @@ export default function TransfertBoutique() {
       <div className="tb-content">
         <div className="tb-card">
           <div className="tb-card-head">
-            <span className="tb-head-icon">Trans</span>
             <div>
               <h2 className="tb-title">Enregistrer Quantité à Transférer vers Boutique</h2>
               <p className="tb-sub">Le stock PF de l'atelier sera réduit en conséquence</p>

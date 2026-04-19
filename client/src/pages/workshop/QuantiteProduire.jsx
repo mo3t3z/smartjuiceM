@@ -89,7 +89,6 @@ export default function QuantiteProduire() {
       <div className="qp-content">
         <div className="qp-card">
           <div className="qp-card-head">
-            <span className="qp-head-icon">Prod</span>
             <div>
               <h2 className="qp-title">Enregistrer Quantité à Produire</h2>
               <p className="qp-sub">Le système calcule automatiquement les matières à déduire du stock MP</p>

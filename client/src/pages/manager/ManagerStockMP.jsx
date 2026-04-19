@@ -124,9 +124,6 @@ export default function ManagerStockMP() {
               return (
                 <div key={type} className={`smp-card ${isNegOrZero ? "smp-card--low" : "smp-card--ok"}`}>
                   <div className="smp-card-top">
-                    <div className="smp-card-icon-wrap">
-                      <span className="smp-card-icon">{type[0]?.toUpperCase()}</span>
-                    </div>
                     <div className={`smp-card-status ${isNegOrZero ? "smp-status--low" : "smp-status--ok"}`}>
                       {isNegOrZero ? "Stock bas" : "En stock"}
                     </div>

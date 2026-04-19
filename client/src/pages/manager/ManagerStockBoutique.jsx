@@ -124,7 +124,6 @@ export default function ManagerStockBoutique() {
               return (
                 <div key={jus.nomJus} className={`spfb-card ${isLow ? "spfb-card--low" : "spfb-card--ok"}`}>
                   <div className="spfb-card-top">
-                    <div className="spfb-card-icon-wrap"><span>{jus.nomJus[0]?.toUpperCase()}</span></div>
                     <div className={`spfb-card-status ${isLow ? "spfb-status--low" : "spfb-status--ok"}`}>
                       {isLow ? "Vide" : "En stock"}
                     </div>

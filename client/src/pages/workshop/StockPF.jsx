@@ -116,9 +116,6 @@ export default function StockPF() {
               return (
                 <div key={jus.nomJus} className={`spf-card ${isLow ? "spf-card--low" : "spf-card--ok"}`}>
                   <div className="spf-card-top">
-                    <div className="spf-card-icon-wrap">
-                      <span>{jus.nomJus[0]?.toUpperCase()}</span>
-                    </div>
                     <div className={`spf-card-status ${isLow ? "spf-status--low" : "spf-status--ok"}`}>
                       {isLow ? "Vide" : "En stock"}
                     </div>

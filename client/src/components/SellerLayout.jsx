@@ -58,7 +58,6 @@ export default function SellerLayout() {
       <aside className="ml-sidebar">
         {/* Brand */}
         <div className="ml-brand" onClick={() => navigate("/seller")}>
-          <span className="ml-logo-icon">SJ</span>
           <div>
             <span className="ml-brand-name">SmartJuice</span>
             <span className="ml-brand-sub">Interface Vendeur</span>

@@ -33,7 +33,6 @@ export default function ManagerStocks() {
 
       {/* Welcome banner */}
       <div className="ms-welcome">
-        <div className="ms-welcome-icon">Stock</div>
         <h2 className="ms-welcome-title">Consulter Stocks</h2>
         <p className="ms-welcome-sub">Choisissez le type de stock à consulter</p>
       </div>
@@ -45,7 +44,6 @@ export default function ManagerStocks() {
             className={`ms-card ms-card--${card.color}`}
             onClick={() => navigate(card.path)}
           >
-            <span className="ms-card-icon">{card.icon}</span>
             <h3 className="ms-card-title">{card.title}</h3>
             <p className="ms-card-desc">{card.description}</p>
             <span className="ms-card-arrow">→</span>

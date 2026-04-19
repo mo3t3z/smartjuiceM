@@ -138,7 +138,6 @@ export default function WorkshopLayout() {
       <aside className="ml-sidebar">
         {/* Brand */}
         <div className="ml-brand" onClick={() => navigate("/workshop")}>
-          <span className="ml-logo-icon">SJ</span>
           <div>
             <span className="ml-brand-name">SmartJuice</span>
             <span className="ml-brand-sub">Interface Atelier</span>

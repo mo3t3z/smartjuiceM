@@ -25,7 +25,6 @@ export default function StockAtelier() {
     <div className="sa-page">
       {/* Welcome banner */}
       <div className="sa-welcome">
-        <div className="sa-welcome-icon">Stock</div>
         <h2 className="sa-welcome-title">Consulter Stock Atelier</h2>
         <p className="sa-welcome-sub">Choisissez le type de stock à consulter</p>
       </div>
@@ -38,7 +37,6 @@ export default function StockAtelier() {
             className={`sa-card sa-card--${card.color}`}
             onClick={() => navigate(card.path)}
           >
-            <span className="sa-card-icon">{card.icon}</span>
             <h3 className="sa-card-title">{card.title}</h3>
             <p className="sa-card-desc">{card.description}</p>
             <span className="sa-card-arrow">→</span>

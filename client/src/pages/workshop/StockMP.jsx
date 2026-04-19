@@ -142,9 +142,6 @@ export default function StockMP() {
               return (
                 <div key={typeObj._id} className={`smp-card ${isNegOrZero ? "smp-card--low" : "smp-card--ok"}`}>
                   <div className="smp-card-top">
-                    <div className="smp-card-icon-wrap">
-                      <span className="smp-card-icon">{nom[0]?.toUpperCase()}</span>
-                    </div>
                     <div className={`smp-card-status ${isNegOrZero ? "smp-status--low" : "smp-status--ok"}`}>
                       {isNegOrZero ? "Stock bas" : "En stock"}
                     </div>

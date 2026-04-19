@@ -257,7 +257,11 @@
   padding: 7px 10px;
   border-radius: 10px;
   background: #f5f6fa;
+  transition: background 0.15s;
 }
+.ml-user--clickable:hover { background: #e8f5e9; }
+.ml-user--active { background: #f0faf0; }
+.ml-user--active .ml-user-avatar { background: #2e7d32; }
 
 .ml-user-avatar {
   width: 28px; height: 28px; border-radius: 50%;

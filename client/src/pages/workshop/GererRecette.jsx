@@ -357,7 +357,6 @@ export default function GererRecette() {
               <div key={r._id} className="gr-card">
                 <div className="gr-card-head">
                   <div className="gr-card-title-row">
-                    <span className="gr-card-icon">{r.nomJus[0]?.toUpperCase()}</span>
                     <h3 className="gr-card-name">{r.nomJus}</h3>
                   </div>
                   <div className="gr-card-actions">
