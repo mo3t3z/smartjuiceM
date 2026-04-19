@@ -5,9 +5,13 @@ import {
   getStockPFResume, getHistoriquePF,
   getStockPFBoutique, getHistoriquePFBoutique,
   getNotificationsManager, marquerNotificationLueManager, marquerToutesLuesManager,
+  getDashboardKPIs,
 } from "../controllers/workshopController.js";
 
 const router = express.Router();
+
+// Dashboard KPIs
+router.get("/dashboard", authenticate, isManager, getDashboardKPIs);
 
 // Notifications
 router.get("/notifications",              authenticate, isManager, getNotificationsManager);

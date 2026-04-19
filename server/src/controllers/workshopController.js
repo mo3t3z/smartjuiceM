@@ -701,3 +701,151 @@ export const previewProduction = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
+
+// ── DASHBOARD KPIs (Manager) ──────────────────────────────────────────────────
+import Vente from "../models/Vente.js";
+
+export const getDashboardKPIs = async (req, res) => {
+  try {
+    const now       = new Date();
+    const debutJour = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const debutMois = new Date(now.getFullYear(), now.getMonth(), 1);
+    const debutHier = new Date(debutJour); debutHier.setDate(debutHier.getDate() - 1);
+    const finHier   = new Date(debutJour);
+
+    // Saison courante
+    const mois = now.getMonth() + 1;
+    let debutSaison;
+    if ([3,4,5].includes(mois))        debutSaison = new Date(now.getFullYear(), 2, 1);
+    else if ([6,7,8].includes(mois))   debutSaison = new Date(now.getFullYear(), 5, 1);
+    else if ([9,10,11].includes(mois)) debutSaison = new Date(now.getFullYear(), 8, 1);
+    else debutSaison = mois === 12
+      ? new Date(now.getFullYear(), 11, 1)
+      : new Date(now.getFullYear() - 1, 11, 1);
+
+    const filtre = req.query.filtre || "mois";
+
+    // KPI 1 — CA du jour + trend vs hier
+    const [caJourRes] = await Vente.aggregate([
+      { $match: { dateVente: { $gte: debutJour } } },
+      { $group: { _id: null, total: { $sum: "$total" } } },
+    ]);
+    const [caHierRes] = await Vente.aggregate([
+      { $match: { dateVente: { $gte: debutHier, $lt: finHier } } },
+      { $group: { _id: null, total: { $sum: "$total" } } },
+    ]);
+    const caJour  = +(caJourRes?.total ?? 0).toFixed(2);
+    const caHier  = +(caHierRes?.total ?? 0).toFixed(2);
+    const trendJour = caHier > 0 ? +(((caJour - caHier) / caHier) * 100).toFixed(1) : null;
+
+    // KPI 2 — CA du mois (ventes + commandes livrées)
+    const [ventesMoisRes] = await Vente.aggregate([
+      { $match: { dateVente: { $gte: debutMois } } },
+      { $group: { _id: null, total: { $sum: "$total" }, count: { $sum: 1 } } },
+    ]);
+    const [commandesMoisRes] = await Commande.aggregate([
+      { $match: { createdAt: { $gte: debutMois }, statut: "livree" } },
+      { $group: { _id: null, total: { $sum: "$total" }, count: { $sum: 1 } } },
+    ]);
+    const caMois = +((ventesMoisRes?.total ?? 0) + (commandesMoisRes?.total ?? 0)).toFixed(2);
+
+    // KPI 3 — Commandes en attente
+    const commandesEnAttente = await Commande.countDocuments({ statut: "en_attente" });
+
+    // KPI 4 — Productions ce mois (litres)
+    const [productionsMoisRes] = await ProductionPF.aggregate([
+      { $match: { dateProduction: { $gte: debutMois } } },
+      { $group: { _id: null, litres: { $sum: "$quantiteProduite" } } },
+    ]);
+    const productionsMois = +(productionsMoisRes?.litres ?? 0).toFixed(2);
+
+    // KPI 5 — Transferts ce mois (litres)
+    const [transfertsMoisRes] = await TransfertBoutique.aggregate([
+      { $match: { dateTransfert: { $gte: debutMois } } },
+      { $group: { _id: null, litres: { $sum: "$quantite" } } },
+    ]);
+    const transfertsMois = +(transfertsMoisRes?.litres ?? 0).toFixed(2);
+
+    // KPI 6 — Panier moyen du mois
+    const totalCA    = (ventesMoisRes?.total ?? 0) + (commandesMoisRes?.total ?? 0);
+    const totalCount = (ventesMoisRes?.count ?? 0) + (commandesMoisRes?.count ?? 0);
+    const panierMoyen = totalCount > 0 ? +(totalCA / totalCount).toFixed(2) : 0;
+
+    // KPI 7 — Produit le plus vendu (filtre: jour/mois/saison)
+    const debutFiltre = filtre === "jour" ? debutJour : filtre === "saison" ? debutSaison : debutMois;
+    const [topProduitRes] = await Vente.aggregate([
+      { $match: { dateVente: { $gte: debutFiltre } } },
+      { $unwind: "$produits" },
+      { $group: { _id: "$produits.nom", totalQte: { $sum: "$produits.quantite" } } },
+      { $sort: { totalQte: -1 } },
+      { $limit: 1 },
+    ]);
+    const topProduit = topProduitRes ? { nom: topProduitRes._id, qte: topProduitRes.totalQte } : null;
+
+    // CHART 1 — CA 7 derniers jours (line chart)
+    const debut7j = new Date(debutJour);
+    debut7j.setDate(debut7j.getDate() - 6);
+    const caParJour = await Vente.aggregate([
+      { $match: { dateVente: { $gte: debut7j } } },
+      { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$dateVente" } }, total: { $sum: "$total" } } },
+      { $sort: { _id: 1 } },
+    ]);
+    const caParJourMap = Object.fromEntries(caParJour.map((d) => [d._id, d.total]));
+    const evolutionCA = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(debutJour);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      evolutionCA.push({ date: key, total: +(caParJourMap[key] ?? 0).toFixed(2) });
+    }
+
+    // CHART 2 — Top 5 produits vendus (bar horizontal)
+    const topProduits = await Vente.aggregate([
+      { $unwind: "$produits" },
+      { $group: { _id: "$produits.nom", totalQte: { $sum: "$produits.quantite" } } },
+      { $sort: { totalQte: -1 } },
+      { $limit: 5 },
+    ]);
+
+    // CHART 3 — Stock MP (disponible vs seuilMin)
+    const types    = await TypeMP.find({});
+    const dispoMap = await calcDisponible();
+    const stockMPChart = types.map((t) => {
+      const keys  = Object.keys(dispoMap).filter((k) => k.startsWith(t.nom + "||"));
+      const dispo = keys.reduce((s, k) => s + (dispoMap[k]?.disponible ?? 0), 0);
+      return { nom: t.nom, disponible: +dispo.toFixed(2), seuil: t.seuilMin, unite: t.unite };
+    });
+
+    // CHART 4 — Stock boutique (stockActuel vs seuilMinBoutique)
+    const recettes         = await Recette.find({}, "nomJus seuilMinBoutique");
+    const stocksBoutique   = await StockBoutique.find({});
+    const stockBoutiqueMap = Object.fromEntries(stocksBoutique.map((s) => [s.nomJus, s.stockActuel]));
+    const stockBoutiqueChart = recettes.map((r) => ({
+      nom: r.nomJus,
+      disponible: +(stockBoutiqueMap[r.nomJus] ?? 0).toFixed(2),
+      seuil: r.seuilMinBoutique ?? 0,
+    }));
+
+    // Alertes
+    const alertesMP       = stockMPChart.filter((s) => s.disponible < s.seuil);
+    const alertesBoutique = stockBoutiqueChart.filter((s) => s.disponible < s.seuil);
+
+    res.json({
+      caJour, caHier, trendJour,
+      caMois,
+      commandesEnAttente,
+      productionsMois,
+      transfertsMois,
+      panierMoyen,
+      topProduit, filtre,
+      evolutionCA,
+      topProduits,
+      stockMPChart,
+      stockBoutiqueChart,
+      alertesMP,
+      alertesBoutique,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
