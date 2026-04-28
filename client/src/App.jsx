@@ -36,6 +36,7 @@ import CommandeCheckout from "./pages/client/CommandeCheckout.jsx";
 import MesCommandes from "./pages/client/MesCommandes.jsx";
 import GererCommandes from "./pages/manager/GererCommandes.jsx";
 import HistoriqueVentes from "./pages/manager/HistoriqueVentes.jsx";
+import ManagerDashboard from "./pages/manager/ManagerDashboard.jsx";
 import NouvelleVente from "./pages/seller/NouvelleVente.jsx";
 import NouvelleCommandePhysique from "./pages/seller/NouvelleCommandePhysique.jsx";
 import CommandesConfirmees from "./pages/workshop/CommandesConfirmees.jsx";
@@ -72,6 +73,7 @@ export default function App() {
       {/* ── Manager (layout avec sidebar persistante) ── */}
       <Route path="/manager" element={<ProtectedRoute allowedRoles={["manager"]}><ManagerLayout /></ProtectedRoute>}>
         <Route index element={<ManagerHome />} />
+        <Route path="dashboard" element={<ManagerDashboard />} />
         <Route path="accounts" element={<ManageAccounts />} />
         <Route path="products" element={<ManageProducts />} />
         <Route path="account" element={<MonCompte />} />

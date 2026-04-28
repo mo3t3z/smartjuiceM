@@ -65,7 +65,7 @@ export default function ManagerLayout() {
         </svg>
       ),
       label: "Tableau de bord",
-      path: "/manager",
+      path: "/manager/dashboard",
       color: "blue",
     },
     {
@@ -128,7 +128,7 @@ export default function ManagerLayout() {
   ];
 
   const isActive = (path) =>
-    path === "/manager" ? pathname === "/manager" : pathname === path || pathname.startsWith(path + "/");
+    pathname === path || (path !== "/manager/dashboard" && pathname.startsWith(path + "/"));
 
   return (
     <div className="ml-layout">

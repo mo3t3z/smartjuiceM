@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
 import "./StockPFBoutique.css";
 import { API_SELLER, authHeader } from "../../utils/api";
-import { fmtDate } from "../../utils/date";
-import { useHistoriquePF } from "../../hooks/useHistoriquePF";
-
 const API = API_SELLER;
 
 export default function StockPFBoutique() {
   const [jusList, setJusList]       = useState([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState("");
-
-  const { histModal, histData, histLoading, openHistorique, closeHistorique } = useHistoriquePF(API);
 
   useEffect(() => {
     fetch(`${API}/stock/pf`, { headers: authHeader() })
@@ -24,46 +19,6 @@ export default function StockPFBoutique() {
 
   return (
     <div className="spfb-page">
-
-      {/* ── Modal Historique ── */}
-      {histModal && (
-        <div className="spfb-overlay">
-          <div className="spfb-hist-modal">
-            <div className="spfb-hist-head">
-              <h3>Historique — <span className="spfb-hist-name">{histModal}</span></h3>
-              <button className="spfb-hist-close" onClick={closeHistorique}>✕</button>
-            </div>
-
-            {histLoading && <div className="spfb-hist-info">Chargement...</div>}
-            {histData?.error && <div className="spfb-hist-info spfb-hist-error">{histData.error}</div>}
-
-            {histData && !histData.error && (() => {
-              const list = histData.transferts || [];
-              return list.length === 0 ? (
-                <div className="spfb-hist-info">Aucun transfert reçu pour ce jus.</div>
-              ) : (
-                <div className="spfb-timeline">
-                  {list.map((t, i) => (
-                    <div key={t._id} className="spfb-event">
-                      <div className="spfb-event-dot" />
-                      <div className="spfb-event-body">
-                        <div className="spfb-event-header">
-                          <span className="spfb-event-badge">Transfert reçu de l'atelier</span>
-                          <span className="spfb-event-date">{fmtDate(t.dateTransfert)}</span>
-                        </div>
-                        <div className="spfb-event-qty">+{t.quantite} L</div>
-                        <div className="spfb-event-details">
-                          <span>Transféré par : <strong>{t.enregistrePar?.email || "—"}</strong></span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-      )}
 
       {/* ── Content ── */}
       <div className="spfb-content">
@@ -109,9 +64,7 @@ export default function StockPFBoutique() {
                     <span>{jus.nbTransferts} transfert{jus.nbTransferts > 1 ? "s" : ""} reçu{jus.nbTransferts > 1 ? "s" : ""}</span>
                   </div>
 
-                  <button className="spfb-hist-btn" onClick={() => openHistorique(jus.nomJus)}>
-                    Voir l'historique
-                  </button>
+
                 </div>
               );
             })}

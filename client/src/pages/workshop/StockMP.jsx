@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import "./StockMP.css";
 import { API_WORKSHOP, authHeader } from "../../utils/api";
-import { fmtDate } from "../../utils/date";
-import { useHistoriqueMP, buildTimelineMP } from "../../hooks/useHistoriqueMP";
-
 const API = API_WORKSHOP;
 
 export default function StockMP() {
@@ -11,8 +8,6 @@ export default function StockMP() {
   const [stockMap, setStockMap]   = useState({});   // { "Oranges||kg": { disponible, unite } }
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState("");
-
-  const { histModal, histData, histLoading, openHistorique, closeHistorique } = useHistoriqueMP(API);
 
   /* ── charger types et stock disponible ── */
   useEffect(() => {
@@ -52,64 +47,6 @@ export default function StockMP() {
 
   return (
     <div className="smp-page">
-
-      {/* ── Modal Historique ── */}
-      {histModal && (
-        <div className="smp-overlay">
-          <div className="smp-hist-modal">
-            <div className="smp-hist-head">
-              <h3>Historique — <span className="smp-hist-type">{histModal}</span></h3>
-              <button className="smp-hist-close" onClick={closeHistorique}>✕</button>
-            </div>
-
-            {histLoading && <div className="smp-hist-loading">Chargement...</div>}
-
-            {histData?.error && (
-              <div className="smp-hist-error">{histData.error}</div>
-            )}
-
-            {histData && !histData.error && (() => {
-              const timeline = buildTimelineMP(histData);
-              return timeline.length === 0 ? (
-                <div className="smp-hist-empty">Aucun mouvement enregistré pour ce type.</div>
-              ) : (
-                <div className="smp-timeline">
-                  {timeline.map((ev, i) => (
-                    <div key={`${ev.id}-${i}`} className={`smp-event smp-event--${ev.kind}`}>
-                      <div className="smp-event-dot" />
-                      <div className="smp-event-body">
-                        <div className="smp-event-header">
-                          <span className={`smp-event-badge ${ev.kind === "addition" ? "smp-badge--add" : "smp-badge--red"}`}>
-                            {ev.kind === "addition" ? "Entrée en stock" : "Déduction production"}
-                          </span>
-                          <span className="smp-event-date">{fmtDate(ev.date)}</span>
-                        </div>
-                        <div className="smp-event-qty">
-                          {ev.kind === "addition" ? "+" : "−"}{ev.quantite} {ev.unite}
-                        </div>
-                        <div className="smp-event-details">
-                          {ev.kind === "addition" ? (
-                            <>
-                              <span>Enregistré par : <strong>{ev.par}</strong></span>
-                              {ev.fournisseur && <span>Fournisseur : <strong>{ev.fournisseur}</strong></span>}
-                              <span>Prix unitaire : <strong>{ev.prix} DT/{ev.unite}</strong></span>
-                            </>
-                          ) : (
-                            <>
-                              <span>Production par : <strong>{ev.par}</strong></span>
-                              <span>Produit : <strong>{ev.qtyProduite}L de {ev.nomJus}</strong></span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-      )}
 
       {/* ── Content ── */}
       <div className="smp-content">
@@ -165,9 +102,7 @@ export default function StockMP() {
                     )}
                   </div>
 
-                  <button className="smp-hist-btn" onClick={() => openHistorique(nom)}>
-                    Voir l'historique
-                  </button>
+
                 </div>
               );
             })}

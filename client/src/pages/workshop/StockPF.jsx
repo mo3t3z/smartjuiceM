@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
 import "./StockPF.css";
 import { API_WORKSHOP, authHeader } from "../../utils/api";
-import { fmtDate } from "../../utils/date";
-import { useHistoriquePF, buildTimelinePF } from "../../hooks/useHistoriquePF";
-
 const API = API_WORKSHOP;
 
 export default function StockPF() {
   const [jusList, setJusList]   = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState("");
-
-  const { histModal, histData, histLoading, openHistorique, closeHistorique } = useHistoriquePF(API);
 
   /* ── charger résumé stock PF ── */
   useEffect(() => {
@@ -34,60 +29,6 @@ export default function StockPF() {
 
   return (
     <div className="spf-page">
-
-      {/* ── Modal Historique ── */}
-      {histModal && (
-        <div className="spf-overlay">
-          <div className="spf-hist-modal">
-            <div className="spf-hist-head">
-              <h3>Historique — <span className="spf-hist-name">{histModal}</span></h3>
-              <button className="spf-hist-close" onClick={closeHistorique}>✕</button>
-            </div>
-
-            {histLoading && <div className="spf-hist-loading">Chargement...</div>}
-            {histData?.error && <div className="spf-hist-error">{histData.error}</div>}
-
-            {histData && !histData.error && (() => {
-              const timeline = buildTimelinePF(histData);
-              return timeline.length === 0 ? (
-                <div className="spf-hist-empty">Aucune production enregistrée pour ce jus.</div>
-              ) : (
-                <div className="spf-timeline">
-                  {timeline.map((ev, i) => (
-                    <div key={`${ev.id}-${i}`} className={`spf-event spf-event--${ev.kind}`}>
-                      <div className="spf-event-dot" />
-                      <div className="spf-event-body">
-                        <div className="spf-event-header">
-                          <span className={`spf-event-badge spf-badge--${ev.kind}`}>
-                            {ev.kind === "production" ? "Production enregistrée" : "Transfert boutique"}
-                          </span>
-                          <span className="spf-event-date">{fmtDate(ev.date)}</span>
-                        </div>
-                        <div className="spf-event-qty">
-                          +{ev.quantite} L
-                        </div>
-                        <div className="spf-event-details">
-                          <span>Enregistré par : <strong>{ev.par}</strong></span>
-                          {ev.kind === "production" && ev.deductions?.length > 0 && (
-                            <span>
-                              MP utilisées :{" "}
-                              {ev.deductions.map((d, j) => (
-                                <span key={j} className="spf-ded-chip">
-                                  {d.quantite} {d.unite} {d.matiere}
-                                </span>
-                              ))}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-      )}
 
       {/* ── Content ── */}
       <div className="spf-content">
@@ -133,9 +74,7 @@ export default function StockPF() {
                     <span>{jus.nbProductions ?? "—"} production{(jus.nbProductions ?? 0) > 1 ? "s" : ""}</span>
                   </div>
 
-                  <button className="spf-hist-btn" onClick={() => openHistorique(jus.nomJus)}>
-                    Voir l'historique
-                  </button>
+
                 </div>
               );
             })}

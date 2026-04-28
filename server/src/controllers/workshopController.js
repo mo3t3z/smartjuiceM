@@ -707,72 +707,61 @@ import Vente from "../models/Vente.js";
 
 export const getDashboardKPIs = async (req, res) => {
   try {
-    const now       = new Date();
-    const debutJour = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const debutMois = new Date(now.getFullYear(), now.getMonth(), 1);
-    const debutHier = new Date(debutJour); debutHier.setDate(debutHier.getDate() - 1);
-    const finHier   = new Date(debutJour);
+    const now          = new Date();
+    const debutJour    = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const debutMois    = new Date(now.getFullYear(), now.getMonth(), 1);
+    const debutSemaine = new Date(debutJour); debutSemaine.setDate(debutSemaine.getDate() - 6);
 
-    // Saison courante
-    const mois = now.getMonth() + 1;
-    let debutSaison;
-    if ([3,4,5].includes(mois))        debutSaison = new Date(now.getFullYear(), 2, 1);
-    else if ([6,7,8].includes(mois))   debutSaison = new Date(now.getFullYear(), 5, 1);
-    else if ([9,10,11].includes(mois)) debutSaison = new Date(now.getFullYear(), 8, 1);
-    else debutSaison = mois === 12
-      ? new Date(now.getFullYear(), 11, 1)
-      : new Date(now.getFullYear() - 1, 11, 1);
+    const filtre      = req.query.filtre || "mois";
+    const debutFiltre = filtre === "jour"    ? debutJour
+                      : filtre === "semaine" ? debutSemaine
+                      : debutMois;
 
-    const filtre = req.query.filtre || "mois";
+    // Période précédente de même durée (pour trend CA)
+    const duree         = Date.now() - debutFiltre.getTime();
+    const debutPrevious = new Date(debutFiltre.getTime() - duree);
 
-    // KPI 1 — CA du jour + trend vs hier
-    const [caJourRes] = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debutJour } } },
+    // ── KPI 1 — CA de la période + trend ────────────────────────────────────
+    const [caPeriodeRes] = await Vente.aggregate([
+      { $match: { dateVente: { $gte: debutFiltre } } },
       { $group: { _id: null, total: { $sum: "$total" } } },
     ]);
-    const [caHierRes] = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debutHier, $lt: finHier } } },
+    const [caPreviousRes] = await Vente.aggregate([
+      { $match: { dateVente: { $gte: debutPrevious, $lt: debutFiltre } } },
       { $group: { _id: null, total: { $sum: "$total" } } },
     ]);
-    const caJour  = +(caJourRes?.total ?? 0).toFixed(2);
-    const caHier  = +(caHierRes?.total ?? 0).toFixed(2);
-    const trendJour = caHier > 0 ? +(((caJour - caHier) / caHier) * 100).toFixed(1) : null;
+    const caPeriode  = +(caPeriodeRes?.total  ?? 0).toFixed(2);
+    const caPrevious = +(caPreviousRes?.total ?? 0).toFixed(2);
+    const trendCA    = caPrevious > 0 ? +(((caPeriode - caPrevious) / caPrevious) * 100).toFixed(1) : null;
 
-    // KPI 2 — CA du mois (ventes + commandes livrées)
-    const [ventesMoisRes] = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debutMois } } },
+    // ── KPI 2 — Panier moyen (ventes + commandes livrées, période) ──────────
+    const [ventesPeriodeRes] = await Vente.aggregate([
+      { $match: { dateVente: { $gte: debutFiltre } } },
       { $group: { _id: null, total: { $sum: "$total" }, count: { $sum: 1 } } },
     ]);
-    const [commandesMoisRes] = await Commande.aggregate([
-      { $match: { createdAt: { $gte: debutMois }, statut: "livree" } },
+    const [commandesPeriodeRes] = await Commande.aggregate([
+      { $match: { createdAt: { $gte: debutFiltre }, statut: "livree" } },
       { $group: { _id: null, total: { $sum: "$total" }, count: { $sum: 1 } } },
     ]);
-    const caMois = +((ventesMoisRes?.total ?? 0) + (commandesMoisRes?.total ?? 0)).toFixed(2);
+    const totalVenteCA    = (ventesPeriodeRes?.total ?? 0) + (commandesPeriodeRes?.total ?? 0);
+    const totalVenteCount = (ventesPeriodeRes?.count ?? 0) + (commandesPeriodeRes?.count ?? 0);
+    const panierMoyen     = totalVenteCount > 0 ? +(totalVenteCA / totalVenteCount).toFixed(2) : 0;
 
-    // KPI 3 — Commandes en attente
-    const commandesEnAttente = await Commande.countDocuments({ statut: "en_attente" });
-
-    // KPI 4 — Productions ce mois (litres)
-    const [productionsMoisRes] = await ProductionPF.aggregate([
-      { $match: { dateProduction: { $gte: debutMois } } },
+    // ── KPI 3 — Volume produit (période) ────────────────────────────────────
+    const [productionsRes] = await ProductionPF.aggregate([
+      { $match: { dateProduction: { $gte: debutFiltre } } },
       { $group: { _id: null, litres: { $sum: "$quantiteProduite" } } },
     ]);
-    const productionsMois = +(productionsMoisRes?.litres ?? 0).toFixed(2);
+    const productionsPeriode = +(productionsRes?.litres ?? 0).toFixed(2);
 
-    // KPI 5 — Transferts ce mois (litres)
-    const [transfertsMoisRes] = await TransfertBoutique.aggregate([
-      { $match: { dateTransfert: { $gte: debutMois } } },
+    // ── KPI 4 — Volume transféré (période) ──────────────────────────────────
+    const [transfertsRes] = await TransfertBoutique.aggregate([
+      { $match: { dateTransfert: { $gte: debutFiltre } } },
       { $group: { _id: null, litres: { $sum: "$quantite" } } },
     ]);
-    const transfertsMois = +(transfertsMoisRes?.litres ?? 0).toFixed(2);
+    const transfertsPeriode = +(transfertsRes?.litres ?? 0).toFixed(2);
 
-    // KPI 6 — Panier moyen du mois
-    const totalCA    = (ventesMoisRes?.total ?? 0) + (commandesMoisRes?.total ?? 0);
-    const totalCount = (ventesMoisRes?.count ?? 0) + (commandesMoisRes?.count ?? 0);
-    const panierMoyen = totalCount > 0 ? +(totalCA / totalCount).toFixed(2) : 0;
-
-    // KPI 7 — Produit le plus vendu (filtre: jour/mois/saison)
-    const debutFiltre = filtre === "jour" ? debutJour : filtre === "saison" ? debutSaison : debutMois;
+    // ── Produit le plus vendu (période, filtre global) ───────────────────────
     const [topProduitRes] = await Vente.aggregate([
       { $match: { dateVente: { $gte: debutFiltre } } },
       { $unwind: "$produits" },
@@ -782,32 +771,26 @@ export const getDashboardKPIs = async (req, res) => {
     ]);
     const topProduit = topProduitRes ? { nom: topProduitRes._id, qte: topProduitRes.totalQte } : null;
 
-    // CHART 1 — CA 7 derniers jours (line chart)
-    const debut7j = new Date(debutJour);
-    debut7j.setDate(debut7j.getDate() - 6);
-    const caParJour = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debut7j } } },
-      { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$dateVente" } }, total: { $sum: "$total" } } },
-      { $sort: { _id: 1 } },
+    // ── CHART 1 — Taux de confirmation (période) ────────────────────────────
+    const commandesStatuts = await Commande.aggregate([
+      { $match: { type: "en_ligne", statut: { $in: ["validee","refusee","prete","livree"] }, createdAt: { $gte: debutFiltre } } },
+      { $group: { _id: "$statut", count: { $sum: 1 } } },
     ]);
-    const caParJourMap = Object.fromEntries(caParJour.map((d) => [d._id, d.total]));
-    const evolutionCA = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(debutJour);
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      evolutionCA.push({ date: key, total: +(caParJourMap[key] ?? 0).toFixed(2) });
-    }
+    const confirmees    = commandesStatuts.filter((s) => ["validee","prete","livree"].includes(s._id)).reduce((a,b) => a + b.count, 0);
+    const refusees      = commandesStatuts.find((s) => s._id === "refusee")?.count ?? 0;
+    const totalDecidees = confirmees + refusees;
+    const tauxConfirmation = totalDecidees > 0 ? +(confirmees / totalDecidees * 100).toFixed(1) : 0;
 
-    // CHART 2 — Top 5 produits vendus (bar horizontal)
+    // ── CHART 2 — Top 5 produits (période) ──────────────────────────────────
     const topProduits = await Vente.aggregate([
+      { $match: { dateVente: { $gte: debutFiltre } } },
       { $unwind: "$produits" },
       { $group: { _id: "$produits.nom", totalQte: { $sum: "$produits.quantite" } } },
       { $sort: { totalQte: -1 } },
       { $limit: 5 },
     ]);
 
-    // CHART 3 — Stock MP (disponible vs seuilMin)
+    // ── CHART 3 & 4 — Stocks (temps réel, non filtrés) ─────────────────────
     const types    = await TypeMP.find({});
     const dispoMap = await calcDisponible();
     const stockMPChart = types.map((t) => {
@@ -815,8 +798,6 @@ export const getDashboardKPIs = async (req, res) => {
       const dispo = keys.reduce((s, k) => s + (dispoMap[k]?.disponible ?? 0), 0);
       return { nom: t.nom, disponible: +dispo.toFixed(2), seuil: t.seuilMin, unite: t.unite };
     });
-
-    // CHART 4 — Stock boutique (stockActuel vs seuilMinBoutique)
     const recettes         = await Recette.find({}, "nomJus seuilMinBoutique");
     const stocksBoutique   = await StockBoutique.find({});
     const stockBoutiqueMap = Object.fromEntries(stocksBoutique.map((s) => [s.nomJus, s.stockActuel]));
@@ -826,24 +807,30 @@ export const getDashboardKPIs = async (req, res) => {
       seuil: r.seuilMinBoutique ?? 0,
     }));
 
-    // Alertes
-    const alertesMP       = stockMPChart.filter((s) => s.disponible < s.seuil);
-    const alertesBoutique = stockBoutiqueChart.filter((s) => s.disponible < s.seuil);
+    // ── Alertes ──────────────────────────────────────────────────────────────
+    const alertesMP         = stockMPChart.filter((s) => s.disponible <= s.seuil);
+    const alertesBoutique   = stockBoutiqueChart.filter((s) => s.disponible <= s.seuil);
+    const commandesEnAttente = await Commande.countDocuments({ statut: "en_attente" });
 
     res.json({
-      caJour, caHier, trendJour,
-      caMois,
-      commandesEnAttente,
-      productionsMois,
-      transfertsMois,
+      // 4 KPI cards (filtre-aware)
+      caPeriode, trendCA,
       panierMoyen,
-      topProduit, filtre,
-      evolutionCA,
+      productionsPeriode,
+      transfertsPeriode,
+      // Best seller (filtre-aware)
+      topProduit,
+      // Charts filtre-aware
+      tauxConfirmation, confirmees, refusees,
       topProduits,
+      // Charts temps réel
       stockMPChart,
       stockBoutiqueChart,
+      // Alertes bandeau
       alertesMP,
       alertesBoutique,
+      commandesEnAttente,
+      filtre,
     });
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
