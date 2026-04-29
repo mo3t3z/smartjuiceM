@@ -3,10 +3,12 @@ import { authenticate, isManager } from "../middleware/authMiddleware.js";
 import {
   getDisponibleMP, getHistoriqueMP,
   getStockPFResume, getHistoriquePF,
-  getStockPFBoutique, getHistoriquePFBoutique,
-  getNotificationsManager, marquerNotificationLueManager, marquerToutesLuesManager,
-  getDashboardKPIs,
 } from "../controllers/workshopController.js";
+import {
+  getDashboardKPIs,
+  getNotificationsManager, marquerNotificationLueManager, marquerToutesLuesManager,
+} from "../controllers/managerController.js";
+import { getStockPFBoutique, getHistoriquePFBoutique } from "../controllers/sellerController.js";
 
 const router = express.Router();
 
@@ -14,10 +16,11 @@ const router = express.Router();
 router.get("/dashboard", authenticate, isManager, getDashboardKPIs);
 
 // Notifications
-router.get("/notifications",              authenticate, isManager, getNotificationsManager);
-router.put("/notifications/lues",         authenticate, isManager, marquerToutesLuesManager);
-router.put("/notifications/:id/lire",     authenticate, isManager, marquerNotificationLueManager);
+router.get("/notifications",          authenticate, isManager, getNotificationsManager);
+router.put("/notifications/lues",     authenticate, isManager, marquerToutesLuesManager);
+router.put("/notifications/:id/lire", authenticate, isManager, marquerNotificationLueManager);
 
+// Stocks
 router.get("/stock/mp",                    authenticate, isManager, getDisponibleMP);
 router.get("/historique/mp/:type",         authenticate, isManager, getHistoriqueMP);
 router.get("/stock/pf",                    authenticate, isManager, getStockPFResume);

@@ -52,7 +52,7 @@ export default function ManagerDashboard() {
   );
 
   const {
-    caPeriode, trendCA,
+    caPeriode,
     panierMoyen,
     productionsPeriode,
     transfertsPeriode,
@@ -193,11 +193,6 @@ export default function ManagerDashboard() {
             <span className="mh-kpi-value">{caPeriode.toFixed(2)} DT</span>
             <div className="mh-kpi-footer">
               <span className="mh-kpi-sub">Ventes directes</span>
-              {trendCA !== null && (
-                <span className={`mh-trend mh-trend--${trendCA >= 0 ? "up" : "down"}`}>
-                  {trendCA >= 0 ? "▲" : "▼"} {Math.abs(trendCA)}%
-                </span>
-              )}
             </div>
           </div>
         </div>

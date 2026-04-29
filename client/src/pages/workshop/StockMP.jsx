@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./StockMP.css";
 import { API_WORKSHOP, authHeader } from "../../utils/api";
 const API = API_WORKSHOP;
 
 export default function StockMP() {
-  const [types, setTypes]         = useState([]);
-  const [stockMap, setStockMap]   = useState({});   // { "Oranges||kg": { disponible, unite } }
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState("");
+  const navigate = useNavigate();
+  const [types, setTypes]       = useState([]);
+  const [stockList, setStockList] = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState("");
 
-  /* ── charger types et stock disponible ── */
   useEffect(() => {
     const load = async () => {
       try {
@@ -19,17 +20,8 @@ export default function StockMP() {
         ]);
         if (!resTypes.ok) throw new Error("Erreur chargement types.");
         if (!resStock.ok) throw new Error("Erreur chargement stock.");
-
-        const typesData = await resTypes.json(); // [{ _id, nom, seuilMin, unite }]
-        setTypes(typesData);
-
-        const list = await resStock.json(); // [{ type, unite, disponible }]
-        const map = {};
-        list.forEach((item) => {
-          const key = `${item.type}||${item.unite}`;
-          map[key] = item;
-        });
-        setStockMap(map);
+        setTypes(await resTypes.json());
+        setStockList(await resStock.json());
       } catch (e) {
         setError(e.message);
       } finally {
@@ -39,16 +31,10 @@ export default function StockMP() {
     load();
   }, []);
 
-  /* ── stock pour un type donné (toutes unités) ── */
-  const getStockForType = (type) => {
-    return Object.values(stockMap).filter((s) => s.type === type);
-  };
-
+  const getStockForType = (nom) => stockList.filter((s) => s.type === nom);
 
   return (
     <div className="smp-page">
-
-      {/* ── Content ── */}
       <div className="smp-content">
         <div className="smp-top">
           <div className="smp-title-block">
@@ -57,10 +43,10 @@ export default function StockMP() {
               <p className="smp-subtitle">Stock disponible par type de matière première</p>
             </div>
           </div>
+          <button className="smp-back-btn" onClick={() => navigate("/workshop/stock")}>← Retour</button>
         </div>
 
         {error && <div className="smp-error">{error}</div>}
-
         {loading && <div className="smp-loader">Chargement du stock...</div>}
 
         {!loading && types.length === 0 && (
@@ -72,10 +58,8 @@ export default function StockMP() {
         {!loading && types.length > 0 && (
           <div className="smp-grid">
             {types.map((typeObj) => {
-              const nom = typeObj.nom;
-              const stocks = getStockForType(nom);
+              const stocks = getStockForType(typeObj.nom);
               const isNegOrZero = stocks.length === 0 || stocks.every((s) => s.disponible <= 0);
-
               return (
                 <div key={typeObj._id} className={`smp-card ${isNegOrZero ? "smp-card--low" : "smp-card--ok"}`}>
                   <div className="smp-card-top">
@@ -83,9 +67,7 @@ export default function StockMP() {
                       {isNegOrZero ? "Stock bas" : "En stock"}
                     </div>
                   </div>
-
-                  <h3 className="smp-card-name">{nom}</h3>
-
+                  <h3 className="smp-card-name">{typeObj.nom}</h3>
                   <div className="smp-card-stocks">
                     {stocks.length === 0 ? (
                       <div className="smp-card-qty smp-card-qty--zero">
@@ -101,8 +83,6 @@ export default function StockMP() {
                       ))
                     )}
                   </div>
-
-
                 </div>
               );
             })}

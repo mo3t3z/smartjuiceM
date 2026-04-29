@@ -19,9 +19,7 @@ export default function NouvelleVente() {
 
   const fetchProduitsBoutique = async () => {
     try {
-      const res = await axios.get(`${API_VENTES}/stock-boutique`, {
-        headers: authHeader(),
-      });
+      const res = await axios.get(`${API_VENTES}/stock-boutique`, { headers: authHeader() });
       setProduitsBoutique(res.data);
     } catch {
       setMessage({ texte: "Impossible de charger le stock boutique.", type: "erreur" });
@@ -97,7 +95,6 @@ export default function NouvelleVente() {
       setVenteCreee(res.data.vente);
       setPanier([]);
       setMessage({ texte: "Vente enregistrée avec succès !", type: "succes" });
-      // Rafraîchir le stock boutique
       fetchProduitsBoutique();
     } catch (err) {
       setMessage({

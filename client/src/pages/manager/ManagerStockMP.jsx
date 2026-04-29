@@ -1,20 +1,19 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../workshop/StockMP.css";
 import { API_MANAGER, authHeader } from "../../utils/api";
 const API = API_MANAGER;
 
 export default function ManagerStockMP() {
-  const [stockList, setStockList] = useState([]);   // [{ type, unite, disponible }]
+  const navigate = useNavigate();
+  const [stockList, setStockList] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState("");
 
-  /* ── charger stock disponible ── */
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch(`${API}/stock/mp`, {
-          headers: authHeader(),
-        });
+        const res = await fetch(`${API}/stock/mp`, { headers: authHeader() });
         if (!res.ok) throw new Error("Erreur chargement stock.");
         setStockList(await res.json());
       } catch (e) {
@@ -26,15 +25,11 @@ export default function ManagerStockMP() {
     load();
   }, []);
 
-  /* ── regrouper par type ── */
-  const getStocksForType = (type) => stockList.filter((s) => s.type === type);
   const types = [...new Set(stockList.map((s) => s.type))];
-
+  const getStocksForType = (type) => stockList.filter((s) => s.type === type);
 
   return (
     <div className="smp-page">
-
-      {/* ── Content ── */}
       <div className="smp-content">
         <div className="smp-top">
           <div className="smp-title-block">
@@ -43,6 +38,7 @@ export default function ManagerStockMP() {
               <p className="smp-subtitle">Stock disponible par type de matière première</p>
             </div>
           </div>
+          <button className="smp-back-btn" onClick={() => navigate("/manager/stocks")}>← Retour</button>
         </div>
 
         {error && <div className="smp-error">{error}</div>}
@@ -59,7 +55,6 @@ export default function ManagerStockMP() {
             {types.map((type) => {
               const stocks = getStocksForType(type);
               const isNegOrZero = stocks.every((s) => s.disponible <= 0);
-
               return (
                 <div key={type} className={`smp-card ${isNegOrZero ? "smp-card--low" : "smp-card--ok"}`}>
                   <div className="smp-card-top">
@@ -67,9 +62,7 @@ export default function ManagerStockMP() {
                       {isNegOrZero ? "Stock bas" : "En stock"}
                     </div>
                   </div>
-
                   <h3 className="smp-card-name">{type}</h3>
-
                   <div className="smp-card-stocks">
                     {stocks.map((s, i) => (
                       <div key={i} className={`smp-card-qty ${s.disponible <= 0 ? "smp-card-qty--zero" : ""}`}>
@@ -78,8 +71,6 @@ export default function ManagerStockMP() {
                       </div>
                     ))}
                   </div>
-
-
                 </div>
               );
             })}

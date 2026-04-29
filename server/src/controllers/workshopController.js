@@ -4,13 +4,11 @@ import ProductionPF from "../models/ProductionPF.js";
 import TransfertBoutique from "../models/TransfertBoutique.js";
 import TypeMP from "../models/TypeMP.js";
 import Notification from "../models/Notification.js";
-import StockBoutique from "../models/StockBoutique.js";
 import Commande from "../models/Commande.js";
 import { ajouterStockBoutique } from "../services/stockBoutiqueService.js";
 import { calcStockPFAtelier } from "../services/stockPFService.js";
 
-//f1:HELPER --> calcDisponible() 
-const calcDisponible = async () => {
+export const calcDisponible = async () => {
   const regs = await MatierePremiere.aggregate([
     {
       $lookup: {
@@ -456,45 +454,6 @@ export const getDisponiblePF = async (req, res) => {
   }
 };
 
-// GET /api/seller/stock/pf  (stock PF boutique)
-// disponible lu depuis StockBoutique (source de vérité)
-export const getStockPFBoutique = async (req, res) => {
-  try {
-    // Transferts : pour le détail historique (totalRecu, nbTransferts)
-    const transferts = await TransfertBoutique.aggregate([
-      { $group: { _id: "$nomJus", totalRecu: { $sum: "$quantite" }, nbTransferts: { $sum: 1 } } },
-    ]);
-
-    // Stock actuel depuis la collection dédiée
-    const stockDocs = await StockBoutique.find();
-    const stockMap = {};
-    stockDocs.forEach((s) => { stockMap[s.nomJus] = s.stockActuel; });
-
-    const result = transferts.map((t) => ({
-      nomJus: t._id,
-      totalRecu: t.totalRecu,
-      nbTransferts: t.nbTransferts,
-      disponible: Math.max(0, stockMap[t._id] ?? 0),
-    }));
-
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
-
-// GET /api/seller/historique/pf/:nomJus
-export const getHistoriquePFBoutique = async (req, res) => {
-  try {
-    const { nomJus } = req.params;
-    const transferts = await TransfertBoutique.find({ nomJus })
-      .populate("enregistrePar", "email nom prenom")
-      .sort({ dateTransfert: -1 });
-    res.json({ nomJus, transferts });
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
 
 // GET /api/workshop/historique/mp/:type
 export const getHistoriqueMP = async (req, res) => {
@@ -641,36 +600,6 @@ export const marquerToutesLues = async (req, res) => {
   }
 };
 
-// GET /api/manager/notifications
-export const getNotificationsManager = async (req, res) => {
-  try {
-    const notifications = await Notification.find().sort({ createdAt: -1 }).limit(50);
-    res.json(notifications);
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
-
-// PUT /api/manager/notifications/:id/lire
-export const marquerNotificationLueManager = async (req, res) => {
-  try {
-    const notif = await Notification.findByIdAndUpdate(req.params.id, { luManager: true }, { new: true });
-    if (!notif) return res.status(404).json({ message: "Notification non trouvée." });
-    res.json({ message: "Notification marquée comme lue.", notif });
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
-
-// PUT /api/manager/notifications/lues
-export const marquerToutesLuesManager = async (req, res) => {
-  try {
-    await Notification.updateMany({ luManager: false }, { luManager: true });
-    res.json({ message: "Toutes les notifications marquées comme lues." });
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
 
 // GET /api/workshop/recettes/preview-production?nomJus=...&quantite=...
 export const previewProduction = async (req, res) => {
@@ -702,137 +631,3 @@ export const previewProduction = async (req, res) => {
   }
 };
 
-// ── DASHBOARD KPIs (Manager) ──────────────────────────────────────────────────
-import Vente from "../models/Vente.js";
-
-export const getDashboardKPIs = async (req, res) => {
-  try {
-    const now          = new Date();
-    const debutJour    = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const debutMois    = new Date(now.getFullYear(), now.getMonth(), 1);
-    const debutSemaine = new Date(debutJour); debutSemaine.setDate(debutSemaine.getDate() - 6);
-
-    const filtre      = req.query.filtre || "mois";
-    const debutFiltre = filtre === "jour"    ? debutJour
-                      : filtre === "semaine" ? debutSemaine
-                      : debutMois;
-
-    // Période précédente de même durée (pour trend CA)
-    const duree         = Date.now() - debutFiltre.getTime();
-    const debutPrevious = new Date(debutFiltre.getTime() - duree);
-
-    // ── KPI 1 — CA de la période + trend ────────────────────────────────────
-    const [caPeriodeRes] = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debutFiltre } } },
-      { $group: { _id: null, total: { $sum: "$total" } } },
-    ]);
-    const [caPreviousRes] = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debutPrevious, $lt: debutFiltre } } },
-      { $group: { _id: null, total: { $sum: "$total" } } },
-    ]);
-    const caPeriode  = +(caPeriodeRes?.total  ?? 0).toFixed(2);
-    const caPrevious = +(caPreviousRes?.total ?? 0).toFixed(2);
-    const trendCA    = caPrevious > 0 ? +(((caPeriode - caPrevious) / caPrevious) * 100).toFixed(1) : null;
-
-    // ── KPI 2 — Panier moyen (ventes + commandes livrées, période) ──────────
-    const [ventesPeriodeRes] = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debutFiltre } } },
-      { $group: { _id: null, total: { $sum: "$total" }, count: { $sum: 1 } } },
-    ]);
-    const [commandesPeriodeRes] = await Commande.aggregate([
-      { $match: { createdAt: { $gte: debutFiltre }, statut: "livree" } },
-      { $group: { _id: null, total: { $sum: "$total" }, count: { $sum: 1 } } },
-    ]);
-    const totalVenteCA    = (ventesPeriodeRes?.total ?? 0) + (commandesPeriodeRes?.total ?? 0);
-    const totalVenteCount = (ventesPeriodeRes?.count ?? 0) + (commandesPeriodeRes?.count ?? 0);
-    const panierMoyen     = totalVenteCount > 0 ? +(totalVenteCA / totalVenteCount).toFixed(2) : 0;
-
-    // ── KPI 3 — Volume produit (période) ────────────────────────────────────
-    const [productionsRes] = await ProductionPF.aggregate([
-      { $match: { dateProduction: { $gte: debutFiltre } } },
-      { $group: { _id: null, litres: { $sum: "$quantiteProduite" } } },
-    ]);
-    const productionsPeriode = +(productionsRes?.litres ?? 0).toFixed(2);
-
-    // ── KPI 4 — Volume transféré (période) ──────────────────────────────────
-    const [transfertsRes] = await TransfertBoutique.aggregate([
-      { $match: { dateTransfert: { $gte: debutFiltre } } },
-      { $group: { _id: null, litres: { $sum: "$quantite" } } },
-    ]);
-    const transfertsPeriode = +(transfertsRes?.litres ?? 0).toFixed(2);
-
-    // ── Produit le plus vendu (période, filtre global) ───────────────────────
-    const [topProduitRes] = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debutFiltre } } },
-      { $unwind: "$produits" },
-      { $group: { _id: "$produits.nom", totalQte: { $sum: "$produits.quantite" } } },
-      { $sort: { totalQte: -1 } },
-      { $limit: 1 },
-    ]);
-    const topProduit = topProduitRes ? { nom: topProduitRes._id, qte: topProduitRes.totalQte } : null;
-
-    // ── CHART 1 — Taux de confirmation (période) ────────────────────────────
-    const commandesStatuts = await Commande.aggregate([
-      { $match: { type: "en_ligne", statut: { $in: ["validee","refusee","prete","livree"] }, createdAt: { $gte: debutFiltre } } },
-      { $group: { _id: "$statut", count: { $sum: 1 } } },
-    ]);
-    const confirmees    = commandesStatuts.filter((s) => ["validee","prete","livree"].includes(s._id)).reduce((a,b) => a + b.count, 0);
-    const refusees      = commandesStatuts.find((s) => s._id === "refusee")?.count ?? 0;
-    const totalDecidees = confirmees + refusees;
-    const tauxConfirmation = totalDecidees > 0 ? +(confirmees / totalDecidees * 100).toFixed(1) : 0;
-
-    // ── CHART 2 — Top 5 produits (période) ──────────────────────────────────
-    const topProduits = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debutFiltre } } },
-      { $unwind: "$produits" },
-      { $group: { _id: "$produits.nom", totalQte: { $sum: "$produits.quantite" } } },
-      { $sort: { totalQte: -1 } },
-      { $limit: 5 },
-    ]);
-
-    // ── CHART 3 & 4 — Stocks (temps réel, non filtrés) ─────────────────────
-    const types    = await TypeMP.find({});
-    const dispoMap = await calcDisponible();
-    const stockMPChart = types.map((t) => {
-      const keys  = Object.keys(dispoMap).filter((k) => k.startsWith(t.nom + "||"));
-      const dispo = keys.reduce((s, k) => s + (dispoMap[k]?.disponible ?? 0), 0);
-      return { nom: t.nom, disponible: +dispo.toFixed(2), seuil: t.seuilMin, unite: t.unite };
-    });
-    const recettes         = await Recette.find({}, "nomJus seuilMinBoutique");
-    const stocksBoutique   = await StockBoutique.find({});
-    const stockBoutiqueMap = Object.fromEntries(stocksBoutique.map((s) => [s.nomJus, s.stockActuel]));
-    const stockBoutiqueChart = recettes.map((r) => ({
-      nom: r.nomJus,
-      disponible: +(stockBoutiqueMap[r.nomJus] ?? 0).toFixed(2),
-      seuil: r.seuilMinBoutique ?? 0,
-    }));
-
-    // ── Alertes ──────────────────────────────────────────────────────────────
-    const alertesMP         = stockMPChart.filter((s) => s.disponible <= s.seuil);
-    const alertesBoutique   = stockBoutiqueChart.filter((s) => s.disponible <= s.seuil);
-    const commandesEnAttente = await Commande.countDocuments({ statut: "en_attente" });
-
-    res.json({
-      // 4 KPI cards (filtre-aware)
-      caPeriode, trendCA,
-      panierMoyen,
-      productionsPeriode,
-      transfertsPeriode,
-      // Best seller (filtre-aware)
-      topProduit,
-      // Charts filtre-aware
-      tauxConfirmation, confirmees, refusees,
-      topProduits,
-      // Charts temps réel
-      stockMPChart,
-      stockBoutiqueChart,
-      // Alertes bandeau
-      alertesMP,
-      alertesBoutique,
-      commandesEnAttente,
-      filtre,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
