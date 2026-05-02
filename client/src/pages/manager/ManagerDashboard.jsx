@@ -3,20 +3,24 @@ import {
   Chart as ChartJS,
   ArcElement, Tooltip, Legend,
   CategoryScale, LinearScale, BarElement,
+  LineElement, PointElement, Filler,
 } from "chart.js";
-import { Doughnut, Bar } from "react-chartjs-2";
+import { Doughnut, Bar, Line } from "react-chartjs-2";
 import { API_MANAGER as API, authHeader } from "../../utils/api";
 import "../../pages/ManagerHome.css";
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Filler);
 
 const FILTRES = [
-  { key: "jour",    label: "Aujourd'hui" },
-  { key: "semaine", label: "Cette semaine" },
-  { key: "mois",    label: "Ce mois" },
+  { key: "jour",     label: "Aujourd'hui" },
+  { key: "semaine",  label: "Cette semaine" },
+  { key: "mois",     label: "Ce mois" },
+  { key: "annuelle", label: "Annuelle" },
 ];
 
-const FILTRE_LABEL = { jour: "Aujourd'hui", semaine: "Cette semaine", mois: "Ce mois" };
+const FILTRE_LABEL = {
+  jour: "Aujourd'hui", semaine: "Cette semaine", mois: "Ce mois", annuelle: "Annuelle",
+};
 
 export default function ManagerDashboard() {
   const [filtre, setFiltre]   = useState("mois");
@@ -62,6 +66,7 @@ export default function ManagerDashboard() {
     stockMPChart,
     stockBoutiqueChart,
     alertesMP, alertesBoutique, commandesEnAttente,
+    caParDate = [],
   } = data;
 
   const hasAlertes = alertesMP.length > 0 || alertesBoutique.length > 0 || commandesEnAttente > 0;
@@ -122,6 +127,64 @@ export default function ManagerDashboard() {
       { label: "Disponible", data: stockBoutiqueChart.map((s) => s.disponible), backgroundColor: "#f43f5e", borderRadius: 4 },
       { label: "Seuil min",  data: stockBoutiqueChart.map((s) => s.seuil),      backgroundColor: "#cbd5e1", borderRadius: 4 },
     ],
+  };
+
+  const ANNEE_COLORS = [
+    { border: "#94a3b8", bg: "rgba(148,163,184,0.1)" },
+    { border: "#0d9488", bg: "rgba(13,148,136,0.1)"  },
+    { border: "#1e3a5f", bg: "rgba(30,58,95,0.1)"    },
+  ];
+  const isAnnuelle   = filtre === "annuelle";
+  // Normalise : annuelle → objet, sinon → tableau
+  const caObj = (isAnnuelle && caParDate && !Array.isArray(caParDate)) ? caParDate : null;
+  const caArr = (!isAnnuelle && Array.isArray(caParDate))              ? caParDate : [];
+
+  const anneeEntries  = caObj ? Object.entries(caObj) : [];
+  const annuelleVide  = anneeEntries.length === 0;
+  const periodeLabels = anneeEntries[0]?.[1]?.map((d) => d.label) ?? [];
+
+  const caLineData = isAnnuelle
+    ? {
+        labels: periodeLabels,
+        datasets: anneeEntries.map(([annee, points], i) => ({
+          label: annee,
+          data: points.map((d) => d.ca),
+          borderColor: (ANNEE_COLORS[i] ?? ANNEE_COLORS[0]).border,
+          backgroundColor: "transparent",
+          borderWidth: 2,
+          pointRadius: 3,
+          fill: false,
+          tension: 0.4,
+        })),
+      }
+    : {
+        labels: caArr.map((d) => d.label),
+        datasets: [{
+          label: "CA (DT)",
+          data: caArr.map((d) => d.ca),
+          borderColor: "#1e3a5f",
+          backgroundColor: "rgba(30,58,95,0.08)",
+          borderWidth: 2,
+          pointRadius: 4,
+          pointBackgroundColor: "#1e3a5f",
+          fill: true,
+          tension: 0.4,
+        }],
+      };
+  const caLineOpts = {
+    plugins: {
+      legend: { display: isAnnuelle, position: "top", labels: { font: { size: 11 }, boxWidth: 12 } },
+      tooltip: { callbacks: { label: (c) => ` ${Number(c.raw).toFixed(2)} DT` } },
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: {
+        grid: { color: "#f1f5f9" },
+        ticks: { font: { size: 11 }, callback: (v) => `${v} DT` },
+        beginAtZero: true,
+      },
+    },
+    maintainAspectRatio: false,
   };
 
   return (
@@ -253,6 +316,24 @@ export default function ManagerDashboard() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Chart CA par date ── */}
+      <div className="mh-chart-card" style={{ marginBottom: 24 }}>
+        <p className="mh-chart-title">
+          Évolution du chiffre d'affaires —{" "}
+          {filtre === "jour"     ? "Aujourd'hui (par heure)"
+          : filtre === "semaine"  ? "Cette semaine (par jour)"
+          : filtre === "annuelle" ? "Comparaison annuelle 2024 / 2025 / 2026 (par mois)"
+          : "Ce mois (par jour)"}
+        </p>
+        {(isAnnuelle ? annuelleVide : caArr.length === 0) ? (
+          <p className="mh-chart-empty">Aucune vente sur la période</p>
+        ) : (
+          <div style={{ height: 240 }}>
+            <Line data={caLineData} options={caLineOpts} />
+          </div>
+        )}
       </div>
 
       {/* ── Produit le plus vendu ── */}

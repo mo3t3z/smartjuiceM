@@ -52,47 +52,54 @@ export const getDashboardKPIs = async (req, res) => {
     const debutSemaine = new Date(debutJour); debutSemaine.setDate(debutSemaine.getDate() - 6);
 
     const filtre      = req.query.filtre || "mois";
-    const debutFiltre = filtre === "jour"    ? debutJour
-                      : filtre === "semaine" ? debutSemaine
+    const debutFiltre = filtre === "jour"     ? debutJour
+                      : filtre === "semaine"  ? debutSemaine
+                      : filtre === "annuelle" ? new Date(now.getFullYear() - 2, 0, 1)
                       : debutMois;
+
+    // helper : plage de dates (pas de borne haute sauf pour annuelle globale)
+    const rangeVente   = { $gte: debutFiltre };
+    const rangeCreated = { $gte: debutFiltre };
+
+    const MOIS_FR = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"];
 
     // ── KPI 1 — CA de la période ─────────────────────────────────────────────
     const [caPeriodeRes] = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debutFiltre } } },
+      { $match: { dateVente: rangeVente } },
       { $group: { _id: null, total: { $sum: "$total" } } },
     ]);
     const caPeriode = +(caPeriodeRes?.total ?? 0).toFixed(2);
 
-    // ── KPI 2 — Panier moyen (ventes + commandes livrées, période) ──────────
+    // ── KPI 2 — Panier moyen ────────────────────────────────────────────────
     const [ventesPeriodeRes] = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debutFiltre } } },
+      { $match: { dateVente: rangeVente } },
       { $group: { _id: null, total: { $sum: "$total" }, count: { $sum: 1 } } },
     ]);
     const [commandesPeriodeRes] = await Commande.aggregate([
-      { $match: { createdAt: { $gte: debutFiltre }, statut: "livree" } },
+      { $match: { createdAt: rangeCreated, statut: "livree" } },
       { $group: { _id: null, total: { $sum: "$total" }, count: { $sum: 1 } } },
     ]);
     const totalVenteCA    = (ventesPeriodeRes?.total ?? 0) + (commandesPeriodeRes?.total ?? 0);
     const totalVenteCount = (ventesPeriodeRes?.count ?? 0) + (commandesPeriodeRes?.count ?? 0);
     const panierMoyen     = totalVenteCount > 0 ? +(totalVenteCA / totalVenteCount).toFixed(2) : 0;
 
-    // ── KPI 3 — Volume produit (période) ────────────────────────────────────
+    // ── KPI 3 — Volume produit ───────────────────────────────────────────────
     const [productionsRes] = await ProductionPF.aggregate([
-      { $match: { dateProduction: { $gte: debutFiltre } } },
+      { $match: { dateProduction: rangeVente } },
       { $group: { _id: null, litres: { $sum: "$quantiteProduite" } } },
     ]);
     const productionsPeriode = +(productionsRes?.litres ?? 0).toFixed(2);
 
-    // ── KPI 4 — Volume transféré (période) ──────────────────────────────────
+    // ── KPI 4 — Volume transféré ────────────────────────────────────────────
     const [transfertsRes] = await TransfertBoutique.aggregate([
-      { $match: { dateTransfert: { $gte: debutFiltre } } },
+      { $match: { dateTransfert: rangeVente } },
       { $group: { _id: null, litres: { $sum: "$quantite" } } },
     ]);
     const transfertsPeriode = +(transfertsRes?.litres ?? 0).toFixed(2);
 
-    // ── Produit le plus vendu (période) ─────────────────────────────────────
+    // ── Produit le plus vendu ────────────────────────────────────────────────
     const [topProduitRes] = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debutFiltre } } },
+      { $match: { dateVente: rangeVente } },
       { $unwind: "$produits" },
       { $group: { _id: "$produits.nom", totalQte: { $sum: "$produits.quantite" } } },
       { $sort: { totalQte: -1 } },
@@ -100,9 +107,9 @@ export const getDashboardKPIs = async (req, res) => {
     ]);
     const topProduit = topProduitRes ? { nom: topProduitRes._id, qte: topProduitRes.totalQte } : null;
 
-    // ── CHART 1 — Taux de confirmation (période) ────────────────────────────
+    // ── CHART 1 — Taux de confirmation ──────────────────────────────────────
     const commandesStatuts = await Commande.aggregate([
-      { $match: { type: "en_ligne", statut: { $in: ["validee","refusee","prete","livree"] }, createdAt: { $gte: debutFiltre } } },
+      { $match: { type: "en_ligne", statut: { $in: ["validee","refusee","prete","livree"] }, createdAt: rangeCreated } },
       { $group: { _id: "$statut", count: { $sum: 1 } } },
     ]);
     const confirmees    = commandesStatuts.filter((s) => ["validee","prete","livree"].includes(s._id)).reduce((a,b) => a + b.count, 0);
@@ -110,14 +117,68 @@ export const getDashboardKPIs = async (req, res) => {
     const totalDecidees = confirmees + refusees;
     const tauxConfirmation = totalDecidees > 0 ? +(confirmees / totalDecidees * 100).toFixed(1) : 0;
 
-    // ── CHART 2 — Top 5 produits (période) ──────────────────────────────────
+    // ── CHART 2 — Top 5 produits ────────────────────────────────────────────
     const topProduits = await Vente.aggregate([
-      { $match: { dateVente: { $gte: debutFiltre } } },
+      { $match: { dateVente: rangeVente } },
       { $unwind: "$produits" },
       { $group: { _id: "$produits.nom", totalQte: { $sum: "$produits.quantite" } } },
       { $sort: { totalQte: -1 } },
       { $limit: 5 },
     ]);
+
+    // ── CHART 5 — CA par date/mois ──────────────────────────────────────────
+    let caParDate = [];
+    if (filtre === "annuelle") {
+      // 3 séries : une par année (2024, 2025, 2026), groupées par mois
+      const ANNEES = [now.getFullYear() - 2, now.getFullYear() - 1, now.getFullYear()];
+      caParDate = {};
+      for (const annee of ANNEES) {
+        const debut = new Date(annee, 0, 1);
+        const fin   = new Date(annee + 1, 0, 1);
+        const rawA  = await Vente.aggregate([
+          { $match: { dateVente: { $gte: debut, $lt: fin } } },
+          { $group: { _id: { $month: "$dateVente" }, ca: { $sum: "$total" } } },
+          { $sort: { _id: 1 } },
+        ]);
+        const caMap  = Object.fromEntries(rawA.map((r) => [r._id, r.ca]));
+        const nbMois = annee < now.getFullYear() ? 12 : now.getMonth() + 1;
+        caParDate[String(annee)] = Array.from({ length: nbMois }, (_, i) => ({
+          label: MOIS_FR[i],
+          ca: +((caMap[i + 1] ?? 0).toFixed(2)),
+        }));
+      }
+    } else if (filtre === "jour") {
+      const rawH = await Vente.aggregate([
+        { $match: { dateVente: rangeVente } },
+        { $group: { _id: { $hour: "$dateVente" }, ca: { $sum: "$total" } } },
+        { $sort: { _id: 1 } },
+      ]);
+      const caMap = Object.fromEntries(rawH.map((r) => [r._id, r.ca]));
+      caParDate = Array.from({ length: 11 }, (_, i) => ({
+        label: `${String(i + 8).padStart(2, "0")}h`,
+        ca: +((caMap[i + 8] ?? 0).toFixed(2)),
+      }));
+    } else if (filtre === "semaine") {
+      const rawD = await Vente.aggregate([
+        { $match: { dateVente: rangeVente } },
+        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$dateVente" } }, ca: { $sum: "$total" } } },
+        { $sort: { _id: 1 } },
+      ]);
+      caParDate = rawD.map((r) => {
+        const [, , day] = r._id.split("-");
+        return { label: `${parseInt(day)}`, ca: +(r.ca.toFixed(2)) };
+      });
+    } else {
+      const rawM = await Vente.aggregate([
+        { $match: { dateVente: { $gte: debutMois } } },
+        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$dateVente" } }, ca: { $sum: "$total" } } },
+        { $sort: { _id: 1 } },
+      ]);
+      caParDate = rawM.map((r) => {
+        const [, month, day] = r._id.split("-");
+        return { label: `${parseInt(day)}/${parseInt(month)}`, ca: +(r.ca.toFixed(2)) };
+      });
+    }
 
     // ── CHART 3 & 4 — Stocks (temps réel) ───────────────────────────────────
     const types    = await TypeMP.find({});
@@ -148,6 +209,7 @@ export const getDashboardKPIs = async (req, res) => {
       topProduits,
       stockMPChart, stockBoutiqueChart,
       alertesMP, alertesBoutique, commandesEnAttente,
+      caParDate,
       filtre,
     });
   } catch (error) {
