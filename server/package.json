@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "start": "node server.js",
     "dev": "nodemon server.js",
     "seed:manager": "node src/seeds/seedManager.js",
     "seed:dashboard": "node src/seeds/seedDashboard.js",

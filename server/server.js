@@ -20,7 +20,7 @@ const __dirname = dirname(__filename);
 
 const app = express();
 
-app.use(cors());//active CORS pour toutes les routes
+app.use(cors({ origin: process.env.CLIENT_URL || "*" }));//active CORS pour toutes les routes
 app.use(express.json());//active la lecture de req.body en JSON
 app.use("/uploads", express.static(join(__dirname, "uploads")));
 

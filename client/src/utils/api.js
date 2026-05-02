@@ -11,13 +11,15 @@ export const isPastDateTime = (dateStr, heureStr) => {
   return dt <= new Date();
 };
 
-export const API_WORKSHOP  = "http://localhost:5000/api/workshop";
-export const API_MANAGER   = "http://localhost:5000/api/manager";
-export const API_SELLER    = "http://localhost:5000/api/seller";
-export const API_AUTH      = "http://localhost:5000/api/auth";
-export const API_PRODUCTS  = "http://localhost:5000/api/products";
-export const API_COMMANDES = "http://localhost:5000/api/commandes";
-export const API_VENTES    = "http://localhost:5000/api/ventes";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+export const API_WORKSHOP  = `${BASE_URL}/api/workshop`;
+export const API_MANAGER   = `${BASE_URL}/api/manager`;
+export const API_SELLER    = `${BASE_URL}/api/seller`;
+export const API_AUTH      = `${BASE_URL}/api/auth`;
+export const API_PRODUCTS  = `${BASE_URL}/api/products`;
+export const API_COMMANDES = `${BASE_URL}/api/commandes`;
+export const API_VENTES    = `${BASE_URL}/api/ventes`;
 
 export const getToken = () => localStorage.getItem("token") || "";
 export const authHeader = () => {
