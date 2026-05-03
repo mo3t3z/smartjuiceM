@@ -36,6 +36,15 @@ app.use("/api/manager", managerStockRoutes);
 app.use("/api/commandes", commandeRoutes);
 app.use("/api/ventes", venteRoutes);
 
+// Routes sans préfixe /api (DO App Platform strip le préfixe /api avant de passer au backend)
+app.use("/auth", authRoutes);
+app.use("/products", productRoutes);
+app.use("/workshop", workshopRoutes);
+app.use("/seller", sellerRoutes);
+app.use("/manager", managerStockRoutes);
+app.use("/commandes", commandeRoutes);
+app.use("/ventes", venteRoutes);
+
 const PORT = process.env.PORT || 5000;
 
 connectDB().then(() => {
