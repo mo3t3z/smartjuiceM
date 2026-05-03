@@ -89,8 +89,9 @@
   background: #fff; color: #64748b;
   cursor: pointer; transition: all 0.15s;
 }
-.mh-filter-btn:hover     { border-color: #1e3a5f; color: #1e3a5f; }
-.mh-filter-btn--active   { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+.mh-filter-btn:hover              { border-color: #1e3a5f; color: #1e3a5f; }
+.mh-filter-btn--active            { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+.mh-filter-btn--active:hover      { background: #162d4a; color: #fff; border-color: #162d4a; }
 .mh-filtre-note {
   font-size: 11px; color: #94a3b8; font-style: italic;
 }

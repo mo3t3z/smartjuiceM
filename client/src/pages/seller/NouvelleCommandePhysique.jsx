@@ -167,7 +167,7 @@ export default function NouvelleCommandePhysique() {
 
       {commandeCreee && (
         <div className="ncp-success-banner">
-          <span>✓ Commande #{commandeCreee._id.slice(-6).toUpperCase()} enregistrée (en attente de validation)</span>
+          <span>✓ Commande #{commandeCreee._id.slice(-6).toUpperCase()} enregistrée et confirmée</span>
           <button className="ncp-recu-btn" onClick={() => telechargerRecu(commandeCreee._id)}>Télécharger le reçu PDF</button>
           <button className="ncp-nouvelle-btn" onClick={() => setCommandeCreee(null)}>+ Nouvelle commande</button>
         </div>

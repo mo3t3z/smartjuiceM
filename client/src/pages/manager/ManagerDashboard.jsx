@@ -129,51 +129,26 @@ export default function ManagerDashboard() {
     ],
   };
 
-  const ANNEE_COLORS = [
-    { border: "#94a3b8", bg: "rgba(148,163,184,0.1)" },
-    { border: "#0d9488", bg: "rgba(13,148,136,0.1)"  },
-    { border: "#1e3a5f", bg: "rgba(30,58,95,0.1)"    },
-  ];
-  const isAnnuelle   = filtre === "annuelle";
-  // Normalise : annuelle → objet, sinon → tableau
-  const caObj = (isAnnuelle && caParDate && !Array.isArray(caParDate)) ? caParDate : null;
-  const caArr = (!isAnnuelle && Array.isArray(caParDate))              ? caParDate : [];
+  const isAnnuelle = filtre === "annuelle";
+  const caArr = Array.isArray(caParDate) ? caParDate : [];
 
-  const anneeEntries  = caObj ? Object.entries(caObj) : [];
-  const annuelleVide  = anneeEntries.length === 0;
-  const periodeLabels = anneeEntries[0]?.[1]?.map((d) => d.label) ?? [];
-
-  const caLineData = isAnnuelle
-    ? {
-        labels: periodeLabels,
-        datasets: anneeEntries.map(([annee, points], i) => ({
-          label: annee,
-          data: points.map((d) => d.ca),
-          borderColor: (ANNEE_COLORS[i] ?? ANNEE_COLORS[0]).border,
-          backgroundColor: "transparent",
-          borderWidth: 2,
-          pointRadius: 3,
-          fill: false,
-          tension: 0.4,
-        })),
-      }
-    : {
-        labels: caArr.map((d) => d.label),
-        datasets: [{
-          label: "CA (DT)",
-          data: caArr.map((d) => d.ca),
-          borderColor: "#1e3a5f",
-          backgroundColor: "rgba(30,58,95,0.08)",
-          borderWidth: 2,
-          pointRadius: 4,
-          pointBackgroundColor: "#1e3a5f",
-          fill: true,
-          tension: 0.4,
-        }],
-      };
+  const caLineData = {
+    labels: caArr.map((d) => d.label),
+    datasets: [{
+      label: "CA (DT)",
+      data: caArr.map((d) => d.ca),
+      borderColor: "#1e3a5f",
+      backgroundColor: "rgba(30,58,95,0.08)",
+      borderWidth: 2,
+      pointRadius: isAnnuelle ? 2 : 4,
+      pointBackgroundColor: "#1e3a5f",
+      fill: true,
+      tension: 0,
+    }],
+  };
   const caLineOpts = {
     plugins: {
-      legend: { display: isAnnuelle, position: "top", labels: { font: { size: 11 }, boxWidth: 12 } },
+      legend: { display: false },
       tooltip: { callbacks: { label: (c) => ` ${Number(c.raw).toFixed(2)} DT` } },
     },
     scales: {
@@ -252,7 +227,7 @@ export default function ManagerDashboard() {
             </svg>
           </div>
           <div className="mh-kpi-body">
-            <span className="mh-kpi-label">CA {FILTRE_LABEL[filtre] === "Aujourd'hui" ? "du jour" : FILTRE_LABEL[filtre] === "Cette semaine" ? "de la semaine" : "du mois"}</span>
+            <span className="mh-kpi-label">{{ jour: "CA du jour", semaine: "CA de la semaine", mois: "CA du mois", annuelle: "CA de l'année" }[filtre]}</span>
             <span className="mh-kpi-value">{caPeriode.toFixed(2)} DT</span>
             <div className="mh-kpi-footer">
               <span className="mh-kpi-sub">Ventes directes</span>
@@ -324,10 +299,10 @@ export default function ManagerDashboard() {
           Évolution du chiffre d'affaires —{" "}
           {filtre === "jour"     ? "Aujourd'hui (par heure)"
           : filtre === "semaine"  ? "Cette semaine (par jour)"
-          : filtre === "annuelle" ? "Comparaison annuelle 2024 / 2025 / 2026 (par mois)"
+          : filtre === "annuelle" ? `Évolution continue ${new Date().getFullYear() - 2} → aujourd'hui (par mois)`
           : "Ce mois (par jour)"}
         </p>
-        {(isAnnuelle ? annuelleVide : caArr.length === 0) ? (
+        {caArr.length === 0 ? (
           <p className="mh-chart-empty">Aucune vente sur la période</p>
         ) : (
           <div style={{ height: 240 }}>
@@ -335,23 +310,6 @@ export default function ManagerDashboard() {
           </div>
         )}
       </div>
-
-      {/* ── Produit le plus vendu ── */}
-      {topProduit && (
-        <div className="mh-bestseller">
-          <div className="mh-bestseller-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-          </div>
-          <div className="mh-bestseller-body">
-            <span className="mh-bestseller-label">Produit le plus vendu — {FILTRE_LABEL[filtre]}</span>
-            <span className="mh-bestseller-nom">{topProduit.nom}</span>
-            <span className="mh-bestseller-qte">{topProduit.qte} L vendus</span>
-          </div>
-          <span className="mh-bestseller-badge">{topProduit.qte} L</span>
-        </div>
-      )}
 
       {/* ── Charts ligne 1 ── */}
       <div className="mh-charts mh-charts--half">

@@ -129,24 +129,24 @@ export const getDashboardKPIs = async (req, res) => {
     // ── CHART 5 — CA par date/mois ──────────────────────────────────────────
     let caParDate = [];
     if (filtre === "annuelle") {
-      // 3 séries : une par année (2024, 2025, 2026), groupées par mois
-      const ANNEES = [now.getFullYear() - 2, now.getFullYear() - 1, now.getFullYear()];
-      caParDate = {};
-      for (const annee of ANNEES) {
-        const debut = new Date(annee, 0, 1);
-        const fin   = new Date(annee + 1, 0, 1);
-        const rawA  = await Vente.aggregate([
-          { $match: { dateVente: { $gte: debut, $lt: fin } } },
-          { $group: { _id: { $month: "$dateVente" }, ca: { $sum: "$total" } } },
-          { $sort: { _id: 1 } },
-        ]);
-        const caMap  = Object.fromEntries(rawA.map((r) => [r._id, r.ca]));
-        const nbMois = annee < now.getFullYear() ? 12 : now.getMonth() + 1;
-        caParDate[String(annee)] = Array.from({ length: nbMois }, (_, i) => ({
-          label: MOIS_FR[i],
-          ca: +((caMap[i + 1] ?? 0).toFixed(2)),
-        }));
+      // Une courbe continue mois par mois depuis Jan (année-2) jusqu'au mois actuel
+      const anneeDebut = now.getFullYear() - 2;
+      const debut = new Date(anneeDebut, 0, 1);
+      const fin   = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const rawA  = await Vente.aggregate([
+        { $match: { dateVente: { $gte: debut, $lt: fin } } },
+        { $group: { _id: { annee: { $year: "$dateVente" }, mois: { $month: "$dateVente" } }, ca: { $sum: "$total" } } },
+        { $sort: { "_id.annee": 1, "_id.mois": 1 } },
+      ]);
+      const caMap = Object.fromEntries(rawA.map((r) => [`${r._id.annee}-${r._id.mois}`, r.ca]));
+      const points = [];
+      let y = anneeDebut, m = 1;
+      const yFin = now.getFullYear(), mFin = now.getMonth() + 1;
+      while (y < yFin || (y === yFin && m <= mFin)) {
+        points.push({ label: `${MOIS_FR[m - 1]} ${y}`, ca: +((caMap[`${y}-${m}`] ?? 0).toFixed(2)) });
+        m++; if (m > 12) { m = 1; y++; }
       }
+      caParDate = points;
     } else if (filtre === "jour") {
       const rawH = await Vente.aggregate([
         { $match: { dateVente: rangeVente } },
