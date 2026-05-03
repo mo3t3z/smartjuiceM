@@ -45,8 +45,9 @@ export const createProduct = async (req, res) => {
       return res.status(400).json({ message: "Nom et prix sont obligatoires" });
     }
 
+    const baseUrl = process.env.SERVER_URL || "http://localhost:5000";
     const imageUrl = req.file
-      ? `http://localhost:5000/uploads/products/${req.file.filename}`
+      ? `${baseUrl}/uploads/products/${req.file.filename}`
       : "";
 
     const product = await Product.create({
@@ -75,7 +76,8 @@ export const updateProduct = async (req, res) => {
     const updateData = { name, description, price, volume, available, recette: recette || null };
 
     if (req.file) {
-      updateData.image = `http://localhost:5000/uploads/products/${req.file.filename}`;
+      const baseUrl = process.env.SERVER_URL || "http://localhost:5000";
+      updateData.image = `${baseUrl}/uploads/products/${req.file.filename}`;
     }
 
     const product = await Product.findByIdAndUpdate(
