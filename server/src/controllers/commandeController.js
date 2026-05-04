@@ -92,6 +92,17 @@ export const creerCommandeEnLigne = async (req, res) => {
     });
 
     const populated = await commande.populate("client", "email nom prenom telephone");
+
+    // Notification pour le gérant
+    const nomClient = `${req.user.prenom || ""} ${req.user.nom || ""}`.trim() || req.user.email;
+    const modeMsg = mode === "livraison" ? "livraison" : "retrait en boutique";
+    await Notification.create({
+      categorie: "COMMANDE",
+      commandeRef: commande._id,
+      message: `Nouvelle commande en ligne de ${nomClient} — ${commande.produits.length} article(s) — Total : ${commande.total.toFixed(2)} DT (${modeMsg}).`,
+      luManager: false,
+    });
+
     res.status(201).json({ message: "Commande passée avec succès.", commande: populated });
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
