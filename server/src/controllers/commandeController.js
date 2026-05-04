@@ -95,7 +95,7 @@ export const creerCommandeEnLigne = async (req, res) => {
 
     // Notification pour le gérant
     const nomClient = `${req.user.prenom || ""} ${req.user.nom || ""}`.trim() || req.user.email;
-    const modeMsg = mode === "livraison" ? "livraison" : "retrait en boutique";
+    const modeMsg = mode === "livraison" ? "livraison" : "retrait en atelier";
     await Notification.create({
       categorie: "COMMANDE",
       commandeRef: commande._id,
