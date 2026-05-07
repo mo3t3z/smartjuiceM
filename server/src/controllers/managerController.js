@@ -97,16 +97,6 @@ export const getDashboardKPIs = async (req, res) => {
     ]);
     const transfertsPeriode = +(transfertsRes?.litres ?? 0).toFixed(2);
 
-    // ── Produit le plus vendu ────────────────────────────────────────────────
-    const [topProduitRes] = await Vente.aggregate([
-      { $match: { dateVente: rangeVente } },
-      { $unwind: "$produits" },
-      { $group: { _id: "$produits.nom", totalQte: { $sum: "$produits.quantite" } } },
-      { $sort: { totalQte: -1 } },
-      { $limit: 1 },
-    ]);
-    const topProduit = topProduitRes ? { nom: topProduitRes._id, qte: topProduitRes.totalQte } : null;
-
     // ── CHART 1 — Taux de confirmation ──────────────────────────────────────
     const commandesStatuts = await Commande.aggregate([
       { $match: { type: "en_ligne", statut: { $in: ["validee","refusee","prete","livree"] }, createdAt: rangeCreated } },
@@ -150,7 +140,7 @@ export const getDashboardKPIs = async (req, res) => {
     } else if (filtre === "jour") {
       const rawH = await Vente.aggregate([
         { $match: { dateVente: rangeVente } },
-        { $group: { _id: { $hour: "$dateVente" }, ca: { $sum: "$total" } } },
+        { $group: { _id: { $hour: { date: "$dateVente", timezone: "Africa/Tunis" } }, ca: { $sum: "$total" } } },
         { $sort: { _id: 1 } },
       ]);
       const caMap = Object.fromEntries(rawH.map((r) => [r._id, r.ca]));
@@ -180,6 +170,109 @@ export const getDashboardKPIs = async (req, res) => {
       });
     }
 
+    // ── Évolution nb commandes livrées par date (physique + en ligne) ────────
+    let commandesParDate = [];
+    if (filtre === "annuelle") {
+      const anneeDebut = now.getFullYear() - 2;
+      const debut = new Date(anneeDebut, 0, 1);
+      const fin   = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const raw = await Commande.aggregate([
+        { $match: { createdAt: { $gte: debut, $lt: fin }, statut: "livree" } },
+        { $group: { _id: { y: { $year: "$createdAt" }, m: { $month: "$createdAt" }, type: "$type" }, count: { $sum: 1 } } },
+      ]);
+      const mapP = {}, mapE = {};
+      raw.forEach(({ _id, count }) => {
+        const k = `${_id.y}-${_id.m}`;
+        if (_id.type === "en_ligne") mapE[k] = (mapE[k] ?? 0) + count;
+        else                         mapP[k] = (mapP[k] ?? 0) + count;
+      });
+      let y = anneeDebut, m = 1;
+      const yFin = now.getFullYear(), mFin = now.getMonth() + 1;
+      while (y < yFin || (y === yFin && m <= mFin)) {
+        const k = `${y}-${m}`;
+        commandesParDate.push({ label: `${MOIS_FR[m - 1]} ${y}`, physiqueCount: mapP[k] ?? 0, enLigneCount: mapE[k] ?? 0 });
+        m++; if (m > 12) { m = 1; y++; }
+      }
+    } else if (filtre === "jour") {
+      const raw = await Commande.aggregate([
+        { $match: { createdAt: rangeCreated, statut: "livree" } },
+        { $group: { _id: { h: { $hour: { date: "$createdAt", timezone: "Africa/Tunis" } }, type: "$type" }, count: { $sum: 1 } } },
+      ]);
+      const mapP = {}, mapE = {};
+      raw.forEach(({ _id, count }) => {
+        if (_id.type === "en_ligne") mapE[_id.h] = (mapE[_id.h] ?? 0) + count;
+        else                         mapP[_id.h] = (mapP[_id.h] ?? 0) + count;
+      });
+      commandesParDate = Array.from({ length: 11 }, (_, i) => ({
+        label: `${String(i + 8).padStart(2, "0")}h`,
+        physiqueCount: mapP[i + 8] ?? 0,
+        enLigneCount:  mapE[i + 8] ?? 0,
+      }));
+    } else {
+      const debutRange = filtre === "semaine" ? rangeCreated : { $gte: debutMois };
+      const raw = await Commande.aggregate([
+        { $match: { createdAt: debutRange, statut: "livree" } },
+        { $group: { _id: { d: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, type: "$type" }, count: { $sum: 1 } } },
+        { $sort: { "_id.d": 1 } },
+      ]);
+      const allDays = [...new Set(raw.map((r) => r._id.d))].sort();
+      const mapP = {}, mapE = {};
+      raw.forEach(({ _id, count }) => {
+        if (_id.type === "en_ligne") mapE[_id.d] = (mapE[_id.d] ?? 0) + count;
+        else                         mapP[_id.d] = (mapP[_id.d] ?? 0) + count;
+      });
+      commandesParDate = allDays.map((d) => {
+        const parts = d.split("-");
+        const label = filtre === "semaine" ? `${parseInt(parts[2])}` : `${parseInt(parts[2])}/${parseInt(parts[1])}`;
+        return { label, physiqueCount: mapP[d] ?? 0, enLigneCount: mapE[d] ?? 0 };
+      });
+    }
+
+    // ── Top clients fidèles — mois + année (filtres indépendants) ───────────
+    const debutAnnee = new Date(now.getFullYear(), 0, 1);
+    const buildTopClients = async (dateDebut) => {
+      const range = { $gte: dateDebut };
+      const [onlineRaw, physicalRaw] = await Promise.all([
+        Commande.aggregate([
+          { $match: { createdAt: range, type: "en_ligne", statut: "livree" } },
+          { $group: { _id: "$client", count: { $sum: 1 } } },
+          { $sort: { count: -1 } }, { $limit: 15 },
+          { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "user" } },
+          { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+          { $project: { nom: { $trim: { input: { $concat: [{ $ifNull: ["$user.prenom", ""] }, " ", { $ifNull: ["$user.nom", ""] }] } } }, count: 1 } },
+        ]),
+        Commande.aggregate([
+          { $match: { createdAt: range, type: "physique", statut: "livree" } },
+          { $group: { _id: "$nomClient", count: { $sum: 1 } } },
+          { $sort: { count: -1 } }, { $limit: 15 },
+        ]),
+      ]);
+      const map = {};
+      onlineRaw.forEach(({ nom, count }) => {
+        const key = (nom || "").toLowerCase().trim();
+        if (key) map[key] = { nom, count };
+      });
+      physicalRaw.forEach(({ _id, count }) => {
+        const key = (_id || "").toLowerCase().trim();
+        if (!key) return;
+        if (map[key]) map[key].count += count;
+        else map[key] = { nom: _id, count };
+      });
+      return Object.values(map).sort((a, b) => b.count - a.count).slice(0, 8);
+    };
+    const [topClientsMois, topClientsAnnuelle] = await Promise.all([
+      buildTopClients(debutMois),
+      buildTopClients(debutAnnee),
+    ]);
+
+    // ── CA breakdown : ventes / commandes physiques / commandes en ligne ────
+    const caCommandesBreakdown = await Commande.aggregate([
+      { $match: { createdAt: rangeCreated, statut: "livree" } },
+      { $group: { _id: "$type", total: { $sum: "$total" } } },
+    ]);
+    const caCommandesEnLigne  = +(caCommandesBreakdown.find((c) => c._id === "en_ligne")?.total  ?? 0).toFixed(2);
+    const caCommandesPhysique = +(caCommandesBreakdown.filter((c) => c._id !== "en_ligne").reduce((s, c) => s + c.total, 0)).toFixed(2);
+
     // ── CHART 3 & 4 — Stocks (temps réel) ───────────────────────────────────
     const types    = await TypeMP.find({});
     const dispoMap = await calcDisponible();
@@ -204,12 +297,14 @@ export const getDashboardKPIs = async (req, res) => {
 
     res.json({
       caPeriode, panierMoyen, productionsPeriode, transfertsPeriode,
-      topProduit,
       tauxConfirmation, confirmees, refusees,
       topProduits,
       stockMPChart, stockBoutiqueChart,
       alertesMP, alertesBoutique, commandesEnAttente,
       caParDate,
+      caCommandesEnLigne, caCommandesPhysique,
+      commandesParDate,
+      topClientsMois, topClientsAnnuelle,
       filtre,
     });
   } catch (error) {

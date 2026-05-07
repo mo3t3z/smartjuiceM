@@ -11,7 +11,6 @@ import {
   marquerLivree,
   creerCommandePhysique,
   genererRecuCommande,
-  getDashboardVentes,
   getMesNotifications,
   marquerNotifLue,
   marquerToutesNotifsLues,
@@ -46,9 +45,6 @@ router.put("/:id/valider", authenticate, isManager, validerCommande);
 router.put("/:id/refuser", authenticate, isManager, refuserCommande);
 // Marquer comme livrée (atelier, vendeur ou gérant)
 router.put("/:id/livree", authenticate, isWorkshopOrSellerOrManager, marquerLivree);
-// PB25 : Dashboard ventes
-router.get("/dashboard", authenticate, isManager, getDashboardVentes);
-
 // ── Routes Atelier (PB23) ────────────────────────────────────────────────────
 // PB23 : Commandes confirmées à préparer
 router.get("/confirmees", authenticate, isWorkshopOrManager, getCommandesConfirmees);

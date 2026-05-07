@@ -23,10 +23,12 @@ const FILTRE_LABEL = {
 };
 
 export default function ManagerDashboard() {
-  const [filtre, setFiltre]   = useState("mois");
-  const [data, setData]       = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [filtre, setFiltre]         = useState("mois");
+  const [data, setData]             = useState(null);
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState(null);
+  const [typeCommande, setTypeCommande]     = useState("physique");
+  const [filtreClients, setFiltreClients]   = useState("mois");
   const abortRef = useRef(null);
 
   useEffect(() => {
@@ -60,14 +62,17 @@ export default function ManagerDashboard() {
     panierMoyen,
     productionsPeriode,
     transfertsPeriode,
-    topProduit,
     tauxConfirmation, confirmees, refusees,
     topProduits,
-    stockMPChart,
-    stockBoutiqueChart,
     alertesMP, alertesBoutique, commandesEnAttente,
     caParDate = [],
+    caCommandesEnLigne = 0,
+    caCommandesPhysique = 0,
+    commandesParDate = [],
+    topClientsMois = [],
+    topClientsAnnuelle = [],
   } = data;
+  const topClients = filtreClients === "mois" ? topClientsMois : topClientsAnnuelle;
 
   const hasAlertes = alertesMP.length > 0 || alertesBoutique.length > 0 || commandesEnAttente > 0;
 
@@ -105,28 +110,75 @@ export default function ManagerDashboard() {
     maintainAspectRatio: false,
   });
 
-  const mpBarData = {
-    labels: stockMPChart.map((s) => s.nom),
-    datasets: [
-      { label: "Disponible", data: stockMPChart.map((s) => s.disponible), backgroundColor: "#0d9488", borderRadius: 4 },
-      { label: "Seuil min",  data: stockMPChart.map((s) => s.seuil),      backgroundColor: "#cbd5e1", borderRadius: 4 },
-    ],
+  const caDonutTotal = caPeriode + caCommandesPhysique + caCommandesEnLigne;
+  const caDonutData = {
+    labels: ["Ventes directes", "Commandes physiques", "Commandes en ligne"],
+    datasets: [{
+      data: [caPeriode, caCommandesPhysique, caCommandesEnLigne],
+      backgroundColor: ["#3b82f6", "#10b981", "#f59e0b"],
+      borderWidth: 0,
+    }],
   };
-  const mpBarOpts = {
-    plugins: { legend: { display: true, position: "top", labels: { font: { size: 11 }, boxWidth: 12 } } },
+  const caDonutOptions = {
+    cutout: "72%",
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (c) => ` ${Number(c.raw).toFixed(2)} DT (${caDonutTotal > 0 ? (c.raw / caDonutTotal * 100).toFixed(1) : 0}%)` } },
+    },
+    maintainAspectRatio: true,
+  };
+
+  const cmdArr = Array.isArray(commandesParDate) ? commandesParDate : [];
+  const cmdColor = typeCommande === "physique" ? "#3b82f6" : "#f59e0b";
+  const cmdLineData = {
+    labels: cmdArr.map((d) => d.label),
+    datasets: [{
+      label: typeCommande === "physique" ? "Commandes physiques" : "Commandes en ligne",
+      data: cmdArr.map((d) => typeCommande === "physique" ? d.physiqueCount : d.enLigneCount),
+      borderColor: cmdColor,
+      backgroundColor: typeCommande === "physique" ? "rgba(59,130,246,0.08)" : "rgba(245,158,11,0.08)",
+      borderWidth: 2,
+      pointRadius: filtre === "annuelle" ? 2 : 4,
+      pointBackgroundColor: cmdColor,
+      fill: true,
+      tension: 0,
+    }],
+  };
+  const cmdLineOpts = {
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (c) => ` ${c.raw} commande${c.raw > 1 ? "s" : ""}` } },
+    },
     scales: {
       x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-      y: { grid: { color: "#f1f5f9" }, ticks: { font: { size: 11 } } },
+      y: {
+        grid: { color: "#f1f5f9" },
+        ticks: { font: { size: 11 }, callback: (v) => `${v}`, stepSize: 1 },
+        beginAtZero: true,
+      },
     },
     maintainAspectRatio: false,
   };
 
-  const boutiqueBarData = {
-    labels: stockBoutiqueChart.map((s) => s.nom),
-    datasets: [
-      { label: "Disponible", data: stockBoutiqueChart.map((s) => s.disponible), backgroundColor: "#f43f5e", borderRadius: 4 },
-      { label: "Seuil min",  data: stockBoutiqueChart.map((s) => s.seuil),      backgroundColor: "#cbd5e1", borderRadius: 4 },
-    ],
+  const topClientsData = {
+    labels: topClients.map((c) => c.nom),
+    datasets: [{
+      data: topClients.map((c) => c.count),
+      backgroundColor: "#7c3aed",
+      borderRadius: 6,
+    }],
+  };
+  const topClientsOpts = {
+    indexAxis: "y",
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (c) => ` ${c.raw} commande${c.raw > 1 ? "s" : ""}` } },
+    },
+    scales: {
+      x: { grid: { color: "#f1f5f9" }, ticks: { font: { size: 11 }, stepSize: 1 }, title: { display: true, text: "Commandes", font: { size: 10 } } },
+      y: { grid: { display: false }, ticks: { font: { size: 11 } } },
+    },
+    maintainAspectRatio: false,
   };
 
   const isAnnuelle = filtre === "annuelle";
@@ -213,7 +265,7 @@ export default function ManagerDashboard() {
             </button>
           ))}
         </div>
-        <span className="mh-filtre-note">Appliqué sur tous les indicateurs sauf les stocks</span>
+    
       </div>
 
       {/* ── 4 KPI cards ── */}
@@ -293,27 +345,62 @@ export default function ManagerDashboard() {
         </div>
       </div>
 
-      {/* ── Chart CA par date ── */}
-      <div className="mh-chart-card" style={{ marginBottom: 24 }}>
-        <p className="mh-chart-title">
-          Évolution du chiffre d'affaires —{" "}
-          {filtre === "jour"     ? "Aujourd'hui (par heure)"
-          : filtre === "semaine"  ? "Cette semaine (par jour)"
-          : filtre === "annuelle" ? `Évolution continue ${new Date().getFullYear() - 2} → aujourd'hui (par mois)`
-          : "Ce mois (par jour)"}
-        </p>
-        {caArr.length === 0 ? (
-          <p className="mh-chart-empty">Aucune vente sur la période</p>
-        ) : (
-          <div style={{ height: 240 }}>
-            <Line data={caLineData} options={caLineOpts} />
+      {/* ── Section : Évolution ── */}
+      <p className="mh-section-label">Évolution temporelle</p>
+      <div className="mh-charts mh-charts--half">
+
+        {/* CA par date */}
+        <div className="mh-chart-card">
+          <p className="mh-chart-title">
+            Chiffre d'affaires —{" "}
+            {filtre === "jour" ? "par heure" : filtre === "annuelle" ? "par mois" : "par jour"}
+          </p>
+          {caArr.length === 0 ? (
+            <p className="mh-chart-empty">Aucune vente sur la période</p>
+          ) : (
+            <div style={{ height: 210 }}>
+              <Line data={caLineData} options={caLineOpts} />
+            </div>
+          )}
+        </div>
+
+        {/* Commandes livrées */}
+        <div className="mh-chart-card">
+          <div className="mh-chart-header">
+            <p className="mh-chart-title" style={{ margin: 0 }}>Commandes livrées —{" "}
+              {filtre === "jour" ? "par heure" : filtre === "annuelle" ? "par mois" : "par jour"}
+            </p>
+            <div style={{ display: "flex", gap: 5 }}>
+              {[
+                { key: "physique", label: "Physique" },
+                { key: "en_ligne", label: "En ligne" },
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setTypeCommande(key)}
+                  className={`mh-filter-btn${typeCommande === key ? " mh-filter-btn--active" : ""}`}
+                  style={{ fontSize: 10, padding: "3px 9px" }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
-        )}
+          {cmdArr.length === 0 ? (
+            <p className="mh-chart-empty">Aucune commande livrée sur la période</p>
+          ) : (
+            <div style={{ height: 210 }}>
+              <Line data={cmdLineData} options={cmdLineOpts} />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ── Charts ligne 1 ── */}
+      {/* ── Section : Analyse ── */}
+      <p className="mh-section-label">Analyse commerciale</p>
       <div className="mh-charts mh-charts--half">
-        {/* Doughnut taux confirmation */}
+
+        {/* Taux de confirmation */}
         <div className="mh-chart-card">
           <p className="mh-chart-title">Taux de confirmation — {FILTRE_LABEL[filtre]}</p>
           {(confirmees + refusees) === 0 ? (
@@ -341,7 +428,7 @@ export default function ManagerDashboard() {
           )}
         </div>
 
-        {/* Bar top 5 */}
+        {/* Top 5 produits */}
         <div className="mh-chart-card">
           <p className="mh-chart-title">Top 5 produits vendus — {FILTRE_LABEL[filtre]}</p>
           {topProduits.length === 0 ? (
@@ -354,43 +441,69 @@ export default function ManagerDashboard() {
         </div>
       </div>
 
-      {/* ── Charts ligne 2 ── */}
+      {/* ── Section : Répartition CA + Top clients ── */}
+      <p className="mh-section-label">Répartition & fidélisation</p>
       <div className="mh-charts mh-charts--half">
-        {/* Stock MP */}
+
+        {/* Donut CA par canal */}
         <div className="mh-chart-card">
-          <div className="mh-chart-header">
-            <p className="mh-chart-title" style={{ margin: 0 }}>Stock matières premières vs seuil</p>
-            <span className="mh-realtime-badge">Temps réel</span>
-          </div>
-          {stockMPChart.length === 0 ? (
-            <p className="mh-chart-empty">Aucune donnée</p>
+          <p className="mh-chart-title">CA par canal de vente — {FILTRE_LABEL[filtre]}</p>
+          {caDonutTotal === 0 ? (
+            <p className="mh-chart-empty">Aucun chiffre d'affaires sur la période</p>
           ) : (
-            <div style={{ height: 220 }}>
-              <Bar data={mpBarData} options={mpBarOpts} />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
+              <div style={{ width: 180, height: 180 }}>
+                <Doughnut data={caDonutData} options={caDonutOptions} />
+              </div>
+              <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  { label: "Ventes directes",    value: caPeriode,           color: "#3b82f6" },
+                  { label: "Commandes physiques", value: caCommandesPhysique, color: "#10b981" },
+                  { label: "Commandes en ligne",  value: caCommandesEnLigne,  color: "#f59e0b" },
+                ].map(({ label, value, color }) => (
+                  <div key={label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: "50%", background: color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, color: "#64748b", flex: 1 }}>{label}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#1e293b" }}>{value.toFixed(2)} DT</span>
+                    <span style={{ fontSize: 11, color: "#94a3b8", minWidth: 38, textAlign: "right" }}>
+                      {caDonutTotal > 0 ? (value / caDonutTotal * 100).toFixed(1) : 0}%
+                    </span>
+                  </div>
+                ))}
+                <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 10, display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>Total</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "#1e293b" }}>{caDonutTotal.toFixed(2)} DT</span>
+                </div>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Stock boutique */}
+        {/* Top clients fidèles */}
         <div className="mh-chart-card">
           <div className="mh-chart-header">
-            <p className="mh-chart-title" style={{ margin: 0 }}>Stock boutique vs seuil minimum</p>
-            <span className="mh-realtime-badge">Temps réel</span>
+            <p className="mh-chart-title" style={{ margin: 0 }}>Top clients fidèles</p>
+            <div style={{ display: "flex", gap: 5 }}>
+              {[
+                { key: "mois",     label: "Ce mois"     },
+                { key: "annuelle", label: "Cette année"  },
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setFiltreClients(key)}
+                  className={`mh-filter-btn${filtreClients === key ? " mh-filter-btn--active" : ""}`}
+                  style={{ fontSize: 10, padding: "3px 9px" }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
-          {stockBoutiqueChart.length === 0 ? (
-            <p className="mh-chart-empty">Aucune donnée</p>
+          {topClients.length === 0 ? (
+            <p className="mh-chart-empty">Aucune commande livrée sur la période</p>
           ) : (
-            <div style={{ height: 220 }}>
-              <Bar
-                data={boutiqueBarData}
-                options={{
-                  ...mpBarOpts,
-                  plugins: {
-                    ...mpBarOpts.plugins,
-                    legend: { display: true, position: "top", labels: { font: { size: 11 }, boxWidth: 12 } },
-                  },
-                }}
-              />
+            <div style={{ height: 260 }}>
+              <Bar data={topClientsData} options={topClientsOpts} />
             </div>
           )}
         </div>

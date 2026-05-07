@@ -136,44 +136,6 @@
 .mh-kpi-footer { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .mh-kpi-sub    { font-size: 11px; color: #cbd5e1; }
 
-.mh-trend {
-  font-size: 11px; font-weight: 700; padding: 2px 7px;
-  border-radius: 20px; white-space: nowrap;
-}
-.mh-trend--up   { background: #f0fdf4; color: #16a34a; }
-.mh-trend--down { background: #fef2f2; color: #dc2626; }
-
-/* ── Best seller card ── */
-.mh-bestseller {
-  display: flex; align-items: center; gap: 16px;
-  background: #fff;
-  border-radius: 16px;
-  padding: 18px 24px;
-  border: 1px solid #e2e8f0;
-  border-left: 4px solid #f59e0b;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
-  margin-bottom: 14px;
-  transition: transform 0.18s, box-shadow 0.18s;
-}
-.mh-bestseller:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.09); }
-
-.mh-bestseller-icon {
-  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-  background: #fffbeb; color: #f59e0b;
-  display: flex; align-items: center; justify-content: center;
-}
-.mh-bestseller-icon svg { width: 22px; height: 22px; fill: #fde68a; stroke: #f59e0b; }
-
-.mh-bestseller-body { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-.mh-bestseller-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.6px; }
-.mh-bestseller-nom   { font-size: 1.3rem; font-weight: 800; color: #1e293b; }
-.mh-bestseller-qte   { font-size: 12px; color: #94a3b8; }
-
-.mh-bestseller-badge {
-  font-size: 1.1rem; font-weight: 800; color: #f59e0b;
-  background: #fffbeb; padding: 8px 16px; border-radius: 12px;
-  white-space: nowrap;
-}
 
 /* ── Charts ── */
 .mh-charts { display: grid; gap: 14px; margin-bottom: 14px; }
@@ -198,13 +160,6 @@
   text-align: center; color: #cbd5e1; font-size: 13px; padding: 40px 0;
 }
 
-/* "Temps réel" badge on stock charts */
-.mh-realtime-badge {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.4px;
-  padding: 3px 9px; border-radius: 20px;
-  background: #f0fdf4; color: #16a34a;
-  text-transform: uppercase;
-}
 
 /* Doughnut center overlay */
 .mh-doughnut-wrap {
@@ -220,6 +175,13 @@
 .mh-doughnut-pct { font-size: 1.7rem; font-weight: 800; color: #1e293b; line-height: 1.1; }
 .mh-doughnut-sub { font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
 
+/* ── Section labels ── */
+.mh-section-label {
+  font-size: 10px; font-weight: 700; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: 0.9px;
+  margin: 22px 0 10px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1200px) {
   .mh-kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -231,8 +193,6 @@
   .mh-dashboard { padding: 14px; }
   .mh-kpi-grid { grid-template-columns: 1fr 1fr; }
   .mh-filtre-section { flex-direction: column; align-items: flex-start; }
-  .mh-bestseller { flex-wrap: wrap; }
-  .mh-bestseller-badge { display: none; }
 }
 @media (max-width: 400px) {
   .mh-kpi-grid { grid-template-columns: 1fr; }
