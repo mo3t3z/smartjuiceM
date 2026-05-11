@@ -64,7 +64,6 @@ export default function ManagerDashboard() {
     transfertsPeriode,
     tauxConfirmation, confirmees, refusees,
     topProduits,
-    alertesMP, alertesBoutique, commandesEnAttente,
     caParDate = [],
     caCommandesEnLigne = 0,
     caCommandesPhysique = 0,
@@ -73,8 +72,6 @@ export default function ManagerDashboard() {
     topClientsAnnuelle = [],
   } = data;
   const topClients = filtreClients === "mois" ? topClientsMois : topClientsAnnuelle;
-
-  const hasAlertes = alertesMP.length > 0 || alertesBoutique.length > 0 || commandesEnAttente > 0;
 
   // ── Chart configs ────────────────────────────────────────────────────────────
   const doughnutData = {
@@ -221,36 +218,6 @@ export default function ManagerDashboard() {
         <h1 className="mh-title">Tableau de bord</h1>
         <p className="mh-sub">{dateFormatted}</p>
       </div>
-
-      {/* ── Bandeau alertes ── */}
-      {hasAlertes && (
-        <div className="mh-bandeau-alertes">
-          <div className="mh-bandeau-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/>
-              <line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-          </div>
-          <div className="mh-bandeau-list">
-            {alertesMP.map((a) => (
-              <span key={a.nom} className="mh-bandeau-pill">
-                Stock MP critique — <strong>{a.nom}</strong> ({a.disponible}/{a.seuil} {a.unite})
-              </span>
-            ))}
-            {alertesBoutique.map((a) => (
-              <span key={a.nom} className="mh-bandeau-pill">
-                Stock boutique — <strong>{a.nom}</strong> ({a.disponible}/{a.seuil} L)
-              </span>
-            ))}
-            {commandesEnAttente > 0 && (
-              <span className="mh-bandeau-pill mh-bandeau-pill--orange">
-                {commandesEnAttente} commande{commandesEnAttente > 1 ? "s" : ""} en attente
-              </span>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ── Filtre période ── */}
       <div className="mh-filtre-section">

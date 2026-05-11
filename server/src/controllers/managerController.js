@@ -1,12 +1,8 @@
 import Notification from "../models/Notification.js";
-import TypeMP from "../models/TypeMP.js";
-import Recette from "../models/Recette.js";
-import StockBoutique from "../models/StockBoutique.js";
 import Vente from "../models/Vente.js";
 import Commande from "../models/Commande.js";
 import ProductionPF from "../models/ProductionPF.js";
 import TransfertBoutique from "../models/TransfertBoutique.js";
-import { calcDisponible } from "./workshopController.js";
 
 /* ═══════════════════════════════════════
    NOTIFICATIONS
@@ -273,34 +269,10 @@ export const getDashboardKPIs = async (req, res) => {
     const caCommandesEnLigne  = +(caCommandesBreakdown.find((c) => c._id === "en_ligne")?.total  ?? 0).toFixed(2);
     const caCommandesPhysique = +(caCommandesBreakdown.filter((c) => c._id !== "en_ligne").reduce((s, c) => s + c.total, 0)).toFixed(2);
 
-    // ── CHART 3 & 4 — Stocks (temps réel) ───────────────────────────────────
-    const types    = await TypeMP.find({});
-    const dispoMap = await calcDisponible();
-    const stockMPChart = types.map((t) => {
-      const keys  = Object.keys(dispoMap).filter((k) => k.startsWith(t.nom + "||"));
-      const dispo = keys.reduce((s, k) => s + (dispoMap[k]?.disponible ?? 0), 0);
-      return { nom: t.nom, disponible: +dispo.toFixed(2), seuil: t.seuilMin, unite: t.unite };
-    });
-    const recettes         = await Recette.find({}, "nomJus seuilMinBoutique");
-    const stocksBoutique   = await StockBoutique.find({});
-    const stockBoutiqueMap = Object.fromEntries(stocksBoutique.map((s) => [s.nomJus, s.stockActuel]));
-    const stockBoutiqueChart = recettes.map((r) => ({
-      nom: r.nomJus,
-      disponible: +(stockBoutiqueMap[r.nomJus] ?? 0).toFixed(2),
-      seuil: r.seuilMinBoutique ?? 0,
-    }));
-
-    // ── Alertes ──────────────────────────────────────────────────────────────
-    const alertesMP          = stockMPChart.filter((s) => s.disponible <= s.seuil);
-    const alertesBoutique    = stockBoutiqueChart.filter((s) => s.disponible <= s.seuil);
-    const commandesEnAttente = await Commande.countDocuments({ statut: "en_attente" });
-
     res.json({
       caPeriode, panierMoyen, productionsPeriode, transfertsPeriode,
       tauxConfirmation, confirmees, refusees,
       topProduits,
-      stockMPChart, stockBoutiqueChart,
-      alertesMP, alertesBoutique, commandesEnAttente,
       caParDate,
       caCommandesEnLigne, caCommandesPhysique,
       commandesParDate,

@@ -7,16 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "seed:manager": "node src/seeds/seedManager.js",
-    "seed:dashboard": "node src/seeds/seedDashboard.js",
-    "seed:dashboard:reset": "node src/seeds/seedDashboard.js --reset",
-    "seed:recettes": "node src/seeds/seedRecettes.js",
-    "seed:historique": "node src/seeds/seedHistorique.js",
-    "reset:partiel": "node src/seeds/seedHistorique.js --reset-only",
-    "reset": "node src/seeds/resetAll.js",
-    "update:manager": "node src/seeds/updateManager.js",
-    "seed:algo": "node src/seeds/seedAlgo.js",
-    "seed:algo:reset": "node src/seeds/seedAlgo.js --reset"
+    "seed:manager": "node src/seeds/seedManager.js"
   },
   "keywords": [],
   "author": "",
