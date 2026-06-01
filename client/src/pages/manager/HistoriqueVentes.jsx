@@ -14,24 +14,24 @@ export default function HistoriqueVentes() {
 
   const [message, setMessage] = useState({ texte: "", type: "" });
 
-  const afficherMessage = (texte, type) => {
+  const afficherMessage = (texte, type) => {//affiche le msg d'alerte qui disparru aprés 4sc
     setMessage({ texte, type });
     setTimeout(() => setMessage({ texte: "", type: "" }), 4000);
   };
 
-  const handleRecherche = async () => {
+  const handleRecherche = async () => {//ken tkteb jour f filtre w tkmlch lbe9y wle hja hekka 
     if (modeFiltre === "jour" && !date) { afficherMessage("Veuillez choisir un jour.", "erreur"); return; }
     if (modeFiltre === "mois" && !mois) { afficherMessage("Veuillez choisir un mois.", "erreur"); return; }
 
-    const params = new URLSearchParams();
-    if (modeFiltre === "jour") { params.append("debut", date); params.append("fin", date); }
-    else params.append("mois", mois);
+    const params = new URLSearchParams();//construit parametre l'url
+    if (modeFiltre === "jour") { params.append("debut", date); params.append("fin", date); }//thot w9teh ybde w youfa jour
+    else params.append("mois", mois);//thot format de moiss
 
     setLoading(true);
     try {
       const res = await axios.get(`${API_VENTES}?${params}`, { headers: authHeader() });
-      setVentes(res.data);
-      setSearched(true);
+      setVentes(res.data);//stock les ventes recu
+      setSearched(true);// declanche l'affichage de resultat
     } catch {
       afficherMessage("Erreur de chargement.", "erreur");
     } finally {
@@ -41,14 +41,14 @@ export default function HistoriqueVentes() {
 
   const telechargerRecu = async (id) => {
     try {
-      const res = await axios.get(`${API_VENTES}/${id}/recu`, {
+      const res = await axios.get(`${API_VENTES}/${id}/recu`, {//envoie requet pdf
         headers: authHeader(), responseType: "blob",
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
       link.href = url;
       link.download = `recu-vente-${id}.pdf`;
-      link.click();
+      link.click();//link pour telechargement
       window.URL.revokeObjectURL(url);
     } catch {
       afficherMessage("Erreur lors du téléchargement.", "erreur");
@@ -56,14 +56,14 @@ export default function HistoriqueVentes() {
   };
 
   const formatDate = (d) =>
-    new Date(d).toLocaleDateString("fr-TN", {
+    new Date(d).toLocaleDateString("fr-TN", {//format de date tunisienne lisible
       day: "2-digit", month: "short", year: "numeric",
       hour: "2-digit", minute: "2-digit",
     });
 
-  const totalCA = ventes.reduce((acc, v) => acc + v.total, 0);
+  const totalCA = ventes.reduce((acc, v) => acc + v.total, 0);//somme totale de tous les ventes
 
-  const labelPeriode = modeFiltre === "jour"
+  const labelPeriode = modeFiltre === "jour"//text lisible de la periode selectionnée 
     ? new Date(date).toLocaleDateString("fr-TN", { day: "2-digit", month: "long", year: "numeric" })
     : new Date(mois + "-01").toLocaleDateString("fr-TN", { month: "long", year: "numeric" });
 

@@ -5,17 +5,13 @@ import StockBoutique from "../models/StockBoutique.js";
 import Recette from "../models/Recette.js";
 import Notification from "../models/Notification.js";
 
-/* ═══════════════════════════════════════════════════════════════
-   HELPER PRIVÉ : recalcule le stock depuis les collections brutes
-   Utilisé uniquement pour initialiser un nouveau jus (lazy init)
-═══════════════════════════════════════════════════════════════ */
-/* recalculerstockdepuisdb hia  */
+//recalculerstockdepuisdb hia 
 const recalculerStockDepuisDB = async (nomJus) => {
   const transAgg = await TransfertBoutique.aggregate([
     { $match: { nomJus } },
     { $group: { _id: null, total: { $sum: "$quantite" } } },
   ]);
-  const totalRecu = transAgg[0]?.total || 0;
+  const totalRecu = transAgg[0]?.total || 0;//totale de transfert
 
   const ventesAgg = await Vente.aggregate([
     { $unwind: "$produits" },
@@ -23,29 +19,20 @@ const recalculerStockDepuisDB = async (nomJus) => {
     {
       $group: {
         _id: null,
-        total: {
-          $sum: {
-            $multiply: [
-              "$produits.quantite",
-              { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
-            ],
-          },
-        },
+        total: { $sum: "$produits.quantite" },
       },
     },
   ]);
-  const totalVendu = ventesAgg[0]?.total || 0;
+  const totalVendu = ventesAgg[0]?.total || 0;//totale de vente 
 
-  return parseFloat((totalRecu - totalVendu).toFixed(2));
+  return parseFloat((totalRecu - totalVendu).toFixed(2));//results
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   Lire le stock boutique depuis la collection dédiée.
-   Lazy init : si le document n'existe pas encore, recalcule et crée.
-═══════════════════════════════════════════════════════════════ */
+
+//Lire le stock boutique depuis la collection dédiée,  
 export const calcStockBoutique = async (nomJus) => {
   const doc = await StockBoutique.findOne({ nomJus });
-  if (doc) return doc.stockActuel;
+  if (doc) return doc.stockActuel;//li
 
   const stock = await recalculerStockDepuisDB(nomJus);
   await StockBoutique.findOneAndUpdate(
@@ -64,7 +51,7 @@ export const ajouterStockBoutique = async (nomJus, delta) => {
   await calcStockBoutique(nomJus); // garantit que le doc existe
   return StockBoutique.findOneAndUpdate(
     { nomJus },
-    { $inc: { stockActuel: parseFloat(delta.toFixed(4)) } },
+    { $inc: { stockActuel: parseFloat(delta.toFixed(4)) } },//inc tzyd w tn9s f stock
     { new: true }
   );
 };

@@ -1,30 +1,6 @@
 import express from "express";
-import {
-  creerCommandeEnLigne,
-  getMesCommandes,
-  getCommandesEnAttente,
-  getToutesCommandes,
-  validerCommande,
-  refuserCommande,
-  getCommandesConfirmees,
-  marquerPrete,
-  marquerLivree,
-  creerCommandePhysique,
-  genererRecuCommande,
-  getMesNotifications,
-  marquerNotifLue,
-  marquerToutesNotifsLues,
-} from "../controllers/commandeController.js";
-import {
-  authenticate,
-  isClient,
-  isManager,
-  isSeller,
-  isWorkshop,
-  isSellerOrManager,
-  isWorkshopOrManager,
-  isWorkshopOrSellerOrManager,
-} from "../middleware/authMiddleware.js";
+import {creerCommandeEnLigne,getMesCommandes,getCommandesEnAttente,getToutesCommandes,validerCommande,refuserCommande,getCommandesConfirmees,marquerPrete,marquerLivree,creerCommandePhysique,genererRecuCommande,getMesNotifications,marquerNotifLue,marquerToutesNotifsLues,} from "../controllers/commandeController.js";
+import {authenticate,isClient,isManager,isSeller,isWorkshop,isSellerOrManager,isWorkshopOrManager,isWorkshopOrSellerOrManager,} from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 

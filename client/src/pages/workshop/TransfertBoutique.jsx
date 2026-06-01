@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import "./TransfertBoutique.css";
 
 import { API_WORKSHOP as API, authHeader } from "../../utils/api";
 
 export default function TransfertBoutique() {
-  const navigate = useNavigate();
+  
   const [jusList, setJusList]       = useState([]);
   const [nomJus, setNomJus]         = useState("");
   const [quantite, setQuantite]     = useState("");
@@ -15,7 +14,7 @@ export default function TransfertBoutique() {
   const [success, setSuccess]       = useState("");
   const [error, setError]           = useState("");
 
-  /* ── charger les jus disponibles en stock PF atelier ── */
+  /* ── charger les jus disponibles en stock PF atelier (dropdown)── */
   useEffect(() => {
     fetch(`${API}/stock/pf/resume`, { headers: authHeader() })
       .then((r) => r.json())
@@ -23,12 +22,12 @@ export default function TransfertBoutique() {
       .catch(() => {});
   }, []);
 
-  /* ── charger la dispo quand on change le jus ── */
+  /* ── charger la dispo quand on change le jus ely todhher ta7et jus a  transférer── */
   useEffect(() => {
     setDisponible(null);
     setError("");
     setQuantite("");
-    if (!nomJus) return;
+    if (!nomJus) return;//si rien selectionner stop
     setDispoLoading(true);
     fetch(`${API}/transferts/disponible?nomJus=${encodeURIComponent(nomJus)}`, {
       headers: authHeader(),
@@ -37,7 +36,7 @@ export default function TransfertBoutique() {
       .then((d) => setDisponible(d.disponible))
       .catch(() => setDisponible(null))
       .finally(() => setDispoLoading(false));
-  }, [nomJus]);
+  }, [nomJus]);//se déclanche a chaque fois le nom de jus change
 
   /* ── submit ── */
   const handleSubmit = async (e) => {
@@ -48,23 +47,23 @@ export default function TransfertBoutique() {
     if (disponible !== null && Number(quantite) > disponible)
       return setError(`Quantité demandée (${quantite}L) supérieure au stock disponible (${disponible}L).`);
 
-    setSubmitLoading(true);
+    setSubmitLoading(true);//boutons indispo
     try {
       const res = await fetch(`${API}/transferts`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeader() },
-        body: JSON.stringify({ nomJus, quantite: Number(quantite) }),
+        body: JSON.stringify({ nomJus, quantite: Number(quantite) }),//envoie au backend 
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
+      if (!res.ok) throw new Error(data.message);//msg erreur 
+      
       setSuccess(data.message);
       setNomJus(""); setQuantite(""); setDisponible(null);
-      // rafraîchir la liste
+      // rafraîchir le dropdown
       fetch(`${API}/stock/pf/resume`, { headers: authHeader() })
         .then((r) => r.json())
         .then((d) => setJusList(Array.isArray(d) ? d.filter((j) => j.disponible > 0) : []));
-      setTimeout(() => setSuccess(""), 4000);
+      setTimeout(() => setSuccess(""), 4000);//msg succée disparu aprés 4sc
     } catch (e) {
       setError(e.message);
     } finally {

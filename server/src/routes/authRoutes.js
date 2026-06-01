@@ -1,7 +1,7 @@
 import express from "express";
 import { login, createStaffAccount, registerClient, changePassword, getStaffAccounts, updateStaffAccount, deleteStaffAccount, requestPasswordReset, resetPassword } from "../controllers/authController.js";
 import { authenticate, isManager, isClientOrManager } from "../middleware/authMiddleware.js";
-
+//get;lire/put:modifier/post:creer/delete: supprimer
 const router = express.Router();
 
 // Route publique: Se connecter (pas besoin d'être authentifié)

@@ -14,13 +14,13 @@ export default function NouvelleVente() {
   const [venteCreee, setVenteCreee] = useState(null); // vente créée (pour reçu)
 
   useEffect(() => {
-    fetchProduitsBoutique();
+    fetchProduitsBoutique();//appellé un seule fois 
   }, []);
 
   const fetchProduitsBoutique = async () => {
     try {
       const res = await axios.get(`${API_VENTES}/stock-boutique`, { headers: authHeader() });
-      setProduitsBoutique(res.data);
+      setProduitsBoutique(res.data);//retourne juste produit que leur stock supérieur a 0
     } catch {
       setMessage({ texte: "Impossible de charger le stock boutique.", type: "erreur" });
     }
@@ -44,12 +44,12 @@ export default function NouvelleVente() {
       return;
     }
 
-    if (existant) {
+    if (existant) {//deja dans panier incrémante la qté
       setPanier(panier.map((p) =>
         p.produitId === produit._id ? { ...p, quantite: p.quantite + 1 } : p
       ));
     } else {
-      setPanier([...panier, {
+      setPanier([...panier, {//l'ajoute si il n'existe pas 
         produitId: produit._id,
         nom: produit.nom,
         volume: produit.volume,
@@ -75,7 +75,7 @@ export default function NouvelleVente() {
   const total = totalBrut - escompte;
 
   // Enregistrer la vente
-  const enregistrerVente = async () => {
+  const enregistrerVente = async () => {//erreur pas pdt
     if (panier.length === 0) {
       setMessage({ texte: "Ajoutez au moins un produit.", type: "erreur" });
       return;
@@ -83,7 +83,7 @@ export default function NouvelleVente() {
 
     setLoading(true);
     try {
-      const res = await axios.post(
+      const res = await axios.post(//requete post pour envoyé la  vente
         API_VENTES,
         {
           produits: panier.map((p) => ({ produitId: p.produitId, quantite: p.quantite })),
@@ -93,11 +93,11 @@ export default function NouvelleVente() {
       );
 
       setVenteCreee(res.data.vente);
-      setPanier([]);
+      setPanier([]);//sucess message
       setMessage({ texte: "Vente enregistrée avec succès !", type: "succes" });
       fetchProduitsBoutique();
     } catch (err) {
-      setMessage({
+      setMessage({//erreur msg 
         texte: err.response?.data?.message || "Erreur lors de l'enregistrement.",
         type: "erreur",
       });
@@ -109,12 +109,12 @@ export default function NouvelleVente() {
   // Télécharger le reçu PDF
   const telechargerRecu = async (venteId) => {
     try {
-      const res = await axios.get(`${API_VENTES}/${venteId}/recu`, {
+      const res = await axios.get(`${API_VENTES}/${venteId}/recu`, {//requete de vente
         headers: authHeader(),
         responseType: "blob",
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement("a");
+      const link = document.createElement("a");//lien d'enregistrement
       link.href = url;
       link.download = `recu-vente-${venteId}.pdf`;
       link.click();

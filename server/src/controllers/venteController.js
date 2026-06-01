@@ -3,19 +3,22 @@ import Vente from "../models/Vente.js";
 import Product from "../models/Product.js";
 import { calcStockBoutique, ajouterStockBoutique, verifierAlerteBoutique } from "../services/stockBoutiqueService.js";
 import StockBoutique from "../models/StockBoutique.js";
+//f1 creation de vente/f2 recupérer tous les ventes pour historique de vente de gerant
+//f3:affiche le stock boutique dispo a la vente /f4:generation de pdf 
 
 /* ═══════════════════════════════════════════════════════════════
    HELPER : résoudre le nomJus d'un produit via sa recette liée
    Fallback sur le nom du produit si pas de recette liée
 ═══════════════════════════════════════════════════════════════ */
-const normalize = (s) =>
+const normalize = (s) =>//pour que le jus soit appelé sans aucune ambiguité 
   s.toLowerCase().replace(/[^a-zàâäéèêëîïôùûüç]/gi, " ").replace(/\s+/g, " ").trim();
 
-const trouverNomJus = async (produit) => {
+const trouverNomJus = async (produit) => {//si le produits et liée avec une recette il sera retourné aucun probléme
   if (produit.recette?.nomJus) return produit.recette.nomJus;
-  // Fallback : fuzzy match pour les produits sans recette liée
-  const stocks = await StockBoutique.find({});
+  // Fallback : ken msh rabtin pdt te3 catalogue b recette ymchi y9aren el kelmet ely tchbeh lba3dhha 
+  const stocks = await StockBoutique.find({});//chagre le stock boutique
   const nomProdNorm = normalize(produit.name);
+  //yfeltri klmet ely atwel mn zoz hrouf w yne7y klmet jus w ykhdm al be9y
   const motsProd = nomProdNorm.split(" ").filter((m) => m.length > 2 && m !== "jus");
   const match = stocks.find((s) => {
     const nomStockNorm = normalize(s.nomJus);
@@ -26,23 +29,19 @@ const trouverNomJus = async (produit) => {
   return match ? match.nomJus : produit.name;
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   PB24 — ENREGISTRER UNE VENTE EN BOUTIQUE (Vendeur)
-   → Vérifie le stock boutique disponible avant d'enregistrer
-   → Déclenche les alertes PB26 si le stock passe sous le seuil
-═══════════════════════════════════════════════════════════════ */
+//f1:creation de vente
 export const creerVente = async (req, res) => {
   try {
-    const { produits, escompte } = req.body;
+    const { produits, escompte } = req.body;//extraire du requet front le pdt et escompte
 
     if (!produits || produits.length === 0) {
       return res.status(400).json({ message: "La vente doit contenir au moins un produit." });
     }
 
-    const produitsDetails = [];
+    const produitsDetails = [];//yhdher tableau chyhot fyh details w total s'intilise a 0
     let total = 0;
 
-    for (const item of produits) {
+    for (const item of produits) {//ylewej al pdt f mongo
       const produit = await Product.findById(item.produitId).populate("recette", "nomJus");
       if (!produit) {
         return res.status(404).json({ message: `Produit introuvable: ${item.produitId}` });
@@ -52,8 +51,7 @@ export const creerVente = async (req, res) => {
       const nomJus = await trouverNomJus(produit);
 
       // Vérifier le stock boutique disponible pour ce produit
-      const litresParUnite = produit.volume === "1L" ? 1 : 0.5;
-      const litresDemandes = item.quantite * litresParUnite;
+      const litresDemandes = item.quantite;
       const stockDispo = await calcStockBoutique(nomJus);
 
       if (litresDemandes > stockDispo) {
@@ -64,10 +62,10 @@ export const creerVente = async (req, res) => {
         });
       }
 
-      const ligneTotal = produit.price * item.quantite;
+      const ligneTotal = produit.price * item.quantite;//ken quantité mregla yehseb
       total += ligneTotal;
 
-      produitsDetails.push({
+      produitsDetails.push({//zyd l'article f tableau
         produit: produit._id,
         nom: produit.name,
         nomJus,                  // nom dans StockBoutique (pour décrémentation)
@@ -83,7 +81,7 @@ export const creerVente = async (req, res) => {
 
     // Enregistrer la vente (sans nomJus dans le schéma)
     const venteProduits = produitsDetails.map(({ nomJus: _nj, ...rest }) => rest);
-    const vente = await Vente.create({
+    const vente = await Vente.create({//créer la vente
       produits: venteProduits,
       total: totalFinal,
       escompte: escompteApplique,
@@ -93,7 +91,7 @@ export const creerVente = async (req, res) => {
 
     // Décrémenter le stock boutique pour chaque produit vendu (avec le bon nomJus)
     for (const p of produitsDetails) {
-      const litres = (p.volume === "1L" ? 1 : 0.5) * p.quantite;
+      const litres = p.quantite;
       await ajouterStockBoutique(p.nomJus, -litres);
     }
 
@@ -102,7 +100,7 @@ export const creerVente = async (req, res) => {
     for (const nomJus of nomsJus) {
       await verifierAlerteBoutique(nomJus);
     }
-
+//reponse json a envoyé au front 
     const populated = await vente.populate("vendeur", "email nom prenom");
     res.status(201).json({ message: "Vente enregistrée avec succès.", vente: populated });
   } catch (error) {
@@ -110,27 +108,25 @@ export const creerVente = async (req, res) => {
   }
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   TOUTES LES VENTES (Gérant)
-═══════════════════════════════════════════════════════════════ */
+//f2 recupérer tous les ventes pour historique de vente de gerant
 export const getVentes = async (req, res) => {
   try {
-    const { debut, fin, mois } = req.query;
+    const { debut, fin, mois } = req.query;//lit parametre depuis url 
     const filtre = {};
 
-    if (mois) {
+    if (mois) {//filtre par moi
       const [annee, moisNum] = mois.split("-").map(Number);
       filtre.dateVente = {
-        $gte: new Date(annee, moisNum - 1, 1),
+        $gte: new Date(annee, moisNum - 1, 1),//dyme nehiw 1 mel mois khtr 0 hyia 1 f js
         $lte: new Date(annee, moisNum, 0, 23, 59, 59, 999),
       };
-    } else if (debut || fin) {
+    } else if (debut || fin) {//quand la journée commance et fini
       filtre.dateVente = {};
       if (debut) { const d = new Date(debut); d.setHours(0,0,0,0); filtre.dateVente.$gte = d; }
       if (fin)   { const d = new Date(fin);   d.setHours(23,59,59,999); filtre.dateVente.$lte = d; }
     }
 
-    const ventes = await Vente.find(filtre)
+    const ventes = await Vente.find(filtre)//selon le filtre retourne vendeur, et email nom et prenom
       .populate("vendeur", "email nom prenom")
       .sort({ dateVente: -1 });
 
@@ -139,75 +135,54 @@ export const getVentes = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
-
-/* ═══════════════════════════════════════════════════════════════
-   MES VENTES (Vendeur)
-═══════════════════════════════════════════════════════════════ */
-export const getMesVentes = async (req, res) => {
-  try {
-    const ventes = await Vente.find({ vendeur: req.user._id })
-      .populate("vendeur", "email nom prenom")
-      .sort({ dateVente: -1 });
-
-    res.json(ventes);
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
-
-/* ═══════════════════════════════════════════════════════════════
-   STOCK BOUTIQUE DISPONIBLE PAR PRODUIT (Vendeur + Gérant)
-   Calcul : transferts - ventes - commandes livrées
-═══════════════════════════════════════════════════════════════ */
+//f3:affiche le stock boutique dispo a la vente
 export const getStockBoutiqueDisponible = async (req, res) => {
   try {
-    const stocks = await StockBoutique.find().sort({ nomJus: 1 });
-    const products = await Product.find({}).populate("recette", "nomJus");
+    //recupérer tous les produit availble avec leur recette liée 
+    const products = await Product.find({ available: true }).populate("recette", "nomJus");
+    const stocks = await StockBoutique.find({});
+    const stockMap = {};
+    stocks.forEach((s) => { stockMap[s.nomJus] = s.stockActuel; });//transforme le tableau en dictionnaire
 
     const result = [];
-    for (const s of stocks) {
-      const dispo = Math.max(0, parseFloat(s.stockActuel.toFixed(2)));
-      if (dispo <= 0) continue;
+    for (const produit of products) {//prépare le tableau resultat et parcourt chaque produit
+      let nomJus = produit.recette?.nomJus;
 
-      // 1. Cherche d'abord un produit lié via recette.nomJus (exact)
-      let produit = products.find((p) => p.recette?.nomJus === s.nomJus);
-
-      // 2. Fallback fuzzy si aucun produit lié par recette
-      if (!produit) {
-        const nomStockNorm = normalize(s.nomJus);
-        const mots = nomStockNorm.split(" ").filter(m => m.length > 2 && m !== "jus");
-        produit = products.find((p) => {
-          const nomProdNorm = normalize(p.name);
-          return mots.every((m) => nomProdNorm.includes(m));
+      if (!nomJus) {//fallback fuzzy match
+        const nomProdNorm = normalize(produit.name);
+        const match = stocks.find((s) => {
+          const nomStockNorm = normalize(s.nomJus);
+          const mots = nomStockNorm.split(" ").filter((m) => m.length > 2 && m !== "jus");
+          return mots.length > 0 && mots.every((m) => nomProdNorm.includes(m));
         });
+        nomJus = match ? match.nomJus : null;
       }
 
-      const volume = produit?.volume || "1L";
-      const litresParUnite = volume === "1L" ? 1 : 0.5;
-      const unitsDispo = Math.floor(dispo / litresParUnite);
+      if (!nomJus) continue;
+
+      const dispo = Math.max(0, parseFloat((stockMap[nomJus] || 0).toFixed(2)));
+      const unitsDispo = Math.floor(dispo);
       if (unitsDispo <= 0) continue;
 
-      result.push({
-        _id: produit?._id || null,
-        nom: produit?.name || s.nomJus,
-        nomJus: s.nomJus,
-        volume,
-        prix: produit?.price || 0,
-        image: produit?.image || "",
+      result.push({//pusher resultat f tableaux
+        _id: produit._id,
+        nom: produit.name,
+        nomJus,
+        volume: produit.volume,
+        prix: produit.price,
+        image: produit.image || "",
         unitsDispo,
         litresDispo: dispo,
       });
     }
 
-    res.json(result);
-  } catch (error) {
+    res.json(result);//retourner resultat
+  } catch (error) {//erreur
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   PB24 — GÉNÉRER LE REÇU PDF D'UNE VENTE
-═══════════════════════════════════════════════════════════════ */
+//f4:generation de pdf 
 export const genererRecuVente = async (req, res) => {
   try {
     const vente = await Vente.findById(req.params.id).populate("vendeur", "email nom prenom");

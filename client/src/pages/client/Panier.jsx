@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axios from "axios";//appel requette http
 import { useNavigate, useLocation } from "react-router-dom";
 import { getPanier, savePanier, authHeader, API_COMMANDES, SEUIL_REMISE, TAUX_REMISE } from "../../utils/api";
 import "./Panier.css";
@@ -15,7 +15,7 @@ export default function Panier() {
   const [notifications, setNotifications] = useState([]);
   const [showNotifs, setShowNotifs] = useState(false);
 
-  useEffect(() => {
+  useEffect(() => {//bonjour ..... s'affiche aprés me tamel login
     if (location.state?.welcome) {
       const timer = setTimeout(() => setWelcome(""), 5000);
       return () => clearTimeout(timer);
@@ -26,23 +26,23 @@ export default function Panier() {
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
-    if (stored) {
+    if (stored) {//lit user de local storage si le user est client pour charger notif
       const parsed = JSON.parse(stored);
       if (parsed.role === "client") {
         setUser(parsed);
         fetchNotifications();
       }
     }
-    const p = getPanier();
+    const p = getPanier();//charge panier depuis localstorage
     setPanier(p);
-    setNbPanier(p.reduce((a, i) => a + i.quantite, 0));
+    setNbPanier(p.reduce((a, i) => a + i.quantite, 0));//badge
   }, []);
 
-  useEffect(() => {
+  useEffect(() => {//recalculation de badge ajout,suppression,qté
     setNbPanier(panier.reduce((a, i) => a + i.quantite, 0));
   }, [panier]);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async () => {//appeler les notif
     try {
       const res = await axios.get(`${API_COMMANDES}/mes-notifications`, {
         headers: authHeader(),
@@ -53,7 +53,7 @@ export default function Panier() {
 
   const marquerLue = async (id) => {
     try {
-      await axios.put(`${API_COMMANDES}/mes-notifications/${id}/lue`, {}, {
+      await axios.put(`${API_COMMANDES}/mes-notifications/${id}/lue`, {}, {//lewej al notif bel id w bdl el lue
         headers: authHeader(),
       });
       setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, lue: true } : n));
@@ -61,7 +61,7 @@ export default function Panier() {
   };
 
   const marquerToutesLues = async () => {
-    try {
+    try {//lwj alehom kol w hothom lue
       await axios.put(`${API_COMMANDES}/mes-notifications/lues`, {}, {
         headers: authHeader(),
       });
@@ -74,10 +74,10 @@ export default function Panier() {
     localStorage.removeItem("user");
     navigate("/login-client");
   };
-
+//tableau keml te3 notif khali menhom ken el non lue w ehsb 9deh mezl
   const nonLues = notifications.filter((n) => !n.lue).length;
 
-  // Prix total brut
+  // somme tous les prix*qte
   const prixTotal = () =>
     panier.reduce((acc, item) => acc + item.prix * item.quantite, 0);
 
@@ -88,7 +88,7 @@ export default function Panier() {
   const netAPayer = () => (prixTotal() - remise()).toFixed(2);
 
   // Modifier la quantité d'un article
-  const modifierQuantite = (produitId, delta) => {
+  const modifierQuantite = (produitId, delta) => {//delta (+) ely ytnzl aleha
     const nouveauPanier = panier
       .map((item) =>
         item.produitId === produitId
@@ -115,15 +115,15 @@ export default function Panier() {
 
   // PB19 — Rediriger vers le checkout (ou login si non connecté)
   const passerCommande = () => {
-    if (panier.length === 0) {
+    if (panier.length === 0) {//panier fergh 
       setMessage({ texte: "Votre panier est vide.", type: "erreur" });
       return;
-    }
+    }//rej3ou lel login kenou msh connecté 
     const user = JSON.parse(localStorage.getItem("user") || "null");
     if (!user || user.role !== "client") {
       navigate("/login-client", { state: { from: "/client/panier" } });
       return;
-    }
+    }//hezou lel checkout kenou connecté
     navigate("/client/checkout");
   };
 

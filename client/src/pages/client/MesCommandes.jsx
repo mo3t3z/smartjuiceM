@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { authHeader, API_COMMANDES, getNbArticlesPanier } from "../../utils/api";
 import "./MesCommandes.css";
 
-// PB21 — Suivre l'état de ses commandes (Client)
+//Suivre l'état de ses commandes (Client)
 export default function MesCommandes() {
   const navigate = useNavigate();
   const [commandes, setCommandes] = useState([]);
@@ -12,34 +12,24 @@ export default function MesCommandes() {
   const [erreur, setErreur] = useState("");
   const [user, setUser] = useState(null);
   const [nbPanier, setNbPanier] = useState(0);
-  const [expandedId, setExpandedId] = useState(null);
-  const [menuId, setMenuId] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [showNotifs, setShowNotifs] = useState(false);
-  const menuRef = useRef(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (!stored) { navigate("/login-client"); return; }
     const parsed = JSON.parse(stored);
+    //ken fme user ema msh client hez lel login
     if (parsed.role !== "client") { navigate("/login-client"); return; }
     setUser(parsed);
-    setNbPanier(getNbArticlesPanier());
-    fetchCommandes();
-    fetchNotifications();
-  }, []);
-
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuId(null);
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    setNbPanier(getNbArticlesPanier());//charge nb article panier
+    fetchCommandes();//charge les commande
+    fetchNotifications();//notif
   }, []);
 
   const fetchCommandes = async () => {
     try {
-      const res = await axios.get(`${API_COMMANDES}/mes-commandes`, {
+      const res = await axios.get(`${API_COMMANDES}/mes-commandes`, {//recupération cmnde avec token
         headers: authHeader(),
       });
       setCommandes(res.data);
@@ -52,7 +42,7 @@ export default function MesCommandes() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await axios.get(`${API_COMMANDES}/mes-notifications`, {
+      const res = await axios.get(`${API_COMMANDES}/mes-notifications`, {//recuperation de notif
         headers: authHeader(),
       });
       setNotifications(res.data);
@@ -61,15 +51,15 @@ export default function MesCommandes() {
 
   const marquerLue = async (id) => {
     try {
-      await axios.put(`${API_COMMANDES}/mes-notifications/${id}/lue`, {}, {
+      await axios.put(`${API_COMMANDES}/mes-notifications/${id}/lue`, {}, {//put pour marquer notif lue
         headers: authHeader(),
-      });
+      });//change son etat true
       setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, lue: true } : n));
     } catch { /* silencieux */ }
   };
 
   const marquerToutesLues = async () => {
-    try {
+    try {//recuperation de tous les commandes et change lue a true
       await axios.put(`${API_COMMANDES}/mes-notifications/lues`, {}, {
         headers: authHeader(),
       });
@@ -77,7 +67,7 @@ export default function MesCommandes() {
     } catch { /* silencieux */ }
   };
 
-  const handleLogout = () => {
+  const handleLogout = () => {//chnamlou logout
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login-client");
@@ -86,19 +76,19 @@ export default function MesCommandes() {
   const nonLues = notifications.filter((n) => !n.lue).length;
 
   const statutConfig = {
-    en_attente:     { label: "En attente",     couleur: "gray"   },
-    validee:        { label: "En cours",        couleur: "blue"   },
-    prete:          { label: "Prête",           couleur: "teal"   },
-    livree:         { label: "Livrée",          couleur: "green"  },
-    refusee:        { label: "Refusée",         couleur: "red"    },
+    en_attente: { label: "En attente", couleur: "gray"  },
+    validee:    { label: "En cours",   couleur: "blue"  },
+    prete:      { label: "Prête",      couleur: "teal"  },
+    livree:     { label: "Livrée",     couleur: "green" },
+    refusee:    { label: "Refusée",    couleur: "red"   },
   };
 
   const formatDate = (dateStr) =>
-    new Date(dateStr).toLocaleDateString("fr-TN", {
+    new Date(dateStr).toLocaleDateString("fr-TN", {//format tunisien
       day: "2-digit", month: "2-digit", year: "numeric",
     });
 
-  const totalArticles = (cmd) =>
+  const totalArticles = (cmd) =>//somme de qté de tous les pdt d'une commande 
     cmd.produits.reduce((s, p) => s + p.quantite, 0);
 
   return (
@@ -237,92 +227,22 @@ export default function MesCommandes() {
                   <th>Produits</th>
                   <th>Total</th>
                   <th>Statut</th>
-                  <th className="mc-th-action">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {commandes.map((cmd) => {
                   const cfg = statutConfig[cmd.statut] || { label: cmd.statut, couleur: "gray" };
                   const nb = totalArticles(cmd);
-                  const isExpanded = expandedId === cmd._id;
                   return (
-                    <>
-                      <tr key={cmd._id} className="mc-tr">
-                        <td className="mc-td-id">CMD-{cmd._id.slice(-3).toUpperCase()}</td>
-                        <td className="mc-td-date">{formatDate(cmd.createdAt)}</td>
-                        <td className="mc-td-produits">{nb} {nb > 1 ? "articles" : "article"}</td>
-                        <td className="mc-td-total">{cmd.total.toFixed(3)} DT</td>
-                        <td>
-                          <span className={`mc-badge mc-badge--${cfg.couleur}`}>{cfg.label}</span>
-                        </td>
-                        <td className="mc-td-action">
-                          <button
-                            className="mc-details-btn"
-                            onClick={() => setExpandedId(isExpanded ? null : cmd._id)}
-                          >
-                            Détails
-                          </button>
-                          <div className="mc-menu-wrap" ref={menuId === cmd._id ? menuRef : null}>
-                            <button
-                              className="mc-dots-btn"
-                              onClick={() => setMenuId(menuId === cmd._id ? null : cmd._id)}
-                            >
-                              ⋮
-                            </button>
-                            {menuId === cmd._id && (
-                              <div className="mc-menu-dropdown">
-                                <button onClick={() => { setExpandedId(cmd._id); setMenuId(null); }}>
-                                  Voir les détails
-                                </button>
-                                {cmd.statut === "refusee" && cmd.commentaireRefus && (
-                                  <button>Motif : {cmd.commentaireRefus}</button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-
-                      {isExpanded && (
-                        <tr key={`${cmd._id}-detail`} className="mc-tr-detail">
-                          <td colSpan={6}>
-                            <div className="mc-detail-inner">
-                              <div className="mc-detail-produits">
-                                {cmd.produits.map((p, i) => (
-                                  <div key={i} className="mc-detail-row">
-                                    <span className="mc-det-nom">{p.nom}</span>
-                                    <span className="mc-det-vol">{p.volume}</span>
-                                    <span className="mc-det-qte">× {p.quantite}</span>
-                                    <span className="mc-det-prix">{(p.prixUnitaire * p.quantite).toFixed(3)} DT</span>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="mc-detail-footer">
-                                <span className="mc-detail-mode">
-                                  {cmd.modeRemise === "livraison"
-                                    ? `Livraison — ${cmd.adresseLivraison}`
-                                    : "Récupération"}
-                                </span>
-                                {cmd.remise > 0 && (
-                                  <span className="mc-detail-remise">
-                                    Remise (10%) : − {cmd.remise.toFixed(3)} DT
-                                  </span>
-                                )}
-                                {cmd.modeRemise === "livraison" && cmd.fraisLivraison > 0 && (
-                                  <span className="mc-detail-frais">
-                                    Frais : {cmd.fraisLivraison.toFixed(3)} DT
-                                  </span>
-                                )}
-                                <span className="mc-detail-total">Total : {cmd.total.toFixed(3)} DT</span>
-                              </div>
-                              {cmd.statut === "refusee" && cmd.commentaireRefus && (
-                                <div className="mc-detail-refus">Motif : {cmd.commentaireRefus}</div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </>
+                    <tr key={cmd._id} className="mc-tr">
+                      <td className="mc-td-id">CMD-{cmd._id.slice(-3).toUpperCase()}</td>
+                      <td className="mc-td-date">{formatDate(cmd.createdAt)}</td>
+                      <td className="mc-td-produits">{nb} {nb > 1 ? "articles" : "article"}</td>
+                      <td className="mc-td-total">{cmd.total.toFixed(3)} DT</td>
+                      <td>
+                        <span className={`mc-badge mc-badge--${cfg.couleur}`}>{cfg.label}</span>
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>

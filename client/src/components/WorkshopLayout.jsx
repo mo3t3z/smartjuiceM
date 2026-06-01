@@ -4,6 +4,7 @@ import { API_WORKSHOP as API, authHeader } from "../utils/api";
 import "./ManagerLayout.css";
 
 export default function WorkshopLayout() {
+  //lit le user connecté de local storagge ett affiche son email au sidebar
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -14,6 +15,7 @@ export default function WorkshopLayout() {
 
   useEffect(() => {
     fetchNotifications();
+    //verifier si il y nouveau alerte tout les 30sc
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -21,7 +23,7 @@ export default function WorkshopLayout() {
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (notifRef.current && !notifRef.current.contains(e.target))
-        setShowNotifs(false);
+        setShowNotifs(false);//si user clique n'importe ou au dehors de notif la notif disparu
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -48,11 +50,11 @@ export default function WorkshopLayout() {
     } catch { /* silencieux */ }
   };
 
-  const nonLues = notifications.filter((n) => !n.luAtelier).length;
+  const nonLues = notifications.filter((n) => !n.luAtelier).length;//compteur affiché en badge rouge sur le notif
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("token");//supprime token de local storage 
+    localStorage.removeItem("user");//supprime user de local storage
     window.location.href = "/login";
   };
 

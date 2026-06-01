@@ -23,7 +23,7 @@ const productSchema = new mongoose.Schema(
     },
     volume: {
       type: String,
-      enum: ["1L"],
+      enum: ["1L"],//acepter que 1L pour le moment
       required: true,
       default: "1L"
     },

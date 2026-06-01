@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./GererRecette.css";
-
+//afficher toute les recettes en carte , crééer modifier recette, supprimer recette
 import { API_WORKSHOP as API, API_PRODUCTS, authHeader } from "../../utils/api";
 const emptyIngredient = () => ({ matiere: "", quantite: "", unite: "" });
-const token = () => localStorage.getItem("token");
 
 export default function GererRecette() {
   const navigate = useNavigate();
@@ -15,7 +14,7 @@ export default function GererRecette() {
   const [error, setError] = useState("");
 
   // Modal add/edit
-  const [modal, setModal] = useState(null); // null | "add" | "edit"
+  const [modal, setModal] = useState(null); // null | "add" | "edit"(quelle model est ouverte)
   const [editing, setEditing] = useState(null);
   const [formNom, setFormNom] = useState("");
   const [formSeuilMin, setFormSeuilMin] = useState("");
@@ -28,7 +27,7 @@ export default function GererRecette() {
   const [confirmDel, setConfirmDel] = useState(null);
   const [delLoading, setDelLoading] = useState(false);
 
-  /* ── fetch ── */
+  //f1:fetch des recette
   const fetchRecettes = async () => {
     try {
       const res = await fetch(`${API}/recettes`, {
@@ -42,7 +41,7 @@ export default function GererRecette() {
       setLoading(false);
     }
   };
-
+  //f2:fetch type de mp
   const fetchTypesMP = async () => {
     try {
       const res = await fetch(`${API}/types-mp`, {
@@ -54,7 +53,7 @@ export default function GererRecette() {
       }
     } catch { /* silencieux */ }
   };
-
+  //f3:fetch catalogue de produits
   const fetchCatalogProducts = async () => {
     try {
       const res = await fetch(`${API_PRODUCTS}/catalog`);
@@ -93,16 +92,18 @@ export default function GererRecette() {
 
   const closeModal = () => { setModal(null); setEditing(null); setFormSeuilMin(""); setFormSeuilBoutique(""); setFormError(""); };
 
-  /* ── ingrédients ── */
-  const updateIng = (idx, field, val) =>
+  /*Gestion  des inégradiants */
+  const updateIng = (idx, field, val) =>//filed cad le champs 
     setFormIngs((prev) => prev.map((ing, i) => {
+      //pas le bon ingrédiants 
       if (i !== idx) return ing;
+      //l'unité se remplis automatiquement  
       if (field === "matiere") {
         const type = typesMP.find((t) => t.nom === val);
         return { ...ing, matiere: val, unite: type ? type.unite : ing.unite };
       }
       return { ...ing, [field]: val };
-    }));
+    }));  
   const addIng = () => setFormIngs((prev) => [...prev, emptyIngredient()]);
   const removeIng = (idx) => setFormIngs((prev) => prev.filter((_, i) => i !== idx));
 
@@ -119,16 +120,17 @@ export default function GererRecette() {
       if (!ing.quantite || Number(ing.quantite) <= 0) return setFormError("Chaque quantité doit être > 0.");
     }
 
-    const payload = {
+    const payload = {//donnée a envoyée 
       nomJus: formNom.trim(),
       ingredients: formIngs.map((i) => ({ matiere: i.matiere.trim(), quantite: Number(i.quantite), unite: i.unite })),
       seuilMinPF:       Number(formSeuilMin),
       seuilMinBoutique: Number(formSeuilBoutique),
     };
 
-    setFormLoading(true);
+    setFormLoading(true);//desactiver bouton 
+    //un seule function pour creer et modifier
     try {
-      const url = modal === "edit" ? `${API}/recettes/${editing._id}` : `${API}/recettes`;
+      const url = modal === "edit" ? `${API}/recettes/${editing._id}` : `${API}/recettes`;//put avec id post sans id
       const method = modal === "edit" ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
@@ -137,18 +139,21 @@ export default function GererRecette() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
+      //succée
       closeModal();
       fetchRecettes();
     } catch (e) {
+      //erreur
       setFormError(e.message);
     } finally {
+      //réactiver le button
       setFormLoading(false);
     }
   };
 
   /* ── delete ── */
   const handleDelete = async () => {
-    setDelLoading(true);
+    setDelLoading(true);//desactiver bouton
     try {
       const res = await fetch(`${API}/recettes/${confirmDel._id}`, {
         method: "DELETE",
@@ -156,8 +161,8 @@ export default function GererRecette() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
-      setConfirmDel(null);
-      fetchRecettes();
+      setConfirmDel(null);//ferme modéle de confirmation
+      fetchRecettes();//rechagre les cartes, la suppression disparait
     } catch (e) {
       setError(e.message);
     } finally {
@@ -165,7 +170,7 @@ export default function GererRecette() {
     }
   };
 
-  /* ── format date ── */
+   /* ── format date (utilisé pour afficher date de creation et modif)── */
   const fmtDate = (d) =>
     new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
 

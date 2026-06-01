@@ -4,6 +4,7 @@ import { API_MANAGER as API, authHeader } from "../utils/api";
 import "./ManagerLayout.css";
 
 export default function ManagerLayout() {
+  //Lit l'utilisateur connecté depuis le localStorage pour afficher son email et son initiale dans la sidebar.
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -12,7 +13,7 @@ export default function ManagerLayout() {
   const [showNotifs, setShowNotifs] = useState(false);
   const notifRef = useRef(null);
 
-  useEffect(() => {
+  useEffect(() => {//le layout verifie tous les 30sc si des nouvelles notifications sont arrivée
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
@@ -21,7 +22,7 @@ export default function ManagerLayout() {
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (notifRef.current && !notifRef.current.contains(e.target))
-        setShowNotifs(false);
+        setShowNotifs(false);//Si l'utilisateur clique n'importe où en dehors du panel notifications, il se ferme automatiquement.
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);

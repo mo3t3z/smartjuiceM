@@ -18,7 +18,7 @@ export default function NouvelleCommandePhysique() {
   const [mode, setMode] = useState("retrait");
   const [adresse, setAdresse] = useState("");
 
-  const [message, setMessage] = useState({ texte: "", type: "" });
+  const [message, setMessage] = useState({ texte: "", type: "" });//affiche les alerte de sucée ou erreur en haut
   const [loading, setLoading] = useState(false);
   const [commandeCreee, setCommandeCreee] = useState(null);
 
@@ -27,7 +27,7 @@ export default function NouvelleCommandePhysique() {
 
   // Convertir jj/mm/aaaa → "YYYY-MM-DD"
   const date = (jour.length === 2 && mois.length === 2 && annee.length === 4)
-    ? `${annee}-${mois}-${jour}`
+    ? `${annee}-${mois}-${jour}`//format
     : "";
 
   const dateObjValide = date ? new Date(date) : null;
@@ -35,7 +35,7 @@ export default function NouvelleCommandePhysique() {
     if (!jour && !mois && !annee) return "";
     const m = parseInt(mois), j = parseInt(jour);
     if (annee.length === 4) {
-      if (m < 1 || m > 12) return "Mois invalide (01–12).";
+      if (m < 1 || m > 12) return "Mois invalide (01–12).";//controle saisie
       if (j < 1 || j > 31) return "Jour invalide (01–31).";
       if (dateObjValide && isNaN(dateObjValide.getTime())) return "Date invalide.";
       if (dateObjValide && dateObjValide < todayObj) return "La date ne peut pas être dans le passé.";
@@ -44,27 +44,27 @@ export default function NouvelleCommandePhysique() {
     return "";
   })();
 
-  // Vérifie si date + heure est dans le futur (si c'est aujourd'hui)
+  // ken lw9t t3addeeee
   const heureErreurPassee = !date || !heure || dateErreur ? false : isPastDateTime(date, heure);
 
   useEffect(() => { fetchCatalogue(); }, []);
 
   const fetchCatalogue = async () => {
     try {
-      const res = await axios.get(`${API_PRODUCTS}/catalog`);
+      const res = await axios.get(`${API_PRODUCTS}/catalog`);//recupérer donée de catalogue
       setCatalogue(res.data);
     } catch {
       setMessage({ texte: "Impossible de charger le catalogue.", type: "erreur" });
     }
   };
 
-  const ajouterProduit = (produit) => {
-    const existant = panier.find((p) => p.produitId === produit._id);
+  const ajouterProduit = (produit) => {//chnzidou pdt
+    const existant = panier.find((p) => p.produitId === produit._id);//kenou mewjoud f catelogue
     if (existant) {
-      setPanier(panier.map((p) =>
+      setPanier(panier.map((p) =>//juste inccrémantation
         p.produitId === produit._id ? { ...p, quantite: p.quantite + 1 } : p
       ));
-    } else {
+    } else {//ajouter un nouvel article
       setPanier([...panier, {
         produitId: produit._id,
         nom: produit.name,
@@ -75,7 +75,7 @@ export default function NouvelleCommandePhysique() {
     }
   };
 
-  const modifierQuantite = (produitId, delta) => {
+  const modifierQuantite = (produitId, delta) => {//tzyd wle tn9s f quantité hsb delta
     setPanier(
       panier
         .map((p) => p.produitId === produitId ? { ...p, quantite: p.quantite + delta } : p)
@@ -99,7 +99,7 @@ export default function NouvelleCommandePhysique() {
     heureValide &&
     (mode === "retrait" || adresse.trim() !== "");
 
-  const enregistrerCommande = async () => {
+  const enregistrerCommande = async () => {//verification de formulaire l'hors de enregistrement
     if (!formValide) {
       if (panier.length === 0) return setMessage({ texte: "Ajoutez au moins un produit.", type: "erreur" });
       if (!nomClient.trim()) return setMessage({ texte: "Le nom et prénom est obligatoire.", type: "erreur" });
@@ -113,7 +113,7 @@ export default function NouvelleCommandePhysique() {
 
     setLoading(true);
     try {
-      const res = await axios.post(
+      const res = await axios.post(//envoie du form
         `${API_COMMANDES}/physique`,
         {
           nomClient: nomClient.trim(),
@@ -128,7 +128,7 @@ export default function NouvelleCommandePhysique() {
         { headers: authHeader() }
       );
 
-      setCommandeCreee(res.data.commande);
+      setCommandeCreee(res.data.commande);//stock la commande crée 
       setPanier([]);
       setNomClient(""); setTelephone(""); setJour(""); setMois(""); setAnnee(""); setHeure(""); setAdresse(""); setMode("retrait");
       setMessage({ texte: "Commande physique enregistrée !", type: "succes" });
@@ -140,7 +140,7 @@ export default function NouvelleCommandePhysique() {
     }
   };
 
-  const telechargerRecu = async (commandeId) => {
+  const telechargerRecu = async (commandeId) => {//telechargment de recu selon id
     try {
       const res = await axios.get(`${API_COMMANDES}/${commandeId}/recu`, {
         headers: authHeader(), responseType: "blob",
@@ -275,13 +275,15 @@ export default function NouvelleCommandePhysique() {
               <div className="ncp-field">
                 <label className="ncp-label">Nom et Prénom *</label>
                 <input className="ncp-input" type="text" value={nomClient}
-                  onChange={(e) => setNomClient(e.target.value)} placeholder="Ex: Ahmed Ben Ali" />
+                  onChange={(e) => setNomClient(e.target.value.replace(/[^a-zA-ZÀ-ÿ\s\-']/g, ""))}
+                  placeholder="Ex: Ahmed Ben Ali" />
               </div>
 
               <div className="ncp-field">
                 <label className="ncp-label">Numéro de téléphone *</label>
                 <input className="ncp-input" type="tel" value={telephone}
-                  onChange={(e) => setTelephone(e.target.value)} placeholder="Ex: 55 123 456" />
+                  onChange={(e) => setTelephone(e.target.value.replace(/[^\d]/g, ""))}
+                  placeholder="Ex: 55123456" />
               </div>
 
               <div className="ncp-row2">

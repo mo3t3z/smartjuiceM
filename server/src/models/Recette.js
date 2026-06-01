@@ -6,7 +6,7 @@ const recetteSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      trim: true,
+      trim: true,//enléve les espaces avant et après
     },
     ingredients: [
       {
@@ -21,7 +21,7 @@ const recetteSchema = new mongoose.Schema(
     modifierPar: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     dateModification: { type: Date, default: null },
   },
-  { timestamps: true }
+  { timestamps: true }//ajoute createdAt et updatedAt automatiquement
 );
 
 export default mongoose.model("Recette", recetteSchema);

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import axios from "axios";
+import axios from "axios";//librairie HTTP pour l'appel api 
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./LoginClient.css";
-import { API_AUTH } from "../utils/api";
+import { API_AUTH } from "../../utils/api";
 
 export default function RegisterClient() {
   const [formData, setFormData] = useState({
@@ -19,17 +19,20 @@ export default function RegisterClient() {
   const [success, setSuccess] = useState("");
   const navigate  = useNavigate();
   const location  = useLocation();
-  const from      = location.state?.from || "/";
+  const from      = location.state?.from || "/";//récupérer la page dou vient le client
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    let filtered = value;
+    if (name === "nom" || name === "prenom")
+      filtered = value.replace(/[^a-zA-ZÀ-ÿ\s\-']/g, "");//retire tout sauf lettres, espaces, tirets, apostrophes
+    if (name === "telephone")
+      filtered = value.replace(/[^\d]/g, "");//retire tout sauf chiffres
+    setFormData({ ...formData, [name]: filtered });
   };
 
   const validateForm = () => {
-    if (!formData.email || !formData.password || !formData.confirmPassword || !formData.telephone) {
+    if (!formData.email || !formData.password || !formData.confirmPassword || !formData.nom.trim() || !formData.prenom.trim() || !formData.telephone) {
       setError("Veuillez remplir tous les champs obligatoires");
       return false;
     }
@@ -44,7 +47,7 @@ export default function RegisterClient() {
       return false;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;//Format email valide (regex simple)
     if (!emailRegex.test(formData.email)) {
       setError("Veuillez entrer une adresse email valide");
       return false;
@@ -58,12 +61,12 @@ export default function RegisterClient() {
     setError("");
     setSuccess("");
 
-    if (!validateForm()) {
+    if (!validateForm()) {//erreur
       return;
     }
 
     try {
-      const res = await axios.post(`${API_AUTH}/register-client`, {
+      const res = await axios.post(`${API_AUTH}/register-client`, {//envoie
         email: formData.email,
         password: formData.password,
         nom: formData.nom,
@@ -75,7 +78,7 @@ export default function RegisterClient() {
       
       // Redirection vers la page de connexion après 2 secondes
       setTimeout(() => {
-        navigate("/login-client", { state: { from } });
+        navigate("/login-client", { state: { from } });//redirection lel login
       }, 2000);
     } catch (err) {
       setError(err.response?.data?.message || "Erreur lors de la création du compte");
@@ -112,7 +115,7 @@ export default function RegisterClient() {
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="nom">Nom</label>
+              <label htmlFor="nom">Nom *</label>
               <input
                 id="nom"
                 name="nom"
@@ -124,7 +127,7 @@ export default function RegisterClient() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="prenom">Prénom</label>
+              <label htmlFor="prenom">Prénom *</label>
               <input
                 id="prenom"
                 name="prenom"

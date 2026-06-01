@@ -7,17 +7,26 @@ import Notification from "../models/Notification.js";
 import Commande from "../models/Commande.js";
 import { ajouterStockBoutique } from "../services/stockBoutiqueService.js";
 import { calcStockPFAtelier } from "../services/stockPFService.js";
+//f1 caclul stock mp dispo/f2 enregistrer de mp /f3:affiche la mp dispo dans stock mp/f4:affiche la liste de tous les recette dans gerer la recette
+//f5 créer une recette dans gerer recette /f6 update une recette / f7 supprimer une recette
+//f8: enregistrer une production / f9 : function qui affiche la quantité de pf dans l'atelier
+// f10:transférer les jus du atelier ver boutique / f11: function ely kif tjy tamel transfert tdhhrlk chandek pf
+//f12 :drop des type fi enrgistrer mp, nouvelle recette ajout des ingrediants,affiche list des types
+//f13 :creer type mp / f14 : update type mp / f15 : delete type mp/ f16 :fonctions trje3 les notifications lkol te3 atelier / 
+// f17 : el atelier ychouf el  notification w ya3mel lue / f18 : marquer toutes les notifications comme lues
+//19: responsable all verification ely tsir louta baed me tkteb 9deh theb tsne3 bdhbt
 
+//f1 calcul stock mp dispo 
 export const calcDisponible = async () => {
-  const regs = await MatierePremiere.aggregate([
+  const regs = await MatierePremiere.aggregate([//pipline lel qté ely dkhlt mel livraisonet kol
     {
-      $lookup: {
+/*join*/$lookup: {
         from: "typemps",
         localField: "typeMP",
         foreignField: "_id",
         as: "typeMPDoc",
       },
-    },
+    },//lookup retourne tableau et unwind le transforme en objet
     { $unwind: "$typeMPDoc" },
     {
       $group: {
@@ -27,7 +36,7 @@ export const calcDisponible = async () => {
     },
   ]);
 
-  const deds = await ProductionPF.aggregate([
+  const deds = await ProductionPF.aggregate([//pipline lel qté ely khrjet mel productionet lkol
     { $unwind: "$deductionsMP" },
     {
       $group: {
@@ -40,11 +49,11 @@ export const calcDisponible = async () => {
   const map = {};
   regs.forEach((r) => {
     map[`${r._id.type}||${r._id.unite}`] = { type: r._id.type, unite: r._id.unite, disponible: r.total };
-  });
+  });//object remplis avec tous livraisons 
   deds.forEach((d) => {
     const key = `${d._id.type}||${d._id.unite}`;
-    if (map[key]) map[key].disponible -= d.total;
-    else map[key] = { type: d._id.type, unite: d._id.unite, disponible: -d.total };
+    if (map[key]) map[key].disponible -= d.total;//si type existe dans livraison nehiw menou cons
+    else map[key] = { type: d._id.type, unite: d._id.unite, disponible: -d.total };//type n'existe pas dans livraison
   });
 
   return map;
@@ -54,7 +63,7 @@ export const calcDisponible = async () => {
    MATIÈRES PREMIÈRES
 ═══════════════════════════════════════ */
 
-// POST /api/workshop/matieres-premieres
+// f2 enregistrer de mp
 export const enregistrerMP = async (req, res) => {
   try {
     const { typeMP, quantite, prixUnitaire, fournisseur, dateEntree } = req.body;
@@ -81,24 +90,11 @@ export const enregistrerMP = async (req, res) => {
   }
 };
 
-// GET /api/workshop/matieres-premieres
-export const getStockMP = async (req, res) => {
-  try {
-    const stock = await MatierePremiere.find()
-      .populate("typeMP", "nom seuilMin unite")
-      .populate("enregistrePar", "email nom prenom")
-      .sort({ dateEntree: -1 });
-    res.json(stock);
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
-
-// GET /api/workshop/matieres-premieres/disponible
+//f3:affiche la mp dispo dans stock mp 
 export const getDisponibleMP = async (req, res) => {
   try {
     const map = await calcDisponible();
-    res.json(Object.values(map));
+    res.json(Object.values(map));///convertit l'objet en tableau pour front
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
@@ -108,7 +104,7 @@ export const getDisponibleMP = async (req, res) => {
    RECETTES
 ═══════════════════════════════════════ */
 
-// GET /api/workshop/recettes
+//f4 affiche la liste de tous les recette dans gerer la recette
 export const getRecettes = async (req, res) => {
   try {
     const recettes = await Recette.find()
@@ -121,7 +117,7 @@ export const getRecettes = async (req, res) => {
   }
 };
 
-// POST /api/workshop/recettes
+// f5 : ajouter une recette  dans gerer la recette
 export const createRecette = async (req, res) => {
   try {
     const { nomJus, ingredients, seuilMinPF, seuilMinBoutique } = req.body;
@@ -147,13 +143,13 @@ export const createRecette = async (req, res) => {
   }
 };
 
-// PUT /api/workshop/recettes/:id
+// f6 update une recette  dans gerer la recette
 export const updateRecette = async (req, res) => {
   try {
     const { nomJus, ingredients, seuilMinPF, seuilMinBoutique } = req.body;
     if (!nomJus || !ingredients || ingredients.length === 0)
       return res.status(400).json({ message: "Le nom du jus et au moins un ingrédient sont requis." });
-
+//ces trois next ligne sert si on veux modifier jus citron par expl et on selectionne un nom de jus existe comme jus orange
     const duplicate = await Recette.findOne({ nomJus: nomJus.trim(), _id: { $ne: req.params.id } });
     if (duplicate)
       return res.status(409).json({ message: `Une autre recette avec le nom "${nomJus}" existe déjà.` });
@@ -180,7 +176,7 @@ export const updateRecette = async (req, res) => {
   }
 };
 
-// DELETE /api/workshop/recettes/:id
+// f7 : supprimer une recette  dans gerer la recette
 export const deleteRecette = async (req, res) => {
   try {
     const recette = await Recette.findByIdAndDelete(req.params.id);
@@ -195,7 +191,7 @@ export const deleteRecette = async (req, res) => {
    PRODUCTION / STOCK PF
 ═══════════════════════════════════════ */
 
-// POST /api/workshop/productions
+// f8: enregistrer une production 
 export const enregistrerProduction = async (req, res) => {
   try {
     const { nomJus, quantiteLitres } = req.body;
@@ -210,7 +206,7 @@ export const enregistrerProduction = async (req, res) => {
         code: "NO_RECIPE",
       });
 
-    // 2. Calculer les déductions (recette est pour 1L, multiplier par quantiteLitres)
+    // 2. Calculer les déductions (9dech bch tekel (requis)
     const deductions = recette.ingredients.map((ing) => ({
       matiere: ing.matiere,
       quantite: parseFloat((ing.quantite * quantiteLitres).toFixed(4)),
@@ -222,7 +218,7 @@ export const enregistrerProduction = async (req, res) => {
     const insuffisants = [];
     for (const ded of deductions) {
       const key = `${ded.matiere}||${ded.unite}`;
-      const dispo = disponibleMap[key]?.disponible ?? 0;
+      const dispo = disponibleMap[key]?.disponible ?? 0;//cas hedhi ykoun type mewjoud ema stock 0
       if (dispo < ded.quantite) {
         insuffisants.push({
           matiere: ded.matiere,
@@ -257,8 +253,9 @@ export const enregistrerProduction = async (req, res) => {
       const key = `${ded.matiere}||${typeDoc.unite}`;
       const stockActuel = stockApres[key]?.disponible ?? 0;
       if (stockActuel <= typeDoc.seuilMin) {
+        //ken stock melolou e9al m seuil w deja bathin notif non lue nawdouch okhra
         const existingNotif = await Notification.findOne({ typeMP: ded.matiere, categorie: "MP", luAtelier: false });
-        if (!existingNotif) {
+        if (!existingNotif) {//ken msh mewjouda nen3ouha
           await Notification.create({
             typeMP: ded.matiere,
             message: `Stock de "${ded.matiere}" en dessous du seuil minimum. Stock actuel : ${stockActuel} ${typeDoc.unite}, Seuil : ${typeDoc.seuilMin} ${typeDoc.unite}.`,
@@ -269,7 +266,7 @@ export const enregistrerProduction = async (req, res) => {
         }
       }
     }
-
+    //ekhr etape ely chtjiblek ye msg erreur ye succée 
     const populated = await production.populate("enregistrePar", "email nom prenom");
     res.status(201).json({
       message: `Production de ${quantiteLitres}L de "${nomJus}" enregistrée avec succès.`,
@@ -281,33 +278,11 @@ export const enregistrerProduction = async (req, res) => {
   }
 };
 
-// GET /api/workshop/productions
-export const getStockPF = async (req, res) => {
-  try {
-    const productions = await ProductionPF.find()
-      .populate("enregistrePar", "email nom prenom")
-      .populate("recette", "nomJus")
-      .sort({ dateProduction: -1 });
 
-    // Résumé agrégé par jus
-    const summaryMap = {};
-    productions.forEach((p) => {
-      if (!summaryMap[p.nomJus])
-        summaryMap[p.nomJus] = { nomJus: p.nomJus, totalProduit: 0, nbProductions: 0 };
-      summaryMap[p.nomJus].totalProduit += p.quantiteProduite;
-      summaryMap[p.nomJus].nbProductions += 1;
-    });
-
-    res.json({ productions, summary: Object.values(summaryMap) });
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
-
-// GET /api/workshop/stock/pf/resume
+// f9 : function qui affiche la quantité de pf dans l'atelier
 export const getStockPFResume = async (req, res) => {
   try {
-    // Toutes les productions agrégées par jus
+    // 7esba te3 total production et total pdt ely todhher f stock pf atelier f carte louta
     const prods = await ProductionPF.aggregate([
       { $group: { _id: "$nomJus", totalProduit: { $sum: "$quantiteProduite" }, nbProductions: { $sum: 1 } } },
     ]);
@@ -317,32 +292,25 @@ export const getStockPFResume = async (req, res) => {
 
     const map = {};
     const [transferts, commandesReservees] = await Promise.all([
-      TransfertBoutique.aggregate([
+      TransfertBoutique.aggregate([//total pf transféré 
         { $group: { _id: "$nomJus", totalTransfere: { $sum: "$quantite" } } },
       ]),
-      Commande.aggregate([
+      Commande.aggregate([//regroupment tous comnde livré w préte
         { $match: { statut: { $in: ["livree", "prete"] } } },
         { $unwind: "$produits" },
         {
           $group: {
             _id: "$produits.nom",
-            totalReserve: {
-              $sum: {
-                $multiply: [
-                  "$produits.quantite",
-                  { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
-                ],
-              },
-            },
+            totalReserve: { $sum: "$produits.quantite" },
           },
         },
       ]),
     ]);
 
     const reserveMap = {};
-    commandesReservees.forEach((c) => { reserveMap[c._id] = c.totalReserve; });
+    commandesReservees.forEach((c) => { reserveMap[c._id] = c.totalReserve; });//transorme le resultat de aggragate en objet
 
-    recettes.forEach((r) => {
+    recettes.forEach((r) => {//initialise tous les jus qui une recette a 0
       map[r.nomJus] = { nomJus: r.nomJus, totalProduit: 0, nbProductions: 0, totalTransfere: 0, totalLivreeCommandes: 0, disponible: 0 };
     });
     prods.forEach((p) => {
@@ -350,14 +318,13 @@ export const getStockPFResume = async (req, res) => {
       map[p._id].totalProduit  = p.totalProduit;
       map[p._id].nbProductions = p.nbProductions;
       map[p._id].disponible    = p.totalProduit;
-    });
+    });//kif jus ybde anne pdt sn3in menou w fskhne recetou yo9ed comme meme afficher f stock
     transferts.forEach((t) => {
       if (map[t._id]) {
         map[t._id].totalTransfere = t.totalTransfere;
-        map[t._id].disponible     = map[t._id].totalProduit - t.totalTransfere;
       }
     });
-    Object.keys(map).forEach((nomJus) => {
+    Object.keys(map).forEach((nomJus) => {//c bon ehsb chfmeee
       const reserve = reserveMap[nomJus] || 0;
       map[nomJus].totalLivreeCommandes = reserve;
       map[nomJus].disponible           = map[nomJus].totalProduit - map[nomJus].totalTransfere - reserve;
@@ -369,33 +336,15 @@ export const getStockPFResume = async (req, res) => {
   }
 };
 
-// GET /api/workshop/historique/pf/:nomJus
-export const getHistoriquePF = async (req, res) => {
-  try {
-    const { nomJus } = req.params;
 
-    const productions = await ProductionPF.find({ nomJus })
-      .populate("enregistrePar", "email nom prenom")
-      .sort({ dateProduction: -1 });
-
-    const transferts = await TransfertBoutique.find({ nomJus })
-      .populate("enregistrePar", "email nom prenom")
-      .sort({ dateTransfert: -1 });
-
-    res.json({ nomJus, productions, transferts });
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
-
-// POST /api/workshop/transferts
+// f10:transférer les jus du atelier ver boutique 
 export const enregistrerTransfert = async (req, res) => {
   try {
     const { nomJus, quantite } = req.body;
     if (!nomJus || !quantite || quantite <= 0)
       return res.status(400).json({ message: "Nom du jus et quantité (> 0) requis." });
 
-    // Calculer le stock PF disponible en atelier (production - transferts - commandes livrées)
+    // Calculer le stock PF disponible mewjouda f stockPFservice.js
     const disponible = await calcStockPFAtelier(nomJus);
 
     if (quantite > disponible)
@@ -408,7 +357,7 @@ export const enregistrerTransfert = async (req, res) => {
     // (évite le double comptage : recalculerStockDepuisDB + $inc)
     await ajouterStockBoutique(nomJus, 0);
 
-    const transfert = await TransfertBoutique.create({
+    const transfert = await TransfertBoutique.create({//faire le transfert
       nomJus, quantite,
       enregistrePar: req.user._id,
       dateTransfert: new Date(),
@@ -441,7 +390,7 @@ export const enregistrerTransfert = async (req, res) => {
   }
 };
 
-// GET /api/workshop/transferts/disponible?nomJus=...
+//f11: function ely kif tjy tamel transfert tdhaharlk chandek pf
 export const getDisponiblePF = async (req, res) => {
   try {
     const { nomJus } = req.query;
@@ -455,51 +404,12 @@ export const getDisponiblePF = async (req, res) => {
 };
 
 
-// GET /api/workshop/historique/mp/:type
-export const getHistoriqueMP = async (req, res) => {
-  try {
-    const { type } = req.params;
-
-    // Résoudre le nom en ObjectId
-    const typeDoc = await TypeMP.findOne({ nom: type });
-    if (!typeDoc)
-      return res.status(404).json({ message: `Type "${type}" introuvable.` });
-
-    // Toutes les entrées en stock pour ce type
-    const additions = await MatierePremiere.find({ typeMP: typeDoc._id })
-      .populate("typeMP", "nom seuilMin unite")
-      .populate("enregistrePar", "email nom prenom")
-      .sort({ dateEntree: -1 });
-
-    // Toutes les productions qui ont déduit ce type
-    const productions = await ProductionPF.find({ "deductionsMP.matiere": type })
-      .populate("enregistrePar", "email nom prenom")
-      .sort({ dateProduction: -1 });
-
-    const reductions = productions.map((p) => {
-      const ded = p.deductionsMP.find((d) => d.matiere === type);
-      return {
-        _id: p._id,
-        date: p.dateProduction,
-        quantite: ded.quantite,
-        unite: ded.unite,
-        nomJus: p.nomJus,
-        quantiteProduite: p.quantiteProduite,
-        enregistrePar: p.enregistrePar,
-      };
-    });
-
-    res.json({ type, additions, reductions });
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
 
 /* ═══════════════════════════════════════
    TYPES MP
 ═══════════════════════════════════════ */
 
-// GET /api/workshop/types-mp
+//f12 :drop des type enrgistrer mp, nouvelle recette ajout des ingrediants,affiche list des types  
 export const getTypesMP = async (req, res) => {
   try {
     const types = await TypeMP.find().sort({ nom: 1 });
@@ -509,7 +419,7 @@ export const getTypesMP = async (req, res) => {
   }
 };
 
-// POST /api/workshop/types-mp
+//f13 :creer type mp
 export const createTypeMP = async (req, res) => {
   try {
     const { nom, seuilMin, unite } = req.body;
@@ -527,7 +437,7 @@ export const createTypeMP = async (req, res) => {
   }
 };
 
-// PUT /api/workshop/types-mp/:id
+// f14 : update type mp
 export const updateTypeMP = async (req, res) => {
   try {
     const { nom, seuilMin, unite } = req.body;
@@ -539,7 +449,7 @@ export const updateTypeMP = async (req, res) => {
       return res.status(409).json({ message: `Le type "${nom}" existe déjà.` });
 
     const type = await TypeMP.findByIdAndUpdate(
-      req.params.id,
+      req.params.id,//id mta3 type ely bech nmodifiwh
       { nom: nom.trim(), seuilMin: Number(seuilMin), unite },
       { new: true }
     );
@@ -550,7 +460,7 @@ export const updateTypeMP = async (req, res) => {
   }
 };
 
-// DELETE /api/workshop/types-mp/:id
+// f15 : delete type mp
 export const deleteTypeMP = async (req, res) => {
   try {
     const utilise = await MatierePremiere.exists({ typeMP: req.params.id });
@@ -569,9 +479,9 @@ export const deleteTypeMP = async (req, res) => {
    NOTIFICATIONS
 ═══════════════════════════════════════ */
 
-// GET /api/workshop/notifications
+// f16 :fonctions trje3 les notifications lkol te3 atelier 
 export const getNotifications = async (req, res) => {
-  try {
+  try {//recupérer tous les notifications sauf celles de catégorie "COMMANDE" 
     const notifications = await Notification.find({ categorie: { $ne: "COMMANDE" } }).sort({ createdAt: -1 }).limit(50);
     res.json(notifications);
   } catch (error) {
@@ -579,9 +489,9 @@ export const getNotifications = async (req, res) => {
   }
 };
 
-// PUT /api/workshop/notifications/:id/lire
+// f17 : el atelier ychouf el  notification w ya3mel lue
 export const marquerNotificationLue = async (req, res) => {
-  try {
+  try {//yel9a notif bel id mte3ha w yamel aleha update ety hyia el lue te3 atelier
     const notif = await Notification.findByIdAndUpdate(req.params.id, { luAtelier: true }, { new: true });
     if (!notif) return res.status(404).json({ message: "Notification non trouvée." });
     res.json({ message: "Notification marquée comme lue.", notif });
@@ -590,7 +500,7 @@ export const marquerNotificationLue = async (req, res) => {
   }
 };
 
-// PUT /api/workshop/notifications/lues
+// f18 : marquer toutes les notifications comme lues
 export const marquerToutesLues = async (req, res) => {
   try {
     await Notification.updateMany({ luAtelier: false }, { luAtelier: true });
@@ -601,7 +511,7 @@ export const marquerToutesLues = async (req, res) => {
 };
 
 
-// GET /api/workshop/recettes/preview-production?nomJus=...&quantite=...
+// f19: responsable all verification ely tsir louta baed me tkteb 9deh theb tsne3 bdhbt
 export const previewProduction = async (req, res) => {
   try {
     const { nomJus, quantite } = req.query;
@@ -610,14 +520,14 @@ export const previewProduction = async (req, res) => {
     const recette = await Recette.findOne({ nomJus: nomJus.trim() });
     if (!recette)
       return res.status(404).json({ message: `Aucune recette pour "${nomJus}".`, code: "NO_RECIPE" });
-
+//calculer les déductions pour la quantité demandée
     const qty = parseFloat(quantite);
     const deductions = recette.ingredients.map((ing) => ({
       matiere: ing.matiere,
       quantite: parseFloat((ing.quantite * qty).toFixed(4)),
       unite: ing.unite,
     }));
-
+//calculer le stock disponible pour chaque ingrédient et vérifier si c'est suffisant
     const disponibleMap = await calcDisponible();
     const result = deductions.map((d) => {
       const key = `${d.matiere}||${d.unite}`;

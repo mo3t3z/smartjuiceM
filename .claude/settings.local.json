@@ -8,7 +8,8 @@
       "Bash(find /c/Users/lenovo/Desktop/PFE0/smartjuice1/server/src -type f \\\\\\(-name *.js -o -name *.json \\\\\\))",
       "Bash(find /c/Users/lenovo/Desktop/PFE0/smartjuice1/client/src -type f \\\\\\(-name *.js -o -name *.jsx \\\\\\))",
       "Bash(npm install jspdf)",
-      "Bash(grep -E \"\\\\.\\(js|ts\\)$\")"
+      "Bash(grep -E \"\\\\.\\(js|ts\\)$\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\lenovo\\\\Desktop\\\\PFE0\\\\smartjuice1\" -Force)"
     ],
     "additionalDirectories": [
       "C:\\Users\\lenovo\\Desktop\\PFE0\\smartjuice1\\server\\src\\seeds"

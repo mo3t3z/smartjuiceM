@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import "./ManageAccounts.css";
 import "./ManageProducts.css";
-import { API_AUTH as API, authHeader } from "../utils/api";
+import { API_AUTH as API, authHeader } from "../../utils/api";
 
 export default function ManageAccounts() {
   // mode: "list" | "create" | "view" | "edit"

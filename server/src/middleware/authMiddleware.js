@@ -1,26 +1,25 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-// Middleware générique d'authentification JWT
-// Vérifie que l'utilisateur est connecté et attache l'utilisateur à req.user
-export const authenticate = async (req, res, next) => {
+//verifie que le user est connecté avec un token valide 
+export const authenticate = async (req, res, next) =>{
   try {
     const authHeader = req.headers.authorization;// Récupère le token du header 
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {//lezm ybde b bearer
       return res.status(401).json({ message: "Token manquant ou invalide" });
     }
-
-    const token = authHeader.split(" ")[1];//extrait le token de la chaîne "Bearer
-
+    //extrait le token de la chaîne "Bearer"
+    const token = authHeader.split(" ")[1];
+    //verifier que le signé avec jwt_secret et non expiré
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
+    //récupère l'utilisateur complet depuis la BD.
     const user = await User.findById(decoded.userId).select("-passwordHash");
 
     if (!user) {
       return res.status(401).json({ message: "Utilisateur non trouvé" });
     }
-
+//atache le user a la requette et passe au suivant 
     req.user = user;
     next();
   } catch (error) {

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { authHeader, API_COMMANDES } from "../../utils/api";
 import "./CommandesConfirmees.css";
-
+//date d'aujourd'hui
 const todayStr = new Date().toISOString().split("T")[0];
 
 export default function CommandesConfirmees() {
@@ -10,7 +10,7 @@ export default function CommandesConfirmees() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [modeFiltre, setModeFiltre] = useState("date"); // "date" | "mois"
-  const [dateRecherche, setDateRecherche] = useState(todayStr);
+  const [dateRecherche, setDateRecherche] = useState(todayStr);//initilisé a aujourd'hui
   const [moisRecherche, setMoisRecherche] = useState("");
   const [message, setMessage] = useState({ texte: "", type: "" });
 
@@ -22,11 +22,11 @@ export default function CommandesConfirmees() {
   const fetchCommandes = async (params) => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_COMMANDES}/confirmees?${params}`, {
+      const res = await axios.get(`${API_COMMANDES}/confirmees?${params}`, {//ale hsb date ely chtodkhel chyrje3 commande
         headers: authHeader(),
       });
       setCommandes(res.data);
-      setSearched(true);
+      setSearched(true);//indique qu'une recherche est effectué 
     } catch {
       afficherMessage("Erreur de chargement.", "erreur");
     } finally {
@@ -35,10 +35,10 @@ export default function CommandesConfirmees() {
   };
 
   useEffect(() => {
-    fetchCommandes(`date=${todayStr}`);
+    fetchCommandes(`date=${todayStr}`);//affiche date d'aujoud'hui par defaut
   }, []);
 
-  const handleRecherche = () => {
+  const handleRecherche = () => {//appeler quand le user clique sur la recherche 
     if (modeFiltre === "date") {
       if (!dateRecherche) { afficherMessage("Veuillez choisir une date.", "erreur"); return; }
       fetchCommandes(`date=${dateRecherche}`);
@@ -48,14 +48,15 @@ export default function CommandesConfirmees() {
     }
   };
 
-  const marquerPrete = async (id) => {
+  const marquerPrete = async (id) => {//marquer commande comme prete 
     try {
       await axios.put(`${API_COMMANDES}/${id}/prete`, {}, { headers: authHeader() });
       afficherMessage("Commande marquée comme prête.", "succes");
+      //recharge le filtre actuel pour mettre a jour l'affichage
       fetchCommandes(modeFiltre === "date" ? `date=${dateRecherche}` : `mois=${moisRecherche}`);
     } catch (err) {
-      const data = err.response?.data;
-      if (data?.stockInsuffisant?.length > 0) {
+      const data = err.response?.data;//extrait le corp de réponse d'erreur serveur
+      if (data?.stockInsuffisant?.length > 0) {//cas stock insuffisant
         const details = data.stockInsuffisant
           .map((s) => `${s.nom} (${s.volume}) : requis ${s.requis}L, disponible ${s.disponible}L`)
           .join(" | ");
@@ -66,10 +67,11 @@ export default function CommandesConfirmees() {
     }
   };
 
-  const marquerLivree = async (id) => {
+  const marquerLivree = async (id) => {//marquge de commande livrée
     try {
       await axios.put(`${API_COMMANDES}/${id}/livree`, {}, { headers: authHeader() });
-      afficherMessage("Commande marquée comme livrée. Stock déduit.", "succes");
+      afficherMessage("Commande marquée comme livrée.", "succes");
+      //recharge le filtre actuel
       fetchCommandes(modeFiltre === "date" ? `date=${dateRecherche}` : `mois=${moisRecherche}`);
     } catch (err) {
       afficherMessage(err.response?.data?.message || "Erreur.", "erreur");
@@ -77,12 +79,12 @@ export default function CommandesConfirmees() {
   };
 
   const formatDate = (d) =>
-    new Date(d).toLocaleDateString("fr-TN", {
+    new Date(d).toLocaleDateString("fr-TN", {//date ely adeee feha commmande
       day: "2-digit", month: "long", year: "numeric",
       hour: "2-digit", minute: "2-digit",
     });
 
-  const formatDateRetrait = (d) =>
+  const formatDateRetrait = (d) =>//date ely chykhterha client lel retrait
     new Date(d).toLocaleDateString("fr-TN", {
       day: "2-digit", month: "long", year: "numeric",
     });

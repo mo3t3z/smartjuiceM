@@ -1,10 +1,9 @@
 import express from "express";
 import { authenticate, isSeller } from "../middleware/authMiddleware.js";
-import { getStockPFBoutique, getHistoriquePFBoutique } from "../controllers/sellerController.js";
+import { getStockPFBoutique } from "../controllers/sellerController.js";
 
 const router = express.Router();
 
-router.get("/stock/pf",              authenticate, isSeller, getStockPFBoutique);
-router.get("/historique/pf/:nomJus", authenticate, isSeller, getHistoriquePFBoutique);
+router.get("/stock/pf", authenticate, isSeller, getStockPFBoutique);
 
 export default router;

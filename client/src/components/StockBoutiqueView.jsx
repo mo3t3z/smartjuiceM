@@ -11,7 +11,7 @@ export default function StockBoutiqueView({ apiUrl, backPath }) {
 
   useEffect(() => {
     fetch(apiUrl, { headers: authHeader() })
-      .then((r) => r.json())
+      .then((r) => r.json())//convertir la reponse http en json 
       .then((d) => setJusList(Array.isArray(d) ? d : []))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));

@@ -36,7 +36,7 @@ app.use("/api/manager", managerStockRoutes);
 app.use("/api/commandes", commandeRoutes);
 app.use("/api/ventes", venteRoutes);
 
-// Routes sans préfixe /api (DO App Platform strip le préfixe /api avant de passer au backend)
+// Routes sans préfixe /api ((digital occean)DO App Platform strip le préfixe /api avant de passer au backend)
 app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
 app.use("/workshop", workshopRoutes);

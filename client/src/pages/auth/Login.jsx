@@ -1,8 +1,8 @@
-import { useState } from "react";
-import axios from "axios";
+import { useState } from "react";//créer etat dynamique
+import axios from "axios";//envoie request lel back
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
-import { API_AUTH } from "../utils/api";
+import { API_AUTH } from "../../utils/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -12,7 +12,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-
+  //preventdefault: empeche rechargement de la  page lorsque l'utilisateur soumet le formulaire de connexion
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -20,16 +20,16 @@ export default function Login() {
       setError("Veuillez remplir email et mot de passe");
       return;
     }
-
+//si l'utilisateur a eu une erreur et réessaie, on efface l'ancien message
     try {
       setLoading(true);
       setError("");
-
+//envoyer request 
       const res = await axios.post(`${API_AUTH}/login`, {
         email,
         password,
       });
-
+//si reponse ok, stocker token w user f localstorage
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 

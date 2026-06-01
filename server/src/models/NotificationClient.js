@@ -7,7 +7,7 @@ const notificationClientSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    commande: {
+    commande: { 
       type: mongoose.Schema.Types.ObjectId,
       ref: "Commande",
       required: true,

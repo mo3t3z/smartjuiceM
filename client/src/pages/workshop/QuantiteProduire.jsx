@@ -7,11 +7,11 @@ import { API_WORKSHOP as API, authHeader } from "../../utils/api";
 export default function QuantiteProduire() {
   const navigate = useNavigate();
   const [recettes, setRecettes] = useState([]);
-  const [nomJus, setNomJus] = useState("");
+  const [nomJus, setNomJus] = useState("");//dropdown
   const [quantite, setQuantite] = useState("");
   const [preview, setPreview] = useState(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [submitLoading, setSubmitLoading] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);//calculbackend
+  const [submitLoading, setSubmitLoading] = useState(false);//affiche calcul de mp
   const [success, setSuccess] = useState(null);
   const [error, setError] = useState("");
 
@@ -25,9 +25,9 @@ export default function QuantiteProduire() {
 
   /* ── preview automatique quand jus + quantité saisies ── */
   useEffect(() => {
-    setPreview(null);
+    setPreview(null);//effacer l'ancien preview
     setError("");
-    if (!nomJus || !quantite || Number(quantite) <= 0) return;
+    if (!nomJus || !quantite || Number(quantite) <= 0) return;//si jus non choisie ou qté invalise ne fait rien
 
     const timer = setTimeout(async () => {
       setPreviewLoading(true);
@@ -36,6 +36,7 @@ export default function QuantiteProduire() {
           `${API}/recettes/preview?nomJus=${encodeURIComponent(nomJus)}&quantite=${quantite}`,
           { headers: authHeader() }
         );
+        //verification d'existance de la recette 
         const data = await res.json();
         if (!res.ok) {
           if (data.code === "NO_RECIPE")
@@ -51,25 +52,26 @@ export default function QuantiteProduire() {
       }
     }, 500);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(timer);//timeout pour attendre le user fini la saisie de qté avant de envoyé la requet au back
   }, [nomJus, quantite]);
 
-  /* ── submit ── */
+  /* ── confirmer le submit ── */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!preview || error) return;
     const hasInsuffisant = preview.deductions.some((d) => !d.suffisant);
-    if (hasInsuffisant) return;
+    if (hasInsuffisant) return;//insuffisant
 
-    setSubmitLoading(true);
+    setSubmitLoading(true);//boutons indisponible
     try {
       const res = await fetch(`${API}/productions`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeader() },
-        body: JSON.stringify({ nomJus, quantiteLitres: Number(quantite) }),
+        body: JSON.stringify({ nomJus, quantiteLitres: Number(quantite) }),//envoyer requette au backend
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      if (!res.ok) throw new Error(data.message);//message erreur
+      //duccée
       setSuccess(data.message);
       setNomJus("");
       setQuantite("");
@@ -78,7 +80,7 @@ export default function QuantiteProduire() {
     } catch (e) {
       setError(e.message);
     } finally {
-      setSubmitLoading(false);
+      setSubmitLoading(false);//active buttons
     }
   };
 
@@ -169,7 +171,7 @@ export default function QuantiteProduire() {
                         Requis : <strong>{d.quantite} {d.unite}</strong>
                       </span>
                       <span className="qp-ded-dispo">
-                        Disponible : <strong className={d.suffisant ? "qp-ok" : "qp-err"}>{d.disponible} {d.unite}</strong>
+                        Disponible : <strong className={d.suffisant ? "qp-ok" : "qp-err"}>{Number(d.disponible).toFixed(2)} {d.unite}</strong>
                       </span>
                     </div>
                   ))}

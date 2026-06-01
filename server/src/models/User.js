@@ -10,8 +10,8 @@ const userSchema = new mongoose.Schema(
     prenom: { type: String, trim: true, default: "" },
     telephone: { type: String, trim: true, default: "" },
     // Champs pour la réinitialisation du mot de passe
-    resetPasswordToken: { type: String },
-    resetPasswordExpires: { type: Date }
+    resetPasswordToken: { type: String },//->stock le token de reintialistion
+    resetPasswordExpires: { type: Date }//->quand le token va expirer
   },
   { timestamps: true/*voir date de creation et update*/ }
 );

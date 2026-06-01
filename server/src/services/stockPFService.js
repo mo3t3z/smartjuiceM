@@ -4,12 +4,9 @@ import Commande from "../models/Commande.js";
 import Recette from "../models/Recette.js";
 import Notification from "../models/Notification.js";
 
-/* ═══════════════════════════════════════════════════════════════
-   Stock PF disponible en atelier pour un jus donné.
-   disponible = totalProduit - totalTransféré - totalLivréParCommandes
-═══════════════════════════════════════════════════════════════ */
+//f1: t7sebleeekk 9deh andek stock pf f atelier 
 export const calcStockPFAtelier = async (nomJus) => {
-  const [prodAgg, transAgg, commandesAgg] = await Promise.all([
+  const [prodAgg, transAgg, commandesAgg] = await Promise.all([//promise lance 3 requette en meme temps
     ProductionPF.aggregate([
       { $match: { nomJus } },
       { $group: { _id: null, total: { $sum: "$quantiteProduite" } } },
@@ -25,14 +22,7 @@ export const calcStockPFAtelier = async (nomJus) => {
       {
         $group: {
           _id: null,
-          total: {
-            $sum: {
-              $multiply: [
-                "$produits.quantite",
-                { $cond: [{ $eq: ["$produits.volume", "1L"] }, 1, 0.5] },
-              ],
-            },
-          },
+          total: { $sum: "$produits.quantite" },
         },
       },
     ]),
@@ -54,7 +44,7 @@ export const verifierAlertePF = async (nomJus) => {
   const recette = await Recette.findOne({ nomJus });
 
   const seuil = recette?.seuilMinPF > 0 ? recette.seuilMinPF : 0;
-  if (!seuil || stockActuel > seuil) return;
+  if (!seuil || stockActuel > seuil) return;//ken fmch seuil wle sotck actuel akber m seuil
 
   const existingNotif = await Notification.findOne({
     typeMP: nomJus,

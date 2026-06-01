@@ -10,8 +10,8 @@ const run = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
 
-    const email = process.env.MANAGER_EMAIL.toLowerCase();
-    const isReset = process.argv.includes("--reset");
+    const email = process.env.MANAGER_EMAIL.toLowerCase();//yekhou email mel .env 
+    const isReset = process.argv.includes("--reset");//mode reset password si on lance la commande avec --reset
 
     if (isReset) {
       // Mode reset : mettre à jour le mot de passe du manager existant
@@ -23,7 +23,6 @@ const run = async () => {
 
       const passwordHash = await bcrypt.hash(process.env.MANAGER_PASSWORD, 10);
       manager.passwordHash = passwordHash;
-      manager.mustChangePassword = true;
       await manager.save();
 
       console.log("Mot de passe du manager réinitialisé !");
@@ -44,8 +43,7 @@ const run = async () => {
     await User.create({
       email,
       passwordHash,
-      role: "manager",
-      mustChangePassword: true
+      role: "manager"
     });
 
     console.log("Manager créé !");

@@ -1,9 +1,9 @@
-import multer from "multer";
+import multer from "multer";//bibliotheque de reception des fichier
 import path from "path";
 
-const storage = multer.diskStorage({
+const storage = multer.diskStorage({//sauvgarde
   destination: (req, file, cb) => {
-    cb(null, "uploads/products/");
+    cb(null, "uploads/products/");//cb cad callback multer
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);

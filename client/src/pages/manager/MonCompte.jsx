@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./MonCompte.css";
-import { API_AUTH, authHeader } from "../utils/api";
+import { API_AUTH, authHeader } from "../../utils/api";
 
 export default function MonCompte() {
   const navigate = useNavigate();

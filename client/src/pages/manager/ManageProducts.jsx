@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";//use ref pour gérer input file
 import axios from "axios";
 import "./ManageProducts.css";
-import { API_PRODUCTS, authHeader } from "../utils/api";
+import { API_PRODUCTS, authHeader } from "../../utils/api";
 
 
 export default function ManageProducts() {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);//list pdt
   const [recettes, setRecettes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -30,7 +30,7 @@ export default function ManageProducts() {
     fetchProducts();
     fetchRecettes();
   }, []);
-
+  //authHeadder ajoute le token 
   const fetchProducts = async () => {
     try {
       const res = await axios.get(API_PRODUCTS, { headers: authHeader() });
@@ -41,7 +41,7 @@ export default function ManageProducts() {
       setLoading(false);
     }
   };
-
+  
   const fetchRecettes = async () => {
     try {
       const res = await axios.get(`${API_PRODUCTS}/recettes-disponibles`, { headers: authHeader() });
@@ -51,7 +51,8 @@ export default function ManageProducts() {
     }
   };
 
-  // Créer ou modifier un produit
+  //Créer ou modifier un produit
+  //preventdefault: empeche rechargement de la  page lorsque l'utilisateur soumet le formulaire de connexion
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -61,13 +62,13 @@ export default function ManageProducts() {
     data.append("price", formData.price);
     data.append("volume", formData.volume);
     data.append("available", formData.available);
-    if (formData.recette) data.append("recette", formData.recette);
+    if (formData.recette) data.append("recette", formData.recette);///si une recette est sélectionnée, l'ajouter au form data
     if (imageFile) {
       data.append("image", imageFile);
     }
 
     try {
-      if (editingId) {
+      if (editingId) {//si editingId est défini, on est en train de modifier un produit existant
         await axios.put(
           `${API_PRODUCTS}/${editingId}`,
           data,

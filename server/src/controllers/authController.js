@@ -5,14 +5,14 @@ import User from "../models/User.js";
 import { sendResetPasswordEmail } from "../config/emailConfig.js";
 //f1: login (tous les rôles),f2: création de comptes staff (manager),f3: lister tous les comptes staff (manager),
 // f4: modifier un compte staff (manager),f5: supprimer un compte staff (manager),
-// f6: changer le mot de passe (tous les rôles),f7: inscription client, 
+// f6: changer le mot de passe (mon compte),f7: inscription client, 
 // f8: demander une réinitialisation de mot de passe, f9: réinitialiser le mot de passe avec le token
 
 //f1:login (tous les rôles)
-export const login = async (req, res) => {
+export const login = async (req, res) => {//enovyé du frontend avec email et pasword
   try {
-    //req.body vient du frontend grâce à app.use(express.json())
-    const { email, password } = req.body;
+    
+    const { email, password } = req.body;//extrait de email et password converti object
 
     // Vérifier si l'utilisateur existe
     const user = await User.findOne({ email: email.toLowerCase() });
@@ -50,10 +50,10 @@ export const login = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
-// Création de comptes staff (seller / workshop)
-export const createStaffAccount = async (req, res) => {
+// f2 Création de comptes staff (seller / workshop)
+export const createStaffAccount = async (req, res) => {//requet envoyé par le frontend
   try {
-    let { email, password, role, nom, prenom } = req.body;
+    let { email, password, role, nom, prenom } = req.body;//extrait variable 
 
     if (!email || !password || !role) {
       return res.status(400).json({ message: "email, password, role sont obligatoires" });
@@ -67,14 +67,22 @@ export const createStaffAccount = async (req, res) => {
       return res.status(400).json({ message: "role doit être seller ou workshop" });
     }
 
-    const exists = await User.findOne({ email });
+    const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
+    if (nom && !nameRegex.test(nom.trim())) {
+      return res.status(400).json({ message: "Le nom ne doit contenir que des lettres" });
+    }
+    if (prenom && !nameRegex.test(prenom.trim())) {
+      return res.status(400).json({ message: "Le prénom ne doit contenir que des lettres" });
+    }
+
+    const exists = await User.findOne({ email });//verifier si email existe deja 
     if (exists) {
       return res.status(409).json({ message: "Email déjà utilisé" });
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);//hasher le mot de passe avant de le stocker 
 
-    const newUser = await User.create({
+    const newUser = await User.create({//creation
       email,
       passwordHash,
       role,
@@ -82,7 +90,7 @@ export const createStaffAccount = async (req, res) => {
       prenom: prenom?.trim() || ""
     });
 
-    return res.status(201).json({
+    return res.status(201).json({//renvoyé au frontend
       message: "Compte créé avec succès",
       user: {
         id: newUser._id,
@@ -96,38 +104,53 @@ export const createStaffAccount = async (req, res) => {
     return res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
-
-// Lister tous les comptes staff
-export const getStaffAccounts = async (req, res) => {
+/*
+**
+*/
+// f3 Lister tous les comptes staff
+export const getStaffAccounts = async (req, res) => {//requet envoyé par le frontend pour afficher les comptes staff 
   try {
     const accounts = await User.find({ role: { $in: ["seller", "workshop"] } })
       .select("-passwordHash")//.select() pour exclure le champ passwordHash
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 });//trie de plus recent a plus ancien 
     res.json(accounts);
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
-
-// Modifier un compte staff
+/*
+**
+*/
+// f4 Modifier un compte staff
 export const updateStaffAccount = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { nom, prenom, email, password } = req.body;
+    const { id } = req.params;//recupérer id a modifier 
+    const { nom, prenom, email, password } = req.body;//recupérer les champs a modifier 
 
-    const user = await User.findOne({ _id: id, role: { $in: ["seller", "workshop"] } });
+    const user = await User.findOne({ _id: id, role: { $in: ["seller", "workshop"] } });//ylwej fel seller w workshop
     if (!user) {
       return res.status(404).json({ message: "Compte introuvable" });
     }
 
-    if (email && email.toLowerCase().trim() !== user.email) {
-      const exists = await User.findOne({ email: email.toLowerCase().trim() });
+    if (email && email.toLowerCase().trim() !== user.email) {//si il a modifie on verifie que le nuveau n'est pas deja utilisé 
+      const exists = await User.findOne({ email: email.toLowerCase().trim() });//laweeej
       if (exists) return res.status(409).json({ message: "Email déjà utilisé" });
       user.email = email.toLowerCase().trim();
     }
 
-    if (nom !== undefined) user.nom = nom.trim();
-    if (prenom !== undefined) user.prenom = prenom.trim();
+    const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
+    if (nom !== undefined) {
+      if (nom.trim() && !nameRegex.test(nom.trim())) {
+        return res.status(400).json({ message: "Le nom ne doit contenir que des lettres" });
+      }
+      user.nom = nom.trim();
+    }
+    if (prenom !== undefined) {
+      if (prenom.trim() && !nameRegex.test(prenom.trim())) {
+        return res.status(400).json({ message: "Le prénom ne doit contenir que des lettres" });
+      }
+      user.prenom = prenom.trim();
+    }
 
     if (password && password.trim().length >= 6) {
       user.passwordHash = await bcrypt.hash(password.trim(), 10);
@@ -143,8 +166,10 @@ export const updateStaffAccount = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
-
-// Supprimer un compte staff
+/*
+**
+*/
+// f5 Supprimer un compte staff
 export const deleteStaffAccount = async (req, res) => {
   try {
     const { id } = req.params;
@@ -155,11 +180,13 @@ export const deleteStaffAccount = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
-
-// Changer le mot de passe (utilisateur connecté)
+/*
+**
+*/
+// f6 Changer le mot de passe (utilisateur connecté)
 export const changePassword = async (req, res) => {
   try {
-    const { oldPassword, newPassword } = req.body;
+    const { oldPassword, newPassword } = req.body;//lezm les deux champs m3mrin(9dim w jdyd)
 
     if (!oldPassword || !newPassword) {
       return res.status(400).json({ message: "Ancien et nouveau mot de passe sont obligatoires" });
@@ -169,14 +196,14 @@ export const changePassword = async (req, res) => {
       return res.status(400).json({ message: "Le nouveau mot de passe doit contenir au moins 6 caractères" });
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id);//cad on va changer de ce user connecté
 
     const isMatch = await bcrypt.compare(oldPassword, user.passwordHash);
     if (!isMatch) {
       return res.status(401).json({ message: "Ancien mot de passe incorrect" });
     }
 
-    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    user.passwordHash = await bcrypt.hash(newPassword, 10); 
     await user.save();
 
     res.json({ message: "Mot de passe modifié avec succès" });
@@ -184,15 +211,17 @@ export const changePassword = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
-
-// Inscription client
+/*
+**
+*/
+// f7  Inscription client
 export const registerClient = async (req, res) => {
   try {
     let { email, password, nom, prenom, telephone } = req.body;
 
     // Validation des champs obligatoires
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email et mot de passe sont obligatoires" });
+    if (!email || !password || !nom?.trim() || !prenom?.trim()) {
+      return res.status(400).json({ message: "Email, mot de passe, nom et prénom sont obligatoires" });
     }
 
     // Validation de la longueur du mot de passe
@@ -246,14 +275,16 @@ export const registerClient = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
-
-// Demander une réinitialisation de mot de passe
+/*
+**
+*/
+//f8 Demander une réinitialisation de mot de passe
 export const requestPasswordReset = async (req, res) => {
   try {
-    const { email, source } = req.body;
+    const { email, source } = req.body;//source chkun ely demande el reset 
 
     if (!email) {
-      return res.status(400).json({ message: "Email requis" });
+      return res.status(400).json({ message: "Email requis" });//lezm email mwjoud
     }
 
     // Trouver l'utilisateur
@@ -271,13 +302,15 @@ export const requestPasswordReset = async (req, res) => {
         message: "Vous devez contacter le manager pour réinitialiser votre mot de passe."
       });
     }
+                               /*nthbtou kenhom f bon endroit*/
 
-    // Vérifier que l'email correspond au bon portail
+    // ken whd m staff y7eb yamel reser mel interface client
     if (source === 'client' && user.role !== 'client') {
       return res.status(403).json({
         message: "Cet email n'appartient pas à un compte client."
       });
     }
+    //ken whd m client y7eb yamel reser mel interface staff
     if (source === 'staff' && user.role === 'client') {
       return res.status(403).json({
         message: "Cet email n'appartient pas à un compte staff. Utilisez le portail client."
@@ -319,12 +352,14 @@ export const requestPasswordReset = async (req, res) => {
     });
   }
 };
-
-// Réinitialiser le mot de passe avec le token
+/*
+**
+*/
+//f9 Réinitialiser le mot de passe avec le token
 export const resetPassword = async (req, res) => {
   try {
-    const { token, newPassword } = req.body;
-
+    const { token, newPassword } = req.body;//extraction du corps de la requette
+    //lezm fme token w new password
     if (!token || !newPassword) {
       return res.status(400).json({ 
         message: "Token et nouveau mot de passe requis" 
@@ -346,7 +381,7 @@ export const resetPassword = async (req, res) => {
 
     // Trouver l'utilisateur avec ce token et qui n'a pas expiré
     const user = await User.findOne({
-      resetPasswordToken: hashedToken,
+      resetPasswordToken: hashedToken,//token hashe de user
       resetPasswordExpires: { $gt: Date.now() } // Plus grand que maintenant
     });
 
@@ -361,7 +396,7 @@ export const resetPassword = async (req, res) => {
 
     // Mettre à jour le mot de passe et supprimer le token
     user.passwordHash = passwordHash;
-    user.resetPasswordToken = undefined;
+    user.resetPasswordToken = undefined;//bech yetst3ml mra brka
     user.resetPasswordExpires = undefined;
     await user.save();
 

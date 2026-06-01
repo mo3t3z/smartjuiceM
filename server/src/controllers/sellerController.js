@@ -1,9 +1,9 @@
 import TransfertBoutique from "../models/TransfertBoutique.js";
 import StockBoutique from "../models/StockBoutique.js";
 
-/* ═══════════════════════════════════════
-   STOCK PF BOUTIQUE (Vendeur)
-═══════════════════════════════════════ */
+
+//fonction ely t'affichi chandek stock f boutique
+
 
 export const getStockPFBoutique = async (req, res) => {
   try {
@@ -28,14 +28,3 @@ export const getStockPFBoutique = async (req, res) => {
   }
 };
 
-export const getHistoriquePFBoutique = async (req, res) => {
-  try {
-    const { nomJus } = req.params;
-    const transferts = await TransfertBoutique.find({ nomJus })
-      .populate("enregistrePar", "email nom prenom")
-      .sort({ dateTransfert: -1 });
-    res.json({ nomJus, transferts });
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};

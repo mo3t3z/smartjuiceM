@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 // Création lazy du transporteur (après que dotenv ait chargé les variables)
 let transporter;
 
+//creation du transport avec lazy connection pour que les variable de email vont charger dans env 
 function getTransporter() {
   if (!transporter) {
     transporter = nodemailer.createTransport({
@@ -19,10 +20,10 @@ function getTransporter() {
 // Fonction pour envoyer l'email de réinitialisation de mot de passe
 export const sendResetPasswordEmail = async (email, resetToken) => {
   const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-  
+  //contneu de mail 
   const mailOptions = {
-    from: `SmartJuice <${process.env.EMAIL_USER}>`,
-    to: email,
+    from: `SmartJuice <${process.env.EMAIL_USER}>`,//le email qui va envoyée
+    to: email,//a qui
     subject: 'Réinitialisation de votre mot de passe - SmartJuice',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">

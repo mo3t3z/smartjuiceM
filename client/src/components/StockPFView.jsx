@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../pages/workshop/StockPF.css";
 import { authHeader } from "../utils/api";
-
+//api url c quelle url il appelle pour charger les donnée , backpath ou aller quand on clique retour
 export default function StockPFView({ apiUrl, backPath }) {
   const navigate = useNavigate();
-  const [jusList, setJusList] = useState([]);
+  const [jusList, setJusList] = useState([]);//list de jus avec leur stock
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState("");
 
@@ -14,7 +14,7 @@ export default function StockPFView({ apiUrl, backPath }) {
       try {
         const res = await fetch(apiUrl, { headers: authHeader() });
         if (!res.ok) throw new Error("Erreur chargement stock PF.");
-        setJusList(await res.json());
+        setJusList(await res.json());//afficher resultat
       } catch (e) {
         setError(e.message);
       } finally {
@@ -22,7 +22,7 @@ export default function StockPFView({ apiUrl, backPath }) {
       }
     };
     load();
-  }, [apiUrl]);
+  }, [apiUrl]);//le url recharge si l'url change
 
   return (
     <div className="spf-page">

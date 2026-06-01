@@ -1,17 +1,17 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import "./MatierePremiere.css";
 import { API_WORKSHOP as API, authHeader } from "../../utils/api";
+//f1 :Charger les types depuis l'API,f2 :Gérer les types (ajout, modification, suppression),
+//f3 : Gérer le formulaire de matière première (saisie, validation, envoi au backend)
 
 const today = new Date().toISOString().split("T")[0];
 
 export default function MatierePremiere() {
-  const navigate = useNavigate();
   const [customTypes, setCustomTypes] = useState([]);
   const [loadingTypes, setLoadingTypes] = useState(true);
 
-  const [showTypeManager, setShowTypeManager] = useState(false);
-  const [showAddInput, setShowAddInput] = useState(false);
+  const [showTypeManager, setShowTypeManager] = useState(false);//afficher paneau gerer type
+  const [showAddInput, setShowAddInput] = useState(false);//afficher input(form)
   const [newType, setNewType] = useState({ nom: "", seuilMin: "", unite: "kg" });
   const [typeError, setTypeError] = useState("");
   const [typeLoading, setTypeLoading] = useState(false);
@@ -33,12 +33,12 @@ export default function MatierePremiere() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  /* ── Charger les types depuis l'API ── */
+  //f1 :Charger les types depuis l'API 
   const fetchTypes = async () => {
     try {
       setLoadingTypes(true);
       const res = await fetch(`${API}/types-mp`, {
-        headers: authHeader(),
+        headers: authHeader(),//ajouter le token dans le header  
       });
       const data = await res.json();
       if (res.ok) setCustomTypes(data);
@@ -51,74 +51,82 @@ export default function MatierePremiere() {
 
   useEffect(() => {
     fetchTypes();
-  }, []);
+  }, []);//une seule fois au chargement de composant 
 
   useEffect(() => {
     if (showAddInput && addInputRef.current) addInputRef.current.focus();
-  }, [showAddInput]);
+  }, [showAddInput]);//focus sur input nom type quand il s'affiche
 
-  /* ── Gestion types ── */
+  //f2 :Gérer les types 
+// Ajouter un type
   const handleAddType = async () => {
     const nom = newType.nom.trim();
     if (!nom) return setTypeError("Entrez un nom de type.");
     if (!newType.seuilMin || Number(newType.seuilMin) < 0)
       return setTypeError("Entrez un seuil minimum valide (≥ 0).");
-    if (customTypes.some((t) => t.nom.toLowerCase() === nom.toLowerCase()))
+    if (customTypes.some((t) => t.nom.toLowerCase() === nom.toLowerCase()))//ken tly dkhlneha fme kifou deja 
       return setTypeError("Ce type existe déjà.");
 
-    setTypeLoading(true);
+    setTypeLoading(true);//saker el bouton te3 submit 
     try {
       const res = await fetch(`${API}/types-mp`, {
-        method: "POST",
+        method: "POST",//créer
         headers: { "Content-Type": "application/json", ...authHeader() },
-        body: JSON.stringify({ nom, seuilMin: Number(newType.seuilMin), unite: newType.unite }),
+        body: JSON.stringify({ nom, seuilMin: Number(newType.seuilMin), unite: newType.unite }),//donnée envoyée au back
       });
+      //erreur
       const data = await res.json();
       if (!res.ok) return setTypeError(data.message || "Erreur lors de la création.");
-      setCustomTypes((prev) => [...prev, data.type]);
+      //sucées
+      setCustomTypes((prev) => [...prev, data.type]);//ajouter le nouveau type sans charger toute la liste
       setNewType({ nom: "", seuilMin: "", unite: "kg" });
       setTypeError("");
       setShowAddInput(false);
     } catch {
       setTypeError("Erreur réseau.");
     } finally {
-      setTypeLoading(false);
+      setTypeLoading(false);//hell bouton submit
     }
   };
-
+//editing type
   const handleEditType = async () => {
     const nom = editingType.nom.trim();
     if (!nom) return setEditError("Entrez un nom de type.");
     if (!editingType.seuilMin || Number(editingType.seuilMin) < 0)
       return setEditError("Entrez un seuil minimum valide (≥ 0).");
 
-    setEditLoading(true);
+    setEditLoading(true);//sker boutons
     try {
-      const res = await fetch(`${API}/types-mp/${editingType._id}`, {
+      const res = await fetch(`${API}/types-mp/${editingType._id}`, {//edit requette  
         method: "PUT",
         headers: { "Content-Type": "application/json", ...authHeader() },
-        body: JSON.stringify({ nom, seuilMin: Number(editingType.seuilMin), unite: editingType.unite }),
+        body: JSON.stringify({ nom, seuilMin: Number(editingType.seuilMin), unite: editingType.unite }),//donée envoyée backend
       });
+      //erreur
       const data = await res.json();
       if (!res.ok) return setEditError(data.message || "Erreur lors de la modification.");
+      //succès
+      //parcourir le tableau et remplacer juste le modifier 
       setCustomTypes((prev) => prev.map((t) => t._id === editingType._id ? data.type : t));
       setEditingType(null);
       setEditError("");
     } catch {
       setEditError("Erreur réseau.");
     } finally {
-      setEditLoading(false);
+      setEditLoading(false);//hell bouton
     }
   };
-
+//delete type
   const confirmDeleteType = async () => {
-    const { _id, nom } = confirmDelete;
+    const { _id } = confirmDelete;
     try {
       await fetch(`${API}/types-mp/${_id}`, {
         method: "DELETE",
         headers: authHeader(),
       });
+      //sucées
       setCustomTypes((prev) => prev.filter((t) => t._id !== _id));
+      //reset le select 
       if (form.typeMPId === _id) setForm((f) => ({ ...f, typeMPId: "", unite: "kg" }));
     } catch {
       // silencieux
@@ -127,14 +135,15 @@ export default function MatierePremiere() {
     }
   };
 
-  /* ── Formulaire MP ── */
+  //f3 : Gérer le formulaire de matière première
+    //changement des champs de from
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === "type") {
-      const selected = customTypes.find((t) => t._id === value);
-      setForm({ ...form, typeMPId: value, unite: selected ? selected.unite : form.unite });
+    if (name === "type") {//nom nfs type grace au dropdown
+      const selected = customTypes.find((t) => t._id === value);//tlwej ale les donnée lkol te3 type selectione
+      setForm({ ...form, typeMPId: value, unite: selected ? selected.unite : form.unite });//stock id et remplir unité automatiquement
     } else {
-      setForm({ ...form, [name]: value });
+      setForm({ ...form, [name]: value });//user tape n'importe quelle valeur 
     }
     setError("");
   };
@@ -154,7 +163,7 @@ export default function MatierePremiere() {
       const res = await fetch(`${API}/matieres-premieres`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeader() },
-        body: JSON.stringify({
+        body: JSON.stringify({//donnée envoyée backend pour enregistrer mp 
           typeMP: form.typeMPId,
           quantite: Number(form.quantite),
           prixUnitaire: Number(form.prixUnitaire),
@@ -167,7 +176,7 @@ export default function MatierePremiere() {
 
       setSuccess(true);
       setForm({ typeMPId: "", quantite: "", unite: "kg", prixUnitaire: "", fournisseur: "", dateEntree: today });
-      setTimeout(() => setSuccess(false), 3500);
+      setTimeout(() => setSuccess(false), 3500);//message de succès pendant 3.5s
     } catch (err) {
       setError(err.message);
     } finally {
@@ -466,9 +475,6 @@ export default function MatierePremiere() {
                 placeholder="Nom du fournisseur"
               />
             </div>
-
-            {/* Date d'entrée automatique = date système */}
-            <input type="hidden" name="dateEntree" value={form.dateEntree} />
 
             <button type="submit" className="mp-submit-btn" disabled={loading}>
               {loading ? "Enregistrement..." : "Enregistrer la matière première"}

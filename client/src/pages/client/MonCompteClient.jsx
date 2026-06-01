@@ -1,37 +1,37 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./MonCompte.css";
-import { API_AUTH, API_COMMANDES, authHeader, getNbArticlesPanier } from "../utils/api";
+import "../manager/MonCompte.css";
+import { API_AUTH, API_COMMANDES, authHeader, getNbArticlesPanier } from "../../utils/api";
 
 export default function MonCompteClient() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const user = JSON.parse(localStorage.getItem("user") || "null");//lit donner de user
   const [nbPanier, setNbPanier] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [showNotifs, setShowNotifs] = useState(false);
 
-  useEffect(() => {
+  useEffect(() => {//nbr de article de panier
     setNbPanier(getNbArticlesPanier());
     if (user?.role === "client") fetchNotifications();
   }, []);
 
   const fetchNotifications = async () => {
-    try {
+    try {//recupérer notif
       const res = await axios.get(`${API_COMMANDES}/mes-notifications`, { headers: authHeader() });
       setNotifications(res.data);
     } catch { /* silencieux */ }
   };
 
   const marquerLue = async (id) => {
-    try {
+    try {//marquage avec id
       await axios.put(`${API_COMMANDES}/mes-notifications/${id}/lue`, {}, { headers: authHeader() });
       setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, lue: true } : n));
     } catch { /* silencieux */ }
   };
 
   const marquerToutesLues = async () => {
-    try {
+    try {//marquge de tous les notif
       await axios.put(`${API_COMMANDES}/mes-notifications/lues`, {}, { headers: authHeader() });
       setNotifications((prev) => prev.map((n) => ({ ...n, lue: true })));
     } catch { /* silencieux */ }
@@ -66,22 +66,24 @@ export default function MonCompteClient() {
     }
 
     try {
-      const res = await axios.put(
+      const res = await axios.put(//verifier oldpassword
         `${API_AUTH}/change-password`,
         { oldPassword, newPassword },
         { headers: authHeader() }
       );
+      //suceess
       setMessage(res.data.message);
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setShowForm(false);
+      //erreur
     } catch (err) {
       setError(err.response?.data?.message || "Erreur lors du changement de mot de passe");
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = () => {//ferme form et vider tous 
     setShowForm(false);
     setOldPassword("");
     setNewPassword("");

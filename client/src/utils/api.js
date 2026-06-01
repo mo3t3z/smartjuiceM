@@ -10,7 +10,7 @@ export const isPastDateTime = (dateStr, heureStr) => {
   dt.setHours(h, min, 0, 0);
   return dt <= new Date();
 };
-
+//vite lit de fichier .env et remplace les variables d'environnement dans le code par leur valeur correspondante. 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export const API_WORKSHOP  = `${BASE_URL}/api/workshop`;
@@ -20,7 +20,7 @@ export const API_AUTH      = `${BASE_URL}/api/auth`;
 export const API_PRODUCTS  = `${BASE_URL}/api/products`;
 export const API_COMMANDES = `${BASE_URL}/api/commandes`;
 export const API_VENTES    = `${BASE_URL}/api/ventes`;
-
+//lit le token sauvgarder dans le navigateur mis lhors de login
 export const getToken = () => localStorage.getItem("token") || "";
 export const authHeader = () => {
   const token = getToken();
@@ -40,6 +40,7 @@ export const getPanier = () => {
 
 // Sauvegarder le panier
 export const savePanier = (panier) => {
+  //convertir le tableau js en string pour pouvoir le stock en local storage
   localStorage.setItem("panier", JSON.stringify(panier));
 };
 
@@ -64,6 +65,6 @@ export const ajouterAuPanier = (produit, quantite = 1) => {
 };
 
 // Nombre d'articles dans le panier
-export const getNbArticlesPanier = () => {
+export const getNbArticlesPanier = () => {//utiiser pour badge te3 cheryoul
   return getPanier().reduce((acc, item) => acc + item.quantite, 0);
 };

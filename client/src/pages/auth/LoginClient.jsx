@@ -2,26 +2,26 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./LoginClient.css";
-import { API_AUTH } from "../utils/api";
+import { API_AUTH } from "../../utils/api";
 
-export default function LoginClient() {
+export default function LoginClient() { 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate  = useNavigate();
-  const location  = useLocation();
+  const location  = useLocation();//récupérer l'url d'où vient l'utilisateur
   const from      = location.state?.from || "/";
-
+//preventdefault: empeche rechargement de la  page lorsque l'utilisateur soumet le formulaire de connexion
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setError("");//effacer message d'erreur précédent
 
     if (!email || !password) {
       setError("Veuillez remplir tous les champs");
       return;
     }
-
+//envoyer request 
     try {
       const res = await axios.post(`${API_AUTH}/login`, {
         email,
@@ -39,7 +39,7 @@ export default function LoginClient() {
       // Sauvegarder le token et les infos utilisateur
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-
+      //essayer de trouver prenom sn nom sn email pour msg de bienvenue
       const prenom = user.prenom || user.nom || user.email;
       navigate(from, { state: { welcome: `Bonjour ${prenom} !` } });
     } catch (err) {

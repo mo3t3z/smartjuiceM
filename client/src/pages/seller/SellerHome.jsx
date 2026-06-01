@@ -1,4 +1,4 @@
-import "./ManagerHome.css";
+import "../manager/ManagerHome.css";
 
 export default function SellerHome() {
   return (

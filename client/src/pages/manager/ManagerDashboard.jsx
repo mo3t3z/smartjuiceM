@@ -7,7 +7,7 @@ import {
 } from "chart.js";
 import { Doughnut, Bar, Line } from "react-chartjs-2";
 import { API_MANAGER as API, authHeader } from "../../utils/api";
-import "../../pages/ManagerHome.css";
+import "./ManagerHome.css";
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Filler);
 

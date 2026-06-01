@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { getPanier, savePanier, getNbArticlesPanier, API_COMMANDES, API_PRODUCTS, authHeader } from "../utils/api";
+import { getPanier, savePanier, getNbArticlesPanier, API_COMMANDES, API_PRODUCTS, authHeader } from "../../utils/api";
 import "./CatalogClient.css";
 
 export default function CatalogClient() {
@@ -17,13 +17,13 @@ export default function CatalogClient() {
   const [notifications, setNotifications] = useState([]);
   const [showNotifs, setShowNotifs] = useState(false);
 
-  useEffect(() => {
+  useEffect(() => {//chargement de composants
     fetchCatalog();
     checkUser();
     const p = getPanier();
     setPanier(p);
     setNbPanier(p.reduce((a, i) => a + i.quantite, 0));
-  }, []);
+  }, []);//[] cad ce code ne s'execute qu'une seule fois au chargement de page
 
   useEffect(() => {
     if (user && user.role === "client") {
@@ -34,13 +34,13 @@ export default function CatalogClient() {
   const fetchNotifications = async () => {
     try {
       const res = await axios.get(`${API_COMMANDES}/mes-notifications`, {
-        headers: authHeader(),
+        headers: authHeader(),//envoyer token pour authentification et identification de user
       });
       setNotifications(res.data);
     } catch { /* silencieux */ }
   };
 
-  const marquerLue = async (id) => {
+  const marquerLue = async (id) => {//id de notif
     try {
       await axios.put(`${API_COMMANDES}/mes-notifications/${id}/lue`, {}, {
         headers: authHeader(),
@@ -53,7 +53,7 @@ export default function CatalogClient() {
     try {
       await axios.put(`${API_COMMANDES}/mes-notifications/lues`, {}, {
         headers: authHeader(),
-      });
+      });//setnotifs parcours tous tab prevu et enregistre copie modifié avec lue=true
       setNotifications((prev) => prev.map((n) => ({ ...n, lue: true })));
     } catch { /* silencieux */ }
   };
@@ -61,19 +61,19 @@ export default function CatalogClient() {
   const nonLues = notifications.filter((n) => !n.lue).length;
 
   const checkUser = () => {
-    const stored = localStorage.getItem("user");
+    const stored = localStorage.getItem("user");//lit user sauvgardé
     if (stored) {
-      const parsed = JSON.parse(stored);
-      if (parsed.role === "client") setUser(parsed);
+      const parsed = JSON.parse(stored);//convertit json en object
+      if (parsed.role === "client") setUser(parsed);//accepte seulment client
     }
   };
-
+  //cas de logout
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
   };
-
+//fetchCatalog: envoyer une requete GET à l'API pour récupérer la liste des produits disponibles
   const fetchCatalog = async () => {
     try {
       const res = await axios.get(`${API_PRODUCTS}/catalog`);
@@ -85,20 +85,20 @@ export default function CatalogClient() {
     }
   };
 
-  // Récupère la quantité d'un produit dans le panier
+  // (affiche nbre de produite f kol carte te3 pdt f catalogue baedkol mise a jour)
   const getQte = (produitId) => {
     const item = panier.find((p) => p.produitId === produitId);
-    return item ? item.quantite : 0;
+    return item ? item.quantite : 0;//condition
   };
 
-  // Synchronise l'état local et localStorage
+  // Synchronise l'état local et localStorage du panier après une modification
   const syncPanier = (newPanier) => {
     savePanier(newPanier);
     setPanier(newPanier);
     setNbPanier(newPanier.reduce((a, i) => a + i.quantite, 0));
   };
 
-  // PB18 — Ajouter au panier (première fois)
+  //  Ajouter au panier (première fois)
   const handleAjouter = (produit) => {
     const newPanier = [...panier, {
       produitId: produit._id,
@@ -106,12 +106,12 @@ export default function CatalogClient() {
       prix: produit.price,
       volume: produit.volume,
       image: produit.image || "",
-      quantite: 1,
+      quantite: 1,//toujours 1 lors de la première ajout au panier, 
     }];
     syncPanier(newPanier);
   };
 
-  // PB18 — Incrémenter la quantité sur la carte
+  // tzid quantité f wost el carte te3 pdt f catalogue 
   const handleIncrement = (produitId) => {
     const newPanier = panier.map((p) =>
       p.produitId === produitId ? { ...p, quantite: p.quantite + 1 } : p
@@ -119,7 +119,7 @@ export default function CatalogClient() {
     syncPanier(newPanier);
   };
 
-  // PB18 — Décrémenter (supprime si quantité = 0)
+   // tn9s quantité f wost el carte te3 pdt f catalogue 
   const handleDecrement = (produitId) => {
     const newPanier = panier
       .map((p) => p.produitId === produitId ? { ...p, quantite: p.quantite - 1 } : p)

@@ -77,7 +77,7 @@ const commandeSchema = new mongoose.Schema(
       default: "",
     },
 
-    // Mode de remise : livraison à domicile ou retrait en boutique
+    // Mode de remise : livraison à domicile ou retrait en atelier
     modeRemise: {
       type: String,
       enum: ["livraison", "retrait"],

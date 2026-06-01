@@ -1,26 +1,28 @@
 import { useState } from 'react';
 import axios from 'axios';
 import './ForgotPassword.css';
-import { API_AUTH } from '../utils/api';
+import { API_AUTH } from '../../utils/api';
 
 export default function ForgotPassword({ source = 'client', backLink = '/login-client' }) {
   const [email, setEmail]     = useState('');
   const [message, setMessage] = useState('');
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
-
+//preventdefault: empeche rechargement de la  page lorsque l'utilisateur soumet le formulaire de connexion
   const handleSubmit = async (e) => {
     e.preventDefault();
+    //si l'utilisateur a eu une erreur et réessaie, on efface l'ancien message
     setMessage('');
     setError('');
     setLoading(true);
+    //envoyer request
     try {
       const response = await axios.post(
         `${API_AUTH}/request-password-reset`,
         { email, source }
       );
-      setMessage(response.data.message);
-      setEmail('');
+      setMessage(response.data.message);//afficher message de succée 
+      setEmail('');//vider champ mail aprés sucées
     } catch (err) {
       setError(
         err.response?.data?.message ||

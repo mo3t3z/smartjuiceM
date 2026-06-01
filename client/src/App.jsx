@@ -1,20 +1,20 @@
 import { Routes, Route } from "react-router-dom";
-import Login from "./pages/Login.jsx";
-import LoginClient from "./pages/LoginClient.jsx";
-import RegisterClient from "./pages/RegisterClient.jsx";
-import ForgotPassword from "./pages/ForgotPassword.jsx";
-import ForgotPasswordStaff from "./pages/ForgotPasswordStaff.jsx";
-import ResetPassword from "./pages/ResetPassword.jsx";
-import ManagerHome from "./pages/ManagerHome.jsx";
+import Login from "./pages/auth/Login.jsx";
+import LoginClient from "./pages/auth/LoginClient.jsx";
+import RegisterClient from "./pages/auth/RegisterClient.jsx";
+import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
+import ForgotPasswordStaff from "./pages/auth/ForgotPasswordStaff.jsx";
+import ResetPassword from "./pages/auth/ResetPassword.jsx";
+import ManagerHome from "./pages/manager/ManagerHome.jsx";
 import ManagerLayout from "./components/ManagerLayout.jsx";
 import WorkshopLayout from "./components/WorkshopLayout.jsx";
 import SellerLayout from "./components/SellerLayout.jsx";
-import SellerHome from "./pages/SellerHome.jsx";
-import WorkshopHome from "./pages/WorkshopHome.jsx";
-import ManageAccounts from "./pages/ManageAccounts.jsx";
-import ManageProducts from "./pages/ManageProducts.jsx";
-import MonCompte from "./pages/MonCompte.jsx";
-import CatalogClient from "./pages/CatalogClient.jsx";
+import SellerHome from "./pages/seller/SellerHome.jsx";
+import WorkshopHome from "./pages/workshop/WorkshopHome.jsx";
+import ManageAccounts from "./pages/manager/ManageAccounts.jsx";
+import ManageProducts from "./pages/manager/ManageProducts.jsx";
+import MonCompte from "./pages/manager/MonCompte.jsx";
+import CatalogClient from "./pages/client/CatalogClient.jsx";
 import ProtectedRoute, { RedirectIfLoggedIn } from "./components/ProtectedRoute.jsx";
 import MatierePremiere from "./pages/workshop/MatierePremiere.jsx";
 import GererRecette from "./pages/workshop/GererRecette.jsx";
@@ -28,7 +28,7 @@ import ManagerStocks from "./pages/manager/ManagerStocks.jsx";
 import ManagerStockMP from "./pages/manager/ManagerStockMP.jsx";
 import ManagerStockPF from "./pages/manager/ManagerStockPF.jsx";
 import ManagerStockBoutique from "./pages/manager/ManagerStockBoutique.jsx";
-import MonCompteClient from "./pages/MonCompteClient.jsx";
+import MonCompteClient from "./pages/client/MonCompteClient.jsx";
 
 // ── Sprint 3 : Gestion des Ventes et Commandes ──────────────────────────────
 import Panier from "./pages/client/Panier.jsx";
@@ -42,13 +42,14 @@ import NouvelleCommandePhysique from "./pages/seller/NouvelleCommandePhysique.js
 import CommandesConfirmees from "./pages/workshop/CommandesConfirmees.jsx";
 import FaqWidget from "./components/FaqWidget.jsx";
 import { useLocation } from "react-router-dom";
-
+//definir les prefix de routes staff pour ne pas afficher faq sur ces routes
 const STAFF_PREFIXES = ["/manager", "/seller", "/workshop", "/login", "/forgot-password", "/reset-password", "/register-client"];
 
 export default function App() {
   const { pathname } = useLocation();
+  //parcourir les prefix de tableau et verifier si url commence par ces prefixe alorss le faq va pas afficher
   const showFaq = !STAFF_PREFIXES.some((p) => pathname.startsWith(p));
-
+  //p cad chaque prefix de tableau 
   return (
     <>
     {showFaq && <FaqWidget />}

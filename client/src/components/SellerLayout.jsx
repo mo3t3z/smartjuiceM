@@ -2,6 +2,7 @@ import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import "./ManagerLayout.css";
 
 export default function SellerLayout() {
+  //Lit l'utilisateur connecté depuis le localStorage pour afficher son email et son initiale dans la sidebar.
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const navigate = useNavigate();
   const { pathname } = useLocation();

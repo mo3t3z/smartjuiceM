@@ -1,13 +1,6 @@
 import express from "express";
-import multer from "multer";
-import {
-  getAllProducts,
-  getCatalog,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  getRecettesDisponibles,
-} from "../controllers/productController.js";
+import multer from "multer";//ajouter multer pour gérer les erreurs d'upload de photo
+import { getAllProducts,getCatalog,createProduct,updateProduct,deleteProduct,getRecettesDisponibles,} from "../controllers/productController.js";
 import { authenticate, isManager } from "../middleware/authMiddleware.js";
 import upload from "../middleware/uploadMiddleware.js";
 

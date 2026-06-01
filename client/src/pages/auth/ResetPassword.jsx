@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './ResetPassword.css';
-import { API_AUTH } from '../utils/api';
+import { API_AUTH } from '../../utils/api';
 
 export default function ResetPassword() {
-  const { token } = useParams();
+  const { token } = useParams();//récupérer token de l'url
   const navigate = useNavigate();
   const [newPassword, setNewPassword]     = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -14,9 +14,10 @@ export default function ResetPassword() {
   const [message, setMessage]             = useState('');
   const [error, setError]                 = useState('');
   const [loading, setLoading]             = useState(false);
-
+ //preventdefault: empeche rechargement de la  page lorsque l'utilisateur soumet le formulaire de connexion
   const handleSubmit = async (e) => {
     e.preventDefault();
+    //effacer message d'erreur précédent
     setMessage('');
     setError('');
 
@@ -30,14 +31,15 @@ export default function ResetPassword() {
     }
 
     setLoading(true);
+    //envoyer request
     try {
       const response = await axios.post(
         `${API_AUTH}/reset-password`,
         { token, newPassword }
       );
-      setMessage(response.data.message);
+      setMessage(response.data.message);//afficher message de succée
       const userRole = response.data.role;
-      setTimeout(() => {
+      setTimeout(() => {//redirection vers la page de connexion après 2 secondes
         navigate(userRole === 'manager' ? '/login' : '/login-client');
       }, 2000);
     } catch (err) {

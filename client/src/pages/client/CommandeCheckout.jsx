@@ -7,7 +7,7 @@ import "./CommandeCheckout.css";
 export default function CommandeCheckout() {
   const navigate  = useNavigate();
   const location  = useLocation();
-  const welcome   = location.state?.welcome || "";
+  const welcome   = location.state?.welcome || "";//message de bonjour baed me tamel login
   const [panier,  setPanier]  = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ texte: "", type: "" });
@@ -19,23 +19,24 @@ export default function CommandeCheckout() {
 
   // Date minimum = aujourd'hui, maximum = dans 3 mois
   const today   = new Date().toISOString().split("T")[0];
-  const maxDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+  const maxDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];//date 3 chhour kodem
 
-  useEffect(() => {
+  useEffect(() => {//ken fmech user wle user msh client hez lel login
     const user = JSON.parse(localStorage.getItem("user") || "null");
     if (!user || user.role !== "client") {
       navigate("/login-client");
       return;
     }
-    const p = getPanier();
-    if (p.length === 0) {
+    const p = getPanier();//recuperation de panier
+    if (p.length === 0) {//ykhalik me tetade lel checkoutw el panier m3eby
       navigate("/client/panier");
       return;
     }
-    setPanier(p);
+    setPanier(p);//update state of panier
   }, []);
-
+  //parcour tous les articl de tableau et acccumulate prix*qte
   const prixTotal = () => panier.reduce((a, i) => a + i.prix * i.quantite, 0);
+  // : -->houma el else
   const remise    = () => prixTotal() > SEUIL_REMISE ? prixTotal() * TAUX_REMISE : 0;
   const frais     = () => mode === "livraison" ? FRAIS_LIVRAISON : 0;
   const netAPayer = () => (prixTotal() - remise() + frais()).toFixed(3);
@@ -69,12 +70,12 @@ export default function CommandeCheckout() {
     setMessage({ texte: "", type: "" });
 
     try {
-      const produits = panier.map((item) => ({
+      const produits = panier.map((item) => ({//transforme le pdt en tableau simplifier
         produitId: item.produitId,
         quantite:  item.quantite,
       }));
 
-      await axios.post(
+      await axios.post(//envoie de commande au backend
         API_COMMANDES,
         {
           produits,
@@ -89,6 +90,7 @@ export default function CommandeCheckout() {
       );
 
       savePanier([]);
+      //vide panier et affiche un msg de succées
       setMessage({ texte: "Commande passée avec succès !", type: "succes" });
       setTimeout(() => navigate("/client/mes-commandes"), 2000);
     } catch (err) {
