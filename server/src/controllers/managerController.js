@@ -190,7 +190,7 @@ export const getDashboardKPIs = async (req, res) => {
         else                         mapP[k] = (mapP[k] ?? 0) + count;
       });
       let y = anneeDebut, m = 1;
-      const yFin = now.getFullYear(), mFin = now.getMonth() + 1;
+      const yFin = now.getFullYear(), mFin = now.getMonth() + 1;//variable de parcour 
       while (y < yFin || (y === yFin && m <= mFin)) {
         const k = `${y}-${m}`;
         commandesParDate.push({ label: `${MOIS_FR[m - 1]} ${y}`, physiqueCount: mapP[k] ?? 0, enLigneCount: mapE[k] ?? 0 });
